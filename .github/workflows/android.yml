@@ -67,7 +67,8 @@ jobs:
             dong-latest.aab
 
       - name: Clean previous release assets
-        env: { GH_TOKEN: ${{ github.token }} }
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           for a in $(gh release view apk-latest --json assets --jq '.assets[].name' 2>/dev/null); do gh release delete-asset apk-latest "$a" -y || true; done
       - name: Publish "latest" release with APK
