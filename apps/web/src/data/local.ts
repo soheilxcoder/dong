@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie';
 import type { Activity, ActivityType, Expense, Group, Membership, Reminder, Settlement, User } from '@dong/core';
 import { computeNetBalances, formatToman, normalizeCardNumber } from '@dong/core';
 import { AppError, type DataAdapter, type ExpenseInput, type GroupDetail, type RegisterInput } from './adapter';
+import { decodeSnapshot, encodeSnapshot, type Snapshot } from './snapshot';
 
 interface LocalUser extends User { passwordHash: string; securityQuestion?: string | null; securityAnswerHash?: string | null; isLocalOnly?: boolean }
 
@@ -307,6 +308,58 @@ export class LocalAdapter implements DataAdapter {
     this.emit();
   }
   async reminders(groupId: string) { return db.reminders.where('groupId').equals(groupId).toArray(); }
+
+  // ---------- serverless sharing ----------
+  async exportSnapshot(groupId: string) {
+    await this.requireUser();
+    const g = await db.groups.get(groupId);
+    if (!g) throw new AppError('NOT_FOUND', 'گروه پیدا نشد');
+    const d = await this.detail(g);
+    const activity = (await db.activity.where('groupId').equals(groupId).toArray()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return encodeSnapshot({ v: 1, group: g, members: d.members, expenses: d.expenses, settlements: d.settlements, activity });
+  }
+  async importSnapshot(code: string) {
+    const snap = await decodeSnapshot(code);
+    if (!snap) return null;
+    return { group: snap.group, memberCount: snap.members.length, snapshot: snap };
+  }
+  /** Merge snapshot into local DB (upsert by id; never deletes) and add me as a member. */
+  async joinSnapshot(code: string) {
+    const me = await this.requireUser();
+    const snap = await decodeSnapshot(code);
+    if (!snap) throw new AppError('NOT_FOUND', 'لینک دعوت نامعتبر است');
+    await this.mergeSnapshot(snap, me);
+    return (await db.groups.get(snap.group.id))!;
+  }
+  private async mergeSnapshot(snap: Snapshot, me: LocalUser) {
+    const keepImg = <T extends { receiptImageUrl?: string | null }>(incoming: T, existing?: T | null): T =>
+      incoming.receiptImageUrl === '__omitted__' ? { ...incoming, receiptImageUrl: existing?.receiptImageUrl ?? null } : incoming;
+    await db.transaction('rw', [db.users, db.groups, db.memberships, db.expenses, db.settlements, db.activity], async () => {
+      const existingG = await db.groups.get(snap.group.id);
+      await db.groups.put({ ...snap.group, coverImageUrl: existingG?.coverImageUrl ?? null });
+      // users: create placeholders for members I don't have; if a member's username equals mine, map to me
+      for (const m of snap.members) {
+        const isMe = m.userId === me.id || (m.user.username === me.username && !m.user.username.startsWith('local_') && !m.user.username.startsWith('demo_'));
+        const uid = isMe ? me.id : m.userId;
+        if (!isMe) {
+          const ex = await db.users.get(uid);
+          if (!ex) await db.users.add({ ...m.user, id: uid, username: m.user.username, passwordHash: '', isLocalOnly: true, avatarUrl: null });
+          else await db.users.update(uid, { fullName: m.user.fullName, cardNumber: m.user.cardNumber ?? ex.cardNumber ?? null });
+        }
+        const exM = await db.memberships.where('[groupId+userId]').equals([snap.group.id, uid]).first();
+        if (!exM) await db.memberships.add({ ...m, id: m.id, userId: uid });
+      }
+      const mine = await db.memberships.where('[groupId+userId]').equals([snap.group.id, me.id]).first();
+      if (!mine) {
+        await db.memberships.add({ id: uid(), groupId: snap.group.id, userId: me.id, role: 'member', joinedAt: now() });
+        await db.activity.add({ id: uid(), groupId: snap.group.id, actorId: me.id, type: 'member_joined', description: `${me.fullName} به گروه پیوست`, createdAt: now() });
+      }
+      for (const e of snap.expenses) { const ex = await db.expenses.get(e.id); if (!ex || (e.updatedAt ?? e.createdAt) >= (ex.updatedAt ?? ex.createdAt)) await db.expenses.put(keepImg(e, ex)); }
+      for (const st of snap.settlements) { const ex = await db.settlements.get(st.id); if (!ex || ex.status === 'pending_confirmation') await db.settlements.put(keepImg(st, ex)); }
+      for (const a of snap.activity) if (!(await db.activity.get(a.id))) await db.activity.add(a);
+    });
+    this.emit();
+  }
 
   // ---------- demo ----------
   async loadDemo() {

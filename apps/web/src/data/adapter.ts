@@ -53,6 +53,10 @@ export interface DataAdapter {
   activity(groupId: string): Promise<Activity[]>;
   sendReminder(groupId: string, targetUserId: string, amount: number): Promise<void>;
   reminders(groupId: string): Promise<Reminder[]>;
+  // serverless sharing (local adapter)
+  exportSnapshot?(groupId: string): Promise<string>;
+  importSnapshot?(code: string): Promise<{ group: Group; memberCount: number; snapshot: unknown } | null>;
+  joinSnapshot?(code: string): Promise<Group>;
   // demo
   loadDemo?(): Promise<void>;
   /** subscribe to data changes */

@@ -52,7 +52,7 @@ export function HomePage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to="/profile"><Avatar name={me.fullName} src={me.avatarUrl} size={44} /></Link>
-            <div><p className="text-white/70 text-xs">سلام 👋</p><p className="text-white font-extrabold">{me.fullName}</p></div>
+            <p className="text-white font-extrabold">{me.fullName}</p>
           </div>
           {pending > 0 && (
             <Link to="/activity" className="relative p-2.5 rounded-full bg-white/10 text-white"><Bell size={20} /><span className="absolute -top-0.5 -left-0.5 h-5 min-w-5 px-1 rounded-full bg-amber2 text-[#1E1B18] text-[10px] font-black grid place-items-center">{formatAmount(pending)}</span></Link>

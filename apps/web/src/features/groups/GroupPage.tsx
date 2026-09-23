@@ -160,6 +160,7 @@ export function GroupPage() {
         <div className="flex flex-col gap-2 pb-2">
           <button className="btn-ghost justify-start" onClick={() => { setMenu(false); nav(`/g/${id}/invite`); }}><UserPlus size={18} /> دعوت اعضا</button>
           <button className="btn-ghost justify-start" onClick={shareSummary}><Share2 size={18} /> اشتراک‌گذاری خلاصه تسویه</button>
+          {adapter.kind === 'local' && <button className="btn-ghost justify-start" onClick={async () => { const s = await adapter.exportSnapshot!(g.group.id); const { inviteUrl } = await import('./InvitePage'); await shareText('به‌روزرسانی گروه دُنگ', `آخرین وضعیت گروه «${g.group.name}» — این لینک رو باز کن تا هزینه‌ها همگام بشه:`, inviteUrl(g.group.inviteToken, s)); setMenu(false); }}><Share2 size={18} /> ارسال لینک همگام‌سازی به اعضا</button>}
           <button className="btn-ghost justify-start text-neg" onClick={async () => { try { await adapter.leaveGroup(g.group.id); toast('از گروه خارج شدی'); nav('/'); } catch (e) { toast((e as Error).message, 'err'); } }}><LogOut size={18} /> خروج از گروه</button>
         </div>
       </Sheet>

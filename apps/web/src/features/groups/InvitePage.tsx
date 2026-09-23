@@ -1,14 +1,14 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { Share2, RefreshCw, Link as LinkIcon, UserPlus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '@/app/store';
 import { CopyButton, PageHeader, Sheet } from '@/design-system/ui';
 import { shareText } from '@/lib/native';
 
-export function inviteUrl(token: string) {
+export function inviteUrl(token: string, snapshot?: string) {
   const base = import.meta.env.VITE_PUBLIC_URL || `${location.origin}${location.pathname}`;
-  return `${base.replace(/\/?$/, '/')}#/join/${token}`;
+  return `${base.replace(/\/?$/, '/')}#/join/${token}${snapshot ? `?s=${snapshot}` : ''}`;
 }
 
 export function InvitePage() {
@@ -17,14 +17,16 @@ export function InvitePage() {
   const nav = useNavigate();
   const g = groups.find((x) => x.group.id === id);
   const [addOpen, setAddOpen] = useState(false); const [name, setName] = useState('');
+  const [snap, setSnap] = useState<string>('');
+  useEffect(() => { if (g && adapter.kind === 'local') adapter.exportSnapshot?.(g.group.id).then(setSnap); }, [g, adapter]);
   if (!g) return null;
-  const url = inviteUrl(g.group.inviteToken);
+  const url = inviteUrl(g.group.inviteToken, adapter.kind === 'local' ? snap : undefined);
   return (
     <div className="min-h-dvh mx-auto max-w-lg">
       <PageHeader title="دعوت به گروه" right={<button onClick={() => nav(`/g/${id}`, { replace: true })} className="text-brand font-bold text-sm px-3">رفتن به گروه</button>} />
       <div className="px-5 pt-4 flex flex-col items-center gap-5">
-        <p className="text-ink-2 text-sm text-center leading-7">دوستانت رو با اسکن QR یا لینک به «{g.group.name}» دعوت کن.</p>
-        <div className="bg-white p-5 rounded-[28px] shadow-xl"><QRCodeSVG value={url} size={220} level="M" fgColor="#0e3b52" /></div>
+        <p className="text-ink-2 text-sm text-center leading-7">دوستانت رو با اسکن QR یا لینک به «{g.group.name}» دعوت کن.{adapter.kind === 'local' && ' اطلاعات گروه داخل خود لینک است؛ هر بار لینک جدید بفرستی، آخرین هزینه‌ها هم منتقل می‌شود.'}</p>
+        <div className="bg-white p-5 rounded-[28px] shadow-xl"><QRCodeSVG value={url} size={220} level="L" fgColor="#0e3b52" /></div>
         <div className="card w-full p-3 flex items-center gap-2">
           <LinkIcon size={16} className="text-ink-2 shrink-0" />
           <span className="text-xs text-ink-2 truncate flex-1" dir="ltr">{url}</span>
