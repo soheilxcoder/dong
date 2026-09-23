@@ -6,9 +6,9 @@ import { ApiAdapter } from '@/data/api';
 
 export type Theme = 'dark' | 'light' | 'system';
 
-interface Settings { theme: Theme; sound: boolean; notifications: boolean; onboarded: boolean; apiUrl: string }
+interface Settings { theme: Theme; sound: boolean; notifications: boolean; onboarded: boolean; apiUrl: string; tours: Record<string, boolean> }
 const loadSettings = (): Settings => ({
-  theme: 'light', sound: true, notifications: true, onboarded: false, apiUrl: '',
+  theme: 'light', sound: true, notifications: true, onboarded: false, apiUrl: '', tours: {},
   ...JSON.parse(localStorage.getItem('dong.settings') ?? '{}'),
 });
 
@@ -21,6 +21,7 @@ interface State {
   settings: Settings;
   toasts: Toast[];
   celebrate: number; // increments to trigger confetti
+  syncStatus: 'off' | 'connecting' | 'online' | 'error';
   init(): Promise<void>;
   refresh(): Promise<void>;
   setUser(u: User | null): void;
@@ -39,8 +40,10 @@ export const useStore = create<State>((set, get) => ({
   settings: initialSettings,
   toasts: [],
   celebrate: 0,
+  syncStatus: 'off',
   async init() {
     const { adapter } = get();
+    (adapter as { onSyncStatus?: (cb: (s: State['syncStatus']) => void) => void }).onSyncStatus?.((syncStatus) => set({ syncStatus }));
     applyTheme(get().settings.theme);
     const u = await adapter.me();
     set({ user: u });

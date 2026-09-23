@@ -8,6 +8,7 @@ import { AmountText, Avatar, AvatarStack, BalanceChip, Empty } from '@/design-sy
 import { Mascot } from '@/design-system/Mascot';
 import type { GroupDetail } from '@/data/adapter';
 import { fmtAgo } from '@/lib/date';
+import { Tour } from '@/design-system/Tour';
 
 export function useGroupSummary(g: GroupDetail, me: string) {
   return useMemo(() => {
@@ -61,7 +62,7 @@ export function HomePage() {
       </div>
 
       {/* Total balance glass card */}
-      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mx-5 -mt-12 glass rounded-card p-5 relative overflow-hidden" style={{ background: 'rgb(var(--c-surface) / 0.75)' }}>
+      <motion.div data-tour="balance" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mx-5 -mt-12 glass rounded-card p-5 relative overflow-hidden" style={{ background: 'rgb(var(--c-surface) / 0.75)' }}>
         <p className="text-ink-2 text-sm font-semibold">وضعیت کلی شما</p>
         <div className="mt-1 flex items-baseline gap-2">
           <AmountText value={Math.abs(total)} className={`text-4xl font-black ${total > 0 ? 'text-pos' : total < 0 ? 'text-neg' : 'text-ink'}`} suffix="" />
@@ -86,7 +87,7 @@ export function HomePage() {
       </div>
 
       <div className="px-5 mt-3">
-        <button onClick={() => nav('/join/paste')} className="w-full card p-3.5 flex items-center gap-3 text-right">
+        <button data-tour="join" onClick={() => nav('/join/paste')} className="w-full card p-3.5 flex items-center gap-3 text-right">
           <span className="h-10 w-10 rounded-2xl bg-brand/15 text-brand grid place-items-center"><Link2 size={18} /></span>
           <div className="flex-1"><p className="text-sm font-bold">لینک دعوت داری؟</p><p className="text-xs text-ink-2">لینک یا کد گروه را بچسبان و عضو شو</p></div>
         </button>
@@ -120,8 +121,14 @@ export function HomePage() {
         </div>
       )}
 
+      <Tour id="home" steps={[
+        { title: 'به دُنگ خوش اومدی!', text: 'اینجا خلاصه کل حساب‌کتابت رو می‌بینی: چقدر باید بگیری و چقدر باید بدی.', target: 'balance', mood: 'happy' },
+        { title: 'گروه بساز', text: 'برای هر سفر یا دورهمی یک گروه بساز و دوستات رو با لینک یا QR دعوت کن.', target: 'fab' },
+        { title: 'دعوت شدی؟', text: 'اگر کسی لینک دعوت فرستاده، همین‌جا بچسبون یا مستقیم لینک رو باز کن تا عضو گروه بشی.', target: 'join' },
+        { title: 'همه‌چیز خودکار همگام می‌شه', text: 'وقتی کسی هزینه‌ای ثبت کنه، روی گوشی همه اعضا ظاهر می‌شه — بدون ثبت‌نام اضافه، رمزنگاری‌شده.', mood: 'happy' },
+      ]} />
       {/* FAB */}
-      <motion.button whileTap={{ scale: 0.92 }} onClick={() => nav('/new-group')} aria-label="گروه جدید"
+      <motion.button data-tour="fab" whileTap={{ scale: 0.92 }} onClick={() => nav('/new-group')} aria-label="گروه جدید"
         className="fixed left-5 bottom-[calc(var(--safe-bottom)+92px)] z-40 h-16 w-16 rounded-full grid place-items-center text-white shadow-2xl"
         style={{ background: 'var(--grad-celebrate)' }}>
         <Plus size={30} strokeWidth={2.5} />

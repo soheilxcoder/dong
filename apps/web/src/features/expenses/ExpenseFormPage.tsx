@@ -9,6 +9,7 @@ import { formatAmount, parseAmount, splitEqual, validateCustomSplit, toPersianDi
 import { useStore } from '@/app/store';
 import { Avatar, Field, PageHeader, Segmented } from '@/design-system/ui';
 import { fileToDataUrl, haptic } from '@/lib/native';
+import { Tour } from '@/design-system/Tour';
 
 export function ExpenseFormPage() {
   const { id = '', expenseId } = useParams();
@@ -86,7 +87,7 @@ export function ExpenseFormPage() {
           </Field>
         </div>
 
-        <Field label={`کیا بودن؟ (${formatAmount(selected.length)} نفر)`}>
+        <div data-tour="who"><Field label={`کیا بودن؟ (${formatAmount(selected.length)} نفر)`}>
           <div className="flex gap-3 overflow-x-auto no-scrollbar py-1 -mx-1 px-1">
             {g.members.map((m) => {
               const on = selected.includes(m.userId);
@@ -106,14 +107,14 @@ export function ExpenseFormPage() {
             <button type="button" onClick={() => setSelected(g.members.map((m) => m.userId))} className="text-brand">همه</button>·
             <button type="button" onClick={() => setSelected([paidBy])} className="text-brand">فقط پرداخت‌کننده</button>
           </div>
-        </Field>
+        </Field></div>
 
         <Field label="روش تقسیم">
           <Segmented value={split} onChange={setSplit} options={[{ value: 'equal', label: 'مساوی' }, { value: 'custom', label: 'دلخواه' }, { value: 'by_payer', label: 'حسابگر وارد می‌کند' }]} />
         </Field>
 
         {/* live preview */}
-        <div className="card p-4">
+        <div className="card p-4" data-tour="preview">
           <div className="flex items-center justify-between mb-3">
             <p className="font-extrabold text-sm">پیش‌نمایش سهم هر نفر</p>
             {split !== 'equal' && <span className={`chip ${check.ok ? 'bg-pos/15 text-pos' : 'bg-neg/15 text-neg'}`}>{check.ok ? 'جمع درست است' : check.diff > 0 ? `${formatAmount(check.diff)} مانده` : `${formatAmount(-check.diff)} اضافه`}</span>}
@@ -143,6 +144,10 @@ export function ExpenseFormPage() {
         <Field label="یادداشت (اختیاری)"><textarea className="input py-3 min-h-20" value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
       </div>
 
+      {!editing && <Tour id="expense" delay={600} steps={[
+        { title: 'کیا بودن؟', text: 'فقط کسایی رو انتخاب کن که توی این خرج شریک بودن. لازم نیست همه اعضای گروه باشن.', target: 'who' },
+        { title: 'پیش‌نمایش زنده', text: 'سهم هر نفر همین‌جا لحظه‌ای حساب می‌شه. با «دلخواه» می‌تونی سهم هر کس رو دستی وارد کنی.', target: 'preview', mood: 'happy' },
+      ]} />}
       <div className="fixed bottom-0 inset-x-0 z-40 mx-auto max-w-lg px-5 pb-[calc(var(--safe-bottom)+16px)] pt-3" style={{ background: 'linear-gradient(to top, rgb(var(--c-bg)) 70%, transparent)' }}>
         {err && <motion.p key={err} initial={{ x: -6 }} animate={{ x: 0 }} className="animate-shake text-neg text-xs font-bold mb-2 text-center">{err}</motion.p>}
         <button onClick={submit} disabled={busy} className="btn-primary w-full text-base">{editing ? 'ذخیره تغییرات' : 'ثبت هزینه'}{total > 0 && <span className="num opacity-80">· {formatAmount(total)}</span>}</button>

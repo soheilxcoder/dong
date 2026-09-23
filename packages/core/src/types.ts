@@ -13,6 +13,9 @@ export interface User {
   cardNumber?: string | null; // 16 digits, no dashes
   cardHolderName?: string | null;
   createdAt: string;
+  updatedAt?: string;
+  /** member without an account (added by name on someone's device) */
+  isLocalOnly?: boolean;
 }
 
 export interface Group {
@@ -22,7 +25,10 @@ export interface Group {
   coverImageUrl?: string | null;
   createdBy: ID;
   inviteToken: string;
+  /** shared secret for serverless (relay) sync; present in invite link */
+  syncKey?: string | null;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Membership {
@@ -31,6 +37,8 @@ export interface Membership {
   userId: ID;
   role: Role;
   joinedAt: string;
+  updatedAt?: string;
+  removedAt?: string | null;
 }
 
 export interface ExpenseParticipant {
@@ -67,6 +75,7 @@ export interface Settlement {
   rejectReason?: string | null;
   submittedAt: string;
   confirmedAt?: string | null;
+  updatedAt?: string;
 }
 
 export interface Reminder {

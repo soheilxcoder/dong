@@ -9,6 +9,10 @@ export interface Snapshot {
   expenses: Expense[];
   settlements: Settlement[];
   activity: Activity[];
+  /** ids of deleted expenses / settlements (tombstones) */
+  deleted?: { id: string; at: string; kind: 'expense' | 'settlement' }[];
+  /** for invite links: only a slim copy; relay sync sends `full` */
+  full?: boolean;
 }
 
 const b64url = (bytes: Uint8Array) => {
@@ -30,7 +34,8 @@ export function encodeSnapshot(s: Snapshot): string {
     members: s.members.map((m) => ({ ...m, user: { ...m.user, avatarUrl: null } })),
     expenses: s.expenses.map((e) => ({ ...e, receiptImageUrl: e.receiptImageUrl ? '__omitted__' : null })),
     settlements: s.settlements.map((x) => ({ ...x, receiptImageUrl: x.receiptImageUrl ? '__omitted__' : null })),
-    activity: s.activity.slice(0, 15),
+    activity: s.activity.slice(0, 6),
+    deleted: s.deleted?.slice(-50),
   };
   return 'f' + b64url(deflateSync(strToU8(JSON.stringify(slim)), { level: 9 }));
 }

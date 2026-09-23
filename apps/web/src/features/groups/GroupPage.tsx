@@ -11,13 +11,15 @@ import { SettleTab } from '@/features/settlements/SettleTab';
 import { fmtDate } from '@/lib/date';
 import { shareText } from '@/lib/native';
 import { formatCardNumber } from '@dong/core';
+import { Tour } from '@/design-system/Tour';
+import { Wifi, WifiOff, Loader2 } from 'lucide-react';
 
 type Tab = 'expenses' | 'settle' | 'members' | 'activity';
 
 export function GroupPage() {
   const { id = '' } = useParams();
   const nav = useNavigate();
-  const { user, groups, adapter, toast } = useStore();
+  const { user, groups, adapter, toast, syncStatus } = useStore();
   const g = groups.find((x) => x.group.id === id);
   const [tab, setTab] = useState<Tab>('expenses');
   const [menu, setMenu] = useState(false);
@@ -60,7 +62,13 @@ export function GroupPage() {
         <div className="relative h-full flex flex-col justify-between p-4" style={{ paddingTop: 'calc(var(--safe-top) + 12px)' }}>
           <div className="flex items-center justify-between text-white">
             <button onClick={() => nav('/')} className="p-2 rounded-full bg-white/15" aria-label="بازگشت"><ChevronRight size={22} /></button>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {g.group.syncKey && (
+                <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-white/15" title="همگام‌سازی">
+                  {syncStatus === 'online' ? <Wifi size={14} className="text-pos" /> : syncStatus === 'error' ? <WifiOff size={14} className="text-neg" /> : <Loader2 size={14} className="animate-spin" />}
+                  {syncStatus === 'online' ? 'همگام' : syncStatus === 'error' ? 'آفلاین' : 'اتصال…'}
+                </span>
+              )}
               <button onClick={shareSummary} className="p-2 rounded-full bg-white/15" aria-label="اشتراک خلاصه"><Share2 size={20} /></button>
               <button onClick={() => setMenu(true)} className="p-2 rounded-full bg-white/15" aria-label="منو"><MoreVertical size={20} /></button>
             </div>
@@ -68,7 +76,7 @@ export function GroupPage() {
           <div className="text-white">
             <h1 className="text-2xl font-black drop-shadow">{g.group.name}</h1>
             <div className="flex items-center justify-between mt-2">
-              <button onClick={() => nav(`/g/${id}/invite`)}><AvatarStack names={g.members.map((m) => ({ name: m.user.fullName, src: m.user.avatarUrl }))} size={30} /></button>
+              <button data-tour="avatars" onClick={() => nav(`/g/${id}/invite`)}><AvatarStack names={g.members.map((m) => ({ name: m.user.fullName, src: m.user.avatarUrl }))} size={30} /></button>
               <BalanceChip value={calc.mine} />
             </div>
           </div>
@@ -79,7 +87,7 @@ export function GroupPage() {
       <div className="sticky top-0 z-20 px-4 pt-2 pb-1" style={{ background: 'rgb(var(--c-bg) / 0.85)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', paddingTop: 'calc(var(--safe-top) + 8px)' }}>
         <div className="flex gap-1 border-b border-line/10 relative">
           {tabs.map((t) => (
-            <button key={t.v} onClick={() => setTab(t.v)} className={`relative flex-1 py-2.5 text-sm font-bold ${tab === t.v ? 'text-brand' : 'text-ink-2'}`}>
+            <button key={t.v} data-tour={`tab-${t.v}`} onClick={() => setTab(t.v)} className={`relative flex-1 py-2.5 text-sm font-bold ${tab === t.v ? 'text-brand' : 'text-ink-2'}`}>
               {t.l}{t.badge ? <span className="mr-1 inline-grid place-items-center h-4 min-w-4 px-1 rounded-full bg-amber2 text-[#1E1B18] text-[10px]">{formatAmount(t.badge)}</span> : null}
               {tab === t.v && <motion.span layoutId="tab-ul" className="absolute bottom-0 inset-x-3 h-0.5 rounded-full bg-brand" />}
             </button>
@@ -150,7 +158,13 @@ export function GroupPage() {
       </div>
 
       {/* FAB */}
-      <motion.button whileTap={{ scale: 0.92 }} onClick={() => nav(`/g/${id}/expense/new`)}
+      <Tour id="group" delay={700} steps={[
+        { title: 'صفحه گروه', text: 'با زدن روی آواتارها، اعضا رو دعوت یا اضافه کن. هر کسی با لینک دعوت عضو شه، خودکار همگام می‌شه.', target: 'avatars' },
+        { title: 'ثبت هزینه', text: 'هر بار کسی حساب کرد، همین‌جا ثبتش کن و فقط کسایی که بودن رو انتخاب کن.', target: 'fab-expense', mood: 'happy' },
+        { title: 'تسویه‌حساب', text: 'اینجا دُنگ می‌گه دقیقاً کی به کی چقدر بده — با کمترین تعداد تراکنش. شماره کارت هم همون‌جا قابل کپیه.', target: 'tab-settle' },
+        { title: 'شفافیت کامل', text: 'همه اتفاقات گروه (هزینه، ویرایش، پرداخت، تأیید) در تب فعالیت ثبت می‌شه تا هیچ‌کس گیج نشه.', target: 'tab-activity' },
+      ]} />
+      <motion.button data-tour="fab-expense" whileTap={{ scale: 0.92 }} onClick={() => nav(`/g/${id}/expense/new`)}
         className="fixed left-5 bottom-[calc(var(--safe-bottom)+24px)] z-40 h-14 pl-5 pr-4 rounded-full flex items-center gap-2 text-white font-extrabold shadow-2xl" style={{ background: 'var(--grad-brand)' }}>
         <Plus size={24} strokeWidth={2.5} /> ثبت هزینه
       </motion.button>

@@ -8,6 +8,7 @@ import { Avatar, CopyButton, Empty, Sheet, DrawCheck } from '@/design-system/ui'
 import type { GroupDetail } from '@/data/adapter';
 import { ding, fileToDataUrl, haptic, notify, rotateDataUrl } from '@/lib/native';
 import { fmtDateTime } from '@/lib/date';
+import { Tour } from '@/design-system/Tour';
 
 export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances: Balance[]; transfers: Transfer[] }) {
   const { user, adapter, toast, fireCelebration, settings } = useStore();
@@ -75,7 +76,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
               const iOwe = t.from === me.id; const iGet = t.to === me.id;
               const bank = cred?.cardNumber ? detectBank(cred.cardNumber) : null;
               return (
-                <motion.div key={`${t.from}-${t.to}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                <motion.div key={`${t.from}-${t.to}`} data-tour={i === 0 ? 'transfer' : undefined} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                   className={`card p-4 ${iOwe ? 'ring-1 ring-neg/40' : iGet ? 'ring-1 ring-pos/40' : ''}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex flex-col items-center gap-1 w-16"><Avatar name={name(t.from)} size={44} /><span className="text-xs font-bold truncate w-full text-center">{name(t.from)}</span></div>
@@ -141,6 +142,9 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
         </section>
       )}
 
+      {transfers.length > 0 && <Tour id="settle" delay={500} steps={[
+        { title: 'کی به کی چقدر بده', text: 'هر کارت یک پرداخت لازم رو نشون می‌ده. بدهکار «ثبت پرداخت» می‌زنه و رسید می‌ذاره؛ طلبکار تأیید می‌کنه و همه‌چیز صاف می‌شه.', target: 'transfer', mood: 'happy' },
+      ]} />}
       <PaySheet t={pay} onClose={() => setPay(null)} g={g} />
 
       <Sheet open={!!reject} onClose={() => setReject(null)} title="رد پرداخت">

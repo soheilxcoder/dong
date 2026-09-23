@@ -68,7 +68,8 @@ export function ProfilePage() {
           </div>
           <Row icon={settings.sound ? <Volume2 size={18} /> : <VolumeX size={18} />} label="صدای «دینگ» تأیید" right={<Toggle on={settings.sound} onChange={(v) => setSettings({ sound: v })} />} />
           <Row icon={<KeyRound size={18} />} label="تغییر رمز عبور" onClick={() => setPwOpen(true)} />
-          <Row icon={<Server size={18} />} label="اتصال به سرور (حالت گروهی آنلاین)" sub={settings.apiUrl || 'غیرفعال — داده‌ها روی همین دستگاه'} onClick={() => setApiOpen(true)} />
+          <Row icon={<Server size={18} />} label="همگام‌سازی" sub={settings.apiUrl ? `سرور اختصاصی: ${settings.apiUrl}` : 'خودکار و رمزنگاری‌شده (بدون نیاز به سرور)'} onClick={() => setApiOpen(true)} />
+          <Row icon={<Info size={18} />} label="نمایش دوباره راهنماها" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
           <Row icon={<Info size={18} />} label="درباره دُنگ" sub="نسخه ۱.۰.۰ — حساب‌کتاب دنگی، بدون دعوا" />
         </div>
 

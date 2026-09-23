@@ -13,5 +13,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "api": "npm run dev -w @dong/api",
     "build:pages": "VITE_BASE=/dong/ VITE_PUBLIC_URL=https://soheilxcoder.github.io/dong/ npm run build -w @dong/web && rm -rf docs && cp -r apps/web/dist docs && cp docs/index.html docs/404.html && touch docs/.nojekyll"
+  },
+  "devDependencies": {
+    "ws": "^8.21.3"
   }
 }
