@@ -8,7 +8,7 @@ export type Theme = 'dark' | 'light' | 'system';
 
 interface Settings { theme: Theme; sound: boolean; notifications: boolean; onboarded: boolean; apiUrl: string }
 const loadSettings = (): Settings => ({
-  theme: 'system', sound: true, notifications: true, onboarded: false, apiUrl: '',
+  theme: 'light', sound: true, notifications: true, onboarded: false, apiUrl: '',
   ...JSON.parse(localStorage.getItem('dong.settings') ?? '{}'),
 });
 
@@ -77,7 +77,7 @@ export const useStore = create<State>((set, get) => ({
 
 export function applyTheme(t: Theme) {
   const dark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  document.documentElement.classList.toggle('light', !dark);
+  document.documentElement.classList.toggle('dark', dark);
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', dark ? '#0F1416' : '#0FB88A');
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(useStore.getState().settings.theme));

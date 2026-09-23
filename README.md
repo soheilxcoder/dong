@@ -4,8 +4,8 @@
   <p><b>حساب‌کتاب دنگی، بدون دعوا.</b><br/>اپلیکیشن تقسیم هزینه گروهی برای سفر، خونه مشترک، دورهمی‌ها.</p>
   <p>
     <a href="https://soheilxcoder.github.io/dong/">🌐 دموی زنده (PWA)</a> ·
-    <a href="docs/PLAY_STORE.md">📱 راهنمای انتشار در Play Store</a> ·
-    <a href="docs/GITHUB_PAGES.md">🚀 راهنمای GitHub Pages</a> ·
+    <a href="docs-src/PLAY_STORE.md">📱 راهنمای انتشار در Play Store</a> ·
+    <a href="docs-src/GITHUB_PAGES.md">🚀 راهنمای GitHub Pages</a> ·
     <a href="ROADMAP.md">🗺️ نقشه راه</a>
   </p>
 </div>
@@ -54,7 +54,7 @@ npm run prisma:migrate -w @dong/api && npm run seed -w @dong/api
 npm run build -w @dong/web && npx cap sync android --prefix apps/web
 npx cap open android --prefix apps/web    # Android Studio → Build → Generate Signed Bundle
 ```
-جزئیات کامل در [docs/PLAY_STORE.md](docs/PLAY_STORE.md).
+جزئیات کامل در [docs-src/PLAY_STORE.md](docs-src/PLAY_STORE.md).
 
 ## مثال محاسبه (از سند فنی)
 | # | بابت | مبلغ | پرداخت‌کننده | حاضرین |

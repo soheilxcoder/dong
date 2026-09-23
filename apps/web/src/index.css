@@ -9,8 +9,31 @@
   font-display: swap;
 }
 
-/* ---------- Design tokens (dark-first) ---------- */
+/* ---------- Design tokens (light-first) ---------- */
 :root {
+  --grad-brand: linear-gradient(135deg, #0fb88a 0%, #0891b2 100%);
+  --grad-celebrate: linear-gradient(135deg, #22c55e 0%, #f5b942 100%);
+  --c-brand: 15 184 138;
+  --c-brand2: 8 145 178;
+  --c-pos: 22 163 74;
+  --c-neg: 234 88 60;
+  --c-neutral: 148 163 184;
+  --c-amber: 217 155 30;
+  --c-bg: 247 249 250;
+  --c-surface: 255 255 255;
+  --c-surface2: 240 244 246;
+  --c-ink: 30 27 24;
+  --c-ink2: 107 101 96;
+  --c-line: 0 0 0;
+  --line-alpha: 0.06;
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --grad-hero: linear-gradient(135deg, #12c993 0%, #0aa3c4 55%, #2b7fd6 100%);
+  --shadow-card: 0 10px 30px -12px rgb(14 59 82 / 0.18), 0 1px 2px rgb(0 0 0 / 0.04);
+  color-scheme: light;
+}
+
+html.dark {
   --c-brand: 52 216 168;
   --c-brand2: 34 178 214;
   --c-pos: 74 222 128;
@@ -27,34 +50,11 @@
   --glass: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.12);
   --grad-hero: linear-gradient(135deg, #0a5c46 0%, #0e3b52 100%);
-  --grad-brand: linear-gradient(135deg, #0fb88a 0%, #0891b2 100%);
-  --grad-celebrate: linear-gradient(135deg, #22c55e 0%, #f5b942 100%);
   --shadow-card: 0 8px 32px -8px rgb(0 0 0 / 0.5);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
 }
-html.light {
-  --c-brand: 15 184 138;
-  --c-brand2: 8 145 178;
-  --c-pos: 22 163 74;
-  --c-neg: 234 88 60;
-  --c-neutral: 148 163 184;
-  --c-amber: 217 155 30;
-  --c-bg: 253 252 251;
-  --c-surface: 255 255 255;
-  --c-surface2: 246 244 242;
-  --c-ink: 30 27 24;
-  --c-ink2: 107 101 96;
-  --c-line: 0 0 0;
-  --line-alpha: 0.06;
-  --glass: rgba(255, 255, 255, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.7);
-  --grad-hero: linear-gradient(135deg, #0fb88a 0%, #0891b2 100%);
-  --shadow-card: 0 4px 24px -6px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04);
-  color-scheme: light;
-}
-
 * { -webkit-tap-highlight-color: transparent; }
 html, body, #root { height: 100%; }
 body {
