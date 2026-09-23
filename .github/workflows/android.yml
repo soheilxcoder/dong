@@ -55,16 +55,21 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease --no-daemon \
             -PDONG_KEYSTORE=$PWD/release.keystore -PDONG_KS_PASS=$KS_PASS -PDONG_KEY_ALIAS=$KEY_ALIAS -PDONG_KEY_PASS=$KEY_PASS
+          cp app/build/outputs/apk/release/app-release.apk ../../../dong-latest.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../../../dong-latest.aab
           cp app/build/outputs/apk/release/app-release.apk ../../../dong-${GITHUB_SHA::7}.apk
-          cp app/build/outputs/bundle/release/app-release.aab ../../../dong-${GITHUB_SHA::7}.aab
 
       - uses: actions/upload-artifact@v4
         with:
           name: dong-android
           path: |
-            dong-*.apk
-            dong-*.aab
+            dong-latest.apk
+            dong-latest.aab
 
+      - name: Clean previous release assets
+        env: { GH_TOKEN: ${{ github.token }} }
+        run: |
+          for a in $(gh release view apk-latest --json assets --jq '.assets[].name' 2>/dev/null); do gh release delete-asset apk-latest "$a" -y || true; done
       - name: Publish "latest" release with APK
         uses: softprops/action-gh-release@v2
         with:
@@ -76,5 +81,6 @@ jobs:
             Commit: ${{ github.sha }}
           prerelease: true
           files: |
+            dong-latest.apk
+            dong-latest.aab
             dong-*.apk
-            dong-*.aab
