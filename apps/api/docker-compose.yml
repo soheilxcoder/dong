@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: dong, POSTGRES_PASSWORD: dong, POSTGRES_DB: dong }
+    ports: ["5432:5432"]
+    volumes: [dongdb:/var/lib/postgresql/data]
+  api:
+    build: .
+    depends_on: [db]
+    environment:
+      DATABASE_URL: postgresql://dong:dong@db:5432/dong?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://soheilxcoder.github.io/dong/}
+    ports: ["4000:4000"]
+    volumes: [uploads:/app/apps/api/uploads]
+volumes: { dongdb: {}, uploads: {} }

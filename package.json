@@ -1,0 +1,13 @@
+{
+  "name": "dong",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "npm run dev -w @dong/web",
+    "build": "npm run build -w @dong/core && npm run build -w @dong/web",
+    "test": "npm run test -w @dong/core",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "api": "npm run dev -w @dong/api"
+  }
+}
