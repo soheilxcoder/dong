@@ -1,4 +1,9 @@
 <div align="center">
+
+📱 **دانلود APK اندروید:** https://github.com/soheilxcoder/dong/releases/tag/apk-latest  
+🌐 **نسخه وب:** https://soheilxcoder.github.io/dong/
+
+هر push روی شاخه‌ها، workflow `Android APK` را اجرا می‌کند و فایل‌های `.apk` و `.aab` را در release با تگ `apk-latest` منتشر می‌کند. برای امضای Play Store، secrets زیر را در ریپو تعریف کنید: `ANDROID_KEYSTORE_B64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
   <img src="design/icon/playstore-icon-512.png" width="120" alt="دُنگ" />
   <h1>دُنگ — Dong</h1>
   <p><b>حساب‌کتاب دنگی، بدون دعوا.</b><br/>اپلیکیشن تقسیم هزینه گروهی برای سفر، خونه مشترک، دورهمی‌ها.</p>

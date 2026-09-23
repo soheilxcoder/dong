@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server } from 'lucide-react';
+import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { formatCardNumber, isValidCardNumber, detectBank } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
 import { Avatar, CopyButton, Field, PageHeader, Sheet } from '@/design-system/ui';
@@ -70,6 +71,7 @@ export function ProfilePage() {
           <Row icon={<KeyRound size={18} />} label="تغییر رمز عبور" onClick={() => setPwOpen(true)} />
           <Row icon={<Server size={18} />} label="همگام‌سازی" sub={settings.apiUrl ? `سرور اختصاصی: ${settings.apiUrl}` : 'خودکار و رمزنگاری‌شده (بدون نیاز به سرور)'} onClick={() => setApiOpen(true)} />
           <Row icon={<Info size={18} />} label="نمایش دوباره راهنماها" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
+          {!Capacitor.isNativePlatform() && <Row icon={<Smartphone size={18} />} label="دانلود اپ اندروید (APK)" sub="نصب مستقیم — سریع‌تر و با اعلان" onClick={() => window.open('https://github.com/soheilxcoder/dong/releases/tag/apk-latest', '_blank')} />}
           <Row icon={<Info size={18} />} label="درباره دُنگ" sub="نسخه ۱.۰.۰ — حساب‌کتاب دنگی، بدون دعوا" />
         </div>
 
