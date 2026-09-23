@@ -18,7 +18,7 @@ export function InvitePage() {
   const g = groups.find((x) => x.group.id === id);
   const [addOpen, setAddOpen] = useState(false); const [name, setName] = useState('');
   const [snap, setSnap] = useState<string>('');
-  useEffect(() => { if (g && adapter.kind === 'local') adapter.exportSnapshot?.(g.group.id).then(setSnap); }, [g, adapter]);
+  useEffect(() => { if (g && adapter.kind === 'local') adapter.exportSnapshot?.(g.group.id).then(setSnap); }, [g, adapter, g?.expenses.length, g?.settlements.length, g?.members.length]);
   if (!g) return null;
   const url = inviteUrl(g.group.inviteToken, adapter.kind === 'local' ? snap : undefined);
   return (

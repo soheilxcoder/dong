@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Sparkles, Bell, ChevronLeft } from 'lucide-react';
+import { Plus, Sparkles, Bell, ChevronLeft, Link2 } from 'lucide-react';
 import { computeNetBalances, simplifyDebts, userBalance, formatAmount } from '@dong/core';
 import { useStore } from '@/app/store';
 import { AmountText, Avatar, AvatarStack, BalanceChip, Empty } from '@/design-system/ui';
@@ -85,6 +85,12 @@ export function HomePage() {
         )}
       </div>
 
+      <div className="px-5 mt-3">
+        <button onClick={() => nav('/join/paste')} className="w-full card p-3.5 flex items-center gap-3 text-right">
+          <span className="h-10 w-10 rounded-2xl bg-brand/15 text-brand grid place-items-center"><Link2 size={18} /></span>
+          <div className="flex-1"><p className="text-sm font-bold">لینک دعوت داری؟</p><p className="text-xs text-ink-2">لینک یا کد گروه را بچسبان و عضو شو</p></div>
+        </button>
+      </div>
       {groups.length === 0 ? (
         <Empty mood="waiting" title="هنوز گروهی نداری" text="یک گروه بساز و دوستات رو دعوت کن، یا برای دیدن امکانات، گروه نمونه «سفر کیش» رو بارگذاری کن."
           action={<div className="flex gap-2"><button onClick={() => nav('/new-group')} className="btn-primary">گروه جدید</button><button onClick={loadDemo} disabled={busyDemo} className="btn-ghost"><Sparkles size={16} /> نمونه</button></div>} />

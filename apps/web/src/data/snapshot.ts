@@ -1,3 +1,4 @@
+import { deflateSync, inflateSync, strToU8, strFromU8 } from 'fflate';
 import type { Activity, Expense, Group, Membership, Settlement, User } from '@dong/core';
 
 /** Portable group snapshot embedded in invite links (serverless sharing). */
@@ -10,41 +11,45 @@ export interface Snapshot {
   activity: Activity[];
 }
 
-const b64url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const unb64url = (s: string) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), (c) => c.charCodeAt(0));
+const b64url = (bytes: Uint8Array) => {
+  let s = ''; for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+const unb64url = (s: string) => {
+  const clean = s.replace(/[^A-Za-z0-9\-_]/g, '').replace(/-/g, '+').replace(/_/g, '/');
+  const bin = atob(clean.padEnd(Math.ceil(clean.length / 4) * 4, '='));
+  const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+};
 
-async function deflate(text: string) {
-  const data = new TextEncoder().encode(text);
-  if (typeof CompressionStream === 'undefined') return { z: false, bytes: data };
-  const stream = new Blob([data as unknown as ArrayBuffer]).stream().pipeThrough(new CompressionStream('deflate-raw'));
-  return { z: true, bytes: new Uint8Array(await new Response(stream).arrayBuffer()) };
-}
-async function inflate(bytes: Uint8Array, z: boolean) {
-  if (!z) return new TextDecoder().decode(bytes);
-  const stream = new Blob([bytes as unknown as ArrayBuffer]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-  return new Response(stream).text();
-}
-
-/** Strip heavy fields (images) so the link stays short. */
-export async function encodeSnapshot(s: Snapshot): Promise<string> {
+/** Strip heavy fields (images, long activity) so the link stays short and QR scannable. */
+export function encodeSnapshot(s: Snapshot): string {
   const slim: Snapshot = {
     ...s,
     group: { ...s.group, coverImageUrl: null },
     members: s.members.map((m) => ({ ...m, user: { ...m.user, avatarUrl: null } })),
     expenses: s.expenses.map((e) => ({ ...e, receiptImageUrl: e.receiptImageUrl ? '__omitted__' : null })),
     settlements: s.settlements.map((x) => ({ ...x, receiptImageUrl: x.receiptImageUrl ? '__omitted__' : null })),
-    activity: s.activity.slice(0, 60),
+    activity: s.activity.slice(0, 15),
   };
-  const { z, bytes } = await deflate(JSON.stringify(slim));
-  return (z ? 'z' : 'p') + b64url(bytes);
+  return 'f' + b64url(deflateSync(strToU8(JSON.stringify(slim)), { level: 9 }));
 }
 
-export async function decodeSnapshot(code: string): Promise<Snapshot | null> {
+export function decodeSnapshot(code: string): Snapshot | null {
   try {
-    const z = code[0] === 'z';
-    const text = await inflate(unb64url(code.slice(1)), z);
-    const s = JSON.parse(text) as Snapshot;
-    if (s.v !== 1 || !s.group?.id) return null;
+    let c = code.trim();
+    try { c = decodeURIComponent(c); } catch { /* keep */ }
+    if (c[0] !== 'f') return null;
+    const s = JSON.parse(strFromU8(inflateSync(unb64url(c.slice(1))))) as Snapshot;
+    if (s.v !== 1 || !s.group?.id || !Array.isArray(s.members)) return null;
     return s;
   } catch { return null; }
+}
+
+/** Extract snapshot code from a full invite URL or raw code. */
+export function extractSnapshot(input: string): string | null {
+  const t = input.trim();
+  const m = t.match(/[?&]s=([^&#\s]+)/);
+  if (m) return m[1];
+  return /^f[A-Za-z0-9\-_]+$/.test(t) ? t : null;
 }

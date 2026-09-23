@@ -319,14 +319,14 @@ export class LocalAdapter implements DataAdapter {
     return encodeSnapshot({ v: 1, group: g, members: d.members, expenses: d.expenses, settlements: d.settlements, activity });
   }
   async importSnapshot(code: string) {
-    const snap = await decodeSnapshot(code);
+    const snap = decodeSnapshot(code);
     if (!snap) return null;
     return { group: snap.group, memberCount: snap.members.length, snapshot: snap };
   }
   /** Merge snapshot into local DB (upsert by id; never deletes) and add me as a member. */
   async joinSnapshot(code: string) {
     const me = await this.requireUser();
-    const snap = await decodeSnapshot(code);
+    const snap = decodeSnapshot(code);
     if (!snap) throw new AppError('NOT_FOUND', 'لینک دعوت نامعتبر است');
     await this.mergeSnapshot(snap, me);
     return (await db.groups.get(snap.group.id))!;
