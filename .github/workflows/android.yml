@@ -1,0 +1,78 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main, 'arena/**']
+    paths: ['apps/**', 'packages/**', 'package*.json', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+      - name: Build web (native build – root base)
+        run: npm run build
+        env:
+          VITE_BASE: /
+          VITE_PUBLIC_URL: https://soheilxcoder.github.io/dong/
+      - name: Capacitor sync
+        run: npx cap sync android
+        working-directory: apps/web
+
+      # Signing: uses repo secrets if present (Play Store), otherwise a stable debug-style key
+      - name: Prepare keystore
+        working-directory: apps/web/android
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_B64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > release.keystore
+            echo "KS_PASS=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
+            echo "KEY_PASS=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+          else
+            keytool -genkeypair -v -keystore release.keystore -alias dong -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass dong-dev-pass -keypass dong-dev-pass -dname "CN=Dong, O=Dong, C=IR"
+            echo "KS_PASS=dong-dev-pass" >> $GITHUB_ENV
+            echo "KEY_ALIAS=dong" >> $GITHUB_ENV
+            echo "KEY_PASS=dong-dev-pass" >> $GITHUB_ENV
+          fi
+      - name: Build release APK + AAB
+        working-directory: apps/web/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon \
+            -PDONG_KEYSTORE=$PWD/release.keystore -PDONG_KS_PASS=$KS_PASS -PDONG_KEY_ALIAS=$KEY_ALIAS -PDONG_KEY_PASS=$KEY_PASS
+          cp app/build/outputs/apk/release/app-release.apk ../../../dong-${GITHUB_SHA::7}.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../../../dong-${GITHUB_SHA::7}.aab
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dong-android
+          path: |
+            dong-*.apk
+            dong-*.aab
+
+      - name: Publish "latest" release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: دُنگ — آخرین نسخه اندروید
+          body: |
+            نصب مستقیم: فایل `.apk` را دانلود و نصب کنید (نصب از منابع ناشناس را اجازه دهید).
+            نسخه وب: https://soheilxcoder.github.io/dong/
+            Commit: ${{ github.sha }}
+          prerelease: true
+          files: |
+            dong-*.apk
+            dong-*.aab

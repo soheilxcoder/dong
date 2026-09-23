@@ -14,8 +14,11 @@ export function initNative(navigate: (path: string) => void) {
   StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
   SplashScreen.hide().catch(() => {});
   App.addListener('appUrlOpen', ({ url }) => {
-    const m = url.match(/#\/(.*)$/) || url.match(/join\/([A-Za-z0-9_-]+)/);
-    if (m) navigate(url.includes('#/') ? `/${m[1]}` : `/join/${m[1]}`);
+    // https://soheilxcoder.github.io/dong/#/join/TOKEN?s=SNAPSHOT  or  dong://join/TOKEN?s=...
+    const i = url.indexOf('#/');
+    if (i >= 0) { navigate(url.slice(i + 1)); return; }
+    const m = url.match(/join\/([A-Za-z0-9_-]+)(\?[^#]*)?/);
+    if (m) navigate(`/join/${m[1]}${m[2] ?? ''}`);
   });
   App.addListener('backButton', ({ canGoBack }) => { if (canGoBack) history.back(); else App.exitApp(); });
 }

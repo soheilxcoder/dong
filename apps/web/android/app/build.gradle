@@ -16,8 +16,19 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (project.hasProperty('DONG_KEYSTORE')) {
+                storeFile file(project.property('DONG_KEYSTORE'))
+                storePassword project.property('DONG_KS_PASS')
+                keyAlias project.property('DONG_KEY_ALIAS')
+                keyPassword project.property('DONG_KEY_PASS')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (project.hasProperty('DONG_KEYSTORE')) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
