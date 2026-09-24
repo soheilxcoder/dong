@@ -21,6 +21,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url "https://maven.tapsell.ir" } // Tapsell mirror (reachable from Iran without VPN)
     }
 }
 

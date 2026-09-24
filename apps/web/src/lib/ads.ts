@@ -1,34 +1,45 @@
 /**
- * Monetisation: Google AdMob via @capacitor-community/admob (native Android only — never on web).
+ * Monetisation: Tapsell Mediation (Iranian ad network) via our tiny native bridge
+ * (android/app/src/main/java/ir/dong/app/TapsellPlugin.java). Native Android only — never on web.
  *
- * Policy-friendly defaults:
- *  - one adaptive banner anchored at the bottom (UI shifts up via --safe-bottom so nothing is covered)
- *  - a rare interstitial after "natural break" actions (max 1 per 3 minutes, never on first launch)
- *  - GDPR/UMP consent form is requested before any ad is loaded
- *  - Google TEST ad units are used unless real IDs are provided at build time (VITE_ADMOB_*),
- *    so a build without an AdMob account never violates AdMob policy.
+ * User-friendly defaults:
+ *  - one 320×50 banner anchored at the bottom; the UI shifts up via --safe-bottom so nothing is covered
+ *  - a rare interstitial after "natural break" actions (save expense / confirm settlement),
+ *    max 1 per 3 minutes and never during the first minute after launch
+ *  - Tapsell's public TEST zones are used unless real zone ids are provided at build time
+ *    (VITE_TAPSELL_BANNER_ZONE / VITE_TAPSELL_INTERSTITIAL_ZONE), so a build without a Tapsell
+ *    account shows test ads instead of breaking.
  */
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 
-const TEST = {
-  banner: 'ca-app-pub-3940256099942544/6300978111',
-  interstitial: 'ca-app-pub-3940256099942544/1033173712',
+interface TapsellPlugin {
+  showBanner(o: { zoneId: string }): Promise<void>;
+  hideBanner(): Promise<void>;
+  prepareInterstitial(o: { zoneId: string }): Promise<void>;
+  showInterstitial(): Promise<{ shown: boolean }>;
+  addListener(event: 'bannerHeight', cb: (e: { height: number }) => void): Promise<PluginListenerHandle>;
+  addListener(event: 'interstitialClosed', cb: () => void): Promise<PluginListenerHandle>;
+}
+const Tapsell = registerPlugin<TapsellPlugin>('Tapsell');
+
+const TEST_ZONES = {
+  banner: 'e3d5999c-5990-4e31-8ce9-642ce040a7f4',
+  interstitial: 'b3972749-f62a-475a-9ff2-cfc9e2a40f87',
 };
 const env = import.meta.env as Record<string, string | undefined>;
 export const ADS = {
-  enabled: Capacitor.isNativePlatform() && env.VITE_ADS_ENABLED !== 'false',
-  usingTestIds: !env.VITE_ADMOB_BANNER_ID,
-  banner: env.VITE_ADMOB_BANNER_ID || TEST.banner,
-  interstitial: env.VITE_ADMOB_INTERSTITIAL_ID || TEST.interstitial,
+  enabled: Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' && env.VITE_ADS_ENABLED !== 'false',
+  usingTestZones: !env.VITE_TAPSELL_BANNER_ZONE,
+  banner: env.VITE_TAPSELL_BANNER_ZONE || TEST_ZONES.banner,
+  interstitial: env.VITE_TAPSELL_INTERSTITIAL_ZONE || TEST_ZONES.interstitial,
 };
 
-type AdMobPlugin = typeof import('@capacitor-community/admob').AdMob;
-let admob: AdMobPlugin | null = null;
 let ready = false;
 let bannerShown = false;
+let interstitialReady = false;
 let lastInterstitial = 0;
-let interstitialLoaded = false;
 const INTERSTITIAL_GAP_MS = 3 * 60 * 1000;
+const FIRST_INTERSTITIAL_DELAY_MS = 60 * 1000;
 
 function setBottomInset(px: number) {
   document.documentElement.style.setProperty('--safe-bottom', `calc(env(safe-area-inset-bottom, 0px) + ${px}px)`);
@@ -36,22 +47,11 @@ function setBottomInset(px: number) {
 
 export async function initAds() {
   if (!ADS.enabled || ready) return;
+  ready = true;
+  lastInterstitial = Date.now() - INTERSTITIAL_GAP_MS + FIRST_INTERSTITIAL_DELAY_MS;
   try {
-    const mod = await import('@capacitor-community/admob');
-    admob = mod.AdMob;
-    await admob.initialize({ initializeForTesting: ADS.usingTestIds });
-
-    // Consent (UMP). Required for EEA/UK users; harmless elsewhere.
-    try {
-      const info = await admob.requestConsentInfo();
-      if (info.isConsentFormAvailable && info.status === mod.AdmobConsentStatus.REQUIRED) await admob.showConsentForm();
-    } catch { /* consent not configured in AdMob console yet — continue with non-personalised ads */ }
-
-    admob.addListener(mod.BannerAdPluginEvents.SizeChanged, (s: { height: number }) => setBottomInset(s.height));
-    admob.addListener(mod.InterstitialAdPluginEvents.Loaded, () => { interstitialLoaded = true; });
-    admob.addListener(mod.InterstitialAdPluginEvents.Dismissed, () => { interstitialLoaded = false; void prepareInterstitial(); });
-    ready = true;
-    lastInterstitial = Date.now(); // never show an interstitial right after launch
+    await Tapsell.addListener('bannerHeight', ({ height }) => setBottomInset(height));
+    await Tapsell.addListener('interstitialClosed', () => { interstitialReady = false; setTimeout(() => { void prepareInterstitial(); }, 5000); });
     await showBanner();
     void prepareInterstitial();
   } catch (e) {
@@ -60,38 +60,29 @@ export async function initAds() {
 }
 
 export async function showBanner() {
-  if (!ready || !admob || bannerShown) return;
-  const mod = await import('@capacitor-community/admob');
-  try {
-    await admob.showBanner({
-      adId: ADS.banner,
-      adSize: mod.BannerAdSize.ADAPTIVE_BANNER,
-      position: mod.BannerAdPosition.BOTTOM_CENTER,
-      margin: 0,
-      isTesting: ADS.usingTestIds,
-    });
-    bannerShown = true;
-  } catch (e) { console.warn('[ads] banner', e); }
+  if (!ready || bannerShown) return;
+  try { await Tapsell.showBanner({ zoneId: ADS.banner }); bannerShown = true; }
+  catch (e) { console.warn('[ads] banner', e); setTimeout(() => { void showBanner(); }, 60_000); } // retry later (no fill / offline)
 }
 
 export async function hideBanner() {
-  if (!ready || !admob || !bannerShown) return;
-  try { await admob.hideBanner(); bannerShown = false; setBottomInset(0); } catch { /* ignore */ }
-}
-
-export async function resumeBanner() {
-  if (!ready || !admob || bannerShown) return;
-  try { await admob.resumeBanner(); bannerShown = true; } catch { await showBanner(); }
+  if (!ready || !bannerShown) return;
+  try { await Tapsell.hideBanner(); } catch { /* ignore */ }
+  bannerShown = false; setBottomInset(0);
 }
 
 async function prepareInterstitial() {
-  if (!ready || !admob || interstitialLoaded) return;
-  try { await admob.prepareInterstitial({ adId: ADS.interstitial, isTesting: ADS.usingTestIds }); } catch { /* ignore */ }
+  if (!ready || interstitialReady) return;
+  try { await Tapsell.prepareInterstitial({ zoneId: ADS.interstitial }); interstitialReady = true; }
+  catch { setTimeout(() => { void prepareInterstitial(); }, 90_000); }
 }
 
 /** Call at natural break points (after saving an expense / confirming a settlement). Rate-limited. */
 export async function maybeShowInterstitial() {
-  if (!ready || !admob || !interstitialLoaded) return;
+  if (!ready || !interstitialReady) return;
   if (Date.now() - lastInterstitial < INTERSTITIAL_GAP_MS) return;
-  try { await admob.showInterstitial(); lastInterstitial = Date.now(); } catch { /* ignore */ }
+  try {
+    const { shown } = await Tapsell.showInterstitial();
+    if (shown) { lastInterstitial = Date.now(); interstitialReady = false; }
+  } catch { interstitialReady = false; }
 }

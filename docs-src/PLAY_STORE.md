@@ -1,7 +1,7 @@
 # راهنمای کامل انتشار «دُنگ» در Google Play (قدم‌به‌قدم، برای کسی که تا حالا انجام نداده)
 
 > خلاصه: **هیچ‌چیز روی کامپیوترت لازم نیست نصب کنی.** GitHub خودش فایل Play (AAB) را می‌سازد.
-> تو فقط ۳ کار داری: (۱) ۴ کلید امضا را در GitHub ثبت کنی، (۲) حساب AdMob بسازی و ۳ شناسه را ثبت کنی، (۳) در Play Console فرم‌ها را طبق جدول‌های پایین پر کنی و فایل را آپلود کنی.
+> تو فقط ۳ کار داری: (۱) ۴ کلید امضا را در GitHub ثبت کنی، (۲) حساب تپسل بسازی و ۳ شناسه را ثبت کنی، (۳) در کافه‌بازار (و در صورت تمایل Play Console) فرم‌ها را طبق جدول‌های پایین پر کنی و فایل را آپلود کنی.
 
 ---
 
@@ -9,10 +9,11 @@
 | چی | کجا | هزینه |
 |---|---|---|
 | حساب Google Play Console | https://play.google.com/console | ۲۵ دلار یک‌بار |
-| حساب Google AdMob (برای تبلیغ) | https://admob.google.com | رایگان |
+| حساب تپسل (برای تبلیغ) | https://app.tapsell.ir | رایگان |
+| حساب پیشخوان کافه‌بازار (انتشار در ایران) | https://pishkhan.cafebazaar.ir | رایگان |
 | دسترسی به ریپوی GitHub `soheilxcoder/dong` | داری | — |
 
-⚠️ **نکته مهم برای ایران:** Google Play و AdMob برای کاربران ساکن ایران حساب باز نمی‌کنند/پرداخت نمی‌کنند. اگر خودت یا یک نفر مورد اعتماد در کشور دیگری (مثلاً ترکیه، امارات، سنگاپور) اقامت/حساب بانکی دارد، حساب‌ها را با آن مشخصات بساز. در غیر این صورت گزینه‌ی جایگزین بومی: **کافه‌بازار** (انتشار) + **تپسل** (تبلیغ) — همین APK بدون تغییر در کافه‌بازار قابل انتشار است.
+ℹ️ تبلیغات با **تپسل** است (حساب و تسویه ایرانی). Google Play برای ساکنان ایران حساب توسعه‌دهنده باز نمی‌کند؛ اگر حساب Play داری (یا از طریق فرد مورد اعتماد در کشور دیگر) مراحل ۴ تا ۶ را هم انجام بده، در غیر این صورت مرحله ۲٫۵ (کافه‌بازار) کافی است. تپسل روی Play هم کار می‌کند.
 
 ---
 
@@ -36,33 +37,46 @@
 
 ---
 
-## مرحله ۲ — تبلیغات AdMob (۱۵ دقیقه)
-تبلیغ در اپ از قبل پیاده شده (یک بنر پایین صفحه + یک تبلیغ تمام‌صفحه‌ی کم‌تکرار بعد از ثبت هزینه/تأیید پرداخت، حداکثر هر ۳ دقیقه یک‌بار، با فرم رضایت GDPR). تا وقتی شناسه‌های واقعی را ندهی، **تبلیغ‌های تستی گوگل** نمایش داده می‌شود (این برای Play مشکلی ندارد اما درآمدی هم ندارد).
+## مرحله ۲ — تبلیغات تپسل (۱۵ دقیقه)
+تبلیغ در اپ از قبل پیاده شده (یک بنر ۳۲۰×۵۰ پایین صفحه + یک تبلیغ تمام‌صفحه‌ی کم‌تکرار بعد از ثبت هزینه/تأیید پرداخت، حداکثر هر ۳ دقیقه یک‌بار و نه در دقیقه‌ی اول). تا وقتی شناسه‌های واقعی را ندهی، **تبلیغ‌های تستی تپسل** نمایش داده می‌شود (درآمدی ندارد).
 
-1. https://admob.google.com → Sign up → کشور و ارز را انتخاب کن → Accept.
-2. **Apps → Add app** → Platform: *Android* → «Is the app listed on a supported app store?» فعلاً *No* → App name: `دُنگ` → Add app.
-3. صفحه‌ی اپ باز می‌شود؛ یک **App ID** شبیه `ca-app-pub-1234567890123456~1234567890` می‌بینی (با `~`). کپی کن.
-4. **Ad units → Add ad unit**:
-   - **Banner** → نام: `dong-banner` → Create → شناسه‌ای با `/` می‌دهد (مثل `ca-app-pub-…/111111`). کپی کن.
-   - **Interstitial** → نام: `dong-interstitial` → Create → شناسه را کپی کن.
-5. در GitHub Secrets، ۳ تای دیگر بساز:
+1. https://app.tapsell.ir → ثبت‌نام (شماره موبایل ایرانی کافی است) → ورود.
+2. منوی **اپلیکیشن‌ها → افزودن اپلیکیشن** → پلتفرم: **اندروید** → نام: `دُنگ` → مارکت: کافه‌بازار (یا «سایر») → نام پکیج: `ir.dong.app` → ثبت.
+3. در صفحه‌ی اپ، **کلید اپلیکیشن (App ID)** را می‌بینی (یک UUID مثل `76798342-99a7-…`). کپی کن.
+4. **جایگاه‌های تبلیغاتی → افزودن جایگاه (Zone)**:
+   - نوع **بنر استاندارد** → نام `dong-banner` → ذخیره → `Zone ID` را کپی کن.
+   - نوع **تبلیغ آنی (Interstitial)** → نام `dong-interstitial` → ذخیره → `Zone ID` را کپی کن.
+5. در GitHub → Settings → Secrets → Actions، ۳ تا secret بساز:
 
 | Name | Value |
 |---|---|
-| `ADMOB_APP_ID` | شناسه‌ی با `~` |
-| `ADMOB_BANNER_ID` | شناسه‌ی بنر |
-| `ADMOB_INTERSTITIAL_ID` | شناسه‌ی تمام‌صفحه |
+| `TAPSELL_APP_ID` | کلید اپلیکیشن |
+| `TAPSELL_BANNER_ZONE` | Zone ID بنر |
+| `TAPSELL_INTERSTITIAL_ZONE` | Zone ID تبلیغ آنی |
 
-6. بعد از انتشار در Play: در AdMob → App settings → **App store details → Link to Google Play**؛ و **Privacy & messaging → GDPR** یک پیام رضایت بساز و Publish کن (اپ خودش نشانش می‌دهد).
-7. **Payments** را در AdMob تکمیل کن (آدرس، مالیات، حساب بانکی) — بدون آن پول واریز نمی‌شود. آستانه‌ی پرداخت ۱۰۰ دلار است.
-8. ❗ هرگز خودت روی تبلیغ‌های اپ‌ات کلیک نکن (حساب مسدود می‌شود). برای تست، دستگاهت را در AdMob → Settings → Test devices اضافه کن.
+6. **اطلاعات مالی** را در پنل تپسل (پروفایل → اطلاعات حساب/شبا) تکمیل کن تا تسویه انجام شود. تسویه ماهانه به حساب بانکی ایرانی است.
+7. ❗ هرگز خودت روی تبلیغ‌های اپ‌ات کلیک نکن (تقلب محسوب می‌شود و حساب مسدود می‌شود).
+8. اختیاری: اگر بعداً حساب AdMob داشتی، در پنل تپسل «شبکه‌های تبلیغاتی → AdMob» را اضافه کن؛ تپسل خودش بین شبکه‌ها مدیریت (Mediation) می‌کند و کد اپ تغییری لازم ندارد (فقط آداپتور `ir.tapsell.mediation.adapter:admob` باید به `app/build.gradle` اضافه شود — به من بگو انجام می‌دهم).
+
+---
+
+## مرحله ۲٫۵ — انتشار در کافه‌بازار (مسیر اصلی برای کاربران ایرانی — ۳۰ دقیقه، رایگان)
+1. https://pishkhan.cafebazaar.ir → ثبت‌نام توسعه‌دهنده (کد ملی + شماره موبایل) → تأیید.
+2. **برنامه‌ی جدید** → نام: `دُنگ — تقسیم هزینه گروهی` → دسته: **مالی / ابزارها** → «برنامه رایگان است».
+3. تب **بسته (APK)** → فایل `dong-latest.apk` از Releases گیت‌هاب را آپلود کن (بازار APK می‌خواهد، نه AAB).
+4. تب **اطلاعات**: توضیح کوتاه/کامل از مرحله ۵ همین سند، آیکون `design/icon/playstore-icon-512.png`، اسکرین‌شات‌ها `design/store/*.png`، «تبلیغات دارد: بله»، آدرس سیاست حریم خصوصی: `https://soheilxcoder.github.io/dong/privacy.html`.
+5. تب **دسترسی‌ها**: برای POST_NOTIFICATIONS بنویس «یادآوری بدهی‌ها».
+6. **ارسال برای بررسی**. بازبینی بازار معمولاً ۱ تا ۳ روز کاری است.
+7. **مایکت** (https://developer.myket.ir) هم دقیقاً همین APK را می‌پذیرد — می‌توانی همزمان آنجا هم بگذاری.
+
+⚠️ در پنل تپسل، مارکت اپ را همان مارکتی بگذار که منتشر می‌کنی (بازار/مایکت)؛ روی درآمد و تأیید اثر دارد.
 
 ---
 
 ## مرحله ۳ — گرفتن فایل Play (AAB)
 1. GitHub → تب **Actions** → workflow **Android APK** → **Run workflow** (یا هر push خودش اجرا می‌شود).
 2. ۳ دقیقه صبر کن. سپس **Releases → apk-latest** → فایل **`dong-latest.aab`** را دانلود کن.
-3. در توضیح release چک کن نوشته باشد: «امضا: کلید آپلود شما (Play-ready)» و «تبلیغات: AdMob واقعی». اگر نوشت «کلید موقت»، یعنی secrets مرحله ۱ درست ثبت نشده.
+3. در توضیح release چک کن نوشته باشد: «امضا: کلید آپلود شما (Play-ready)» و «تبلیغات: تپسل واقعی». اگر نوشت «کلید موقت»، یعنی secrets مرحله ۱ درست ثبت نشده.
 
 هر بار workflow اجرا شود، `versionCode` خودکار زیاد می‌شود؛ لازم نیست دستی عدد عوض کنی.
 
@@ -104,8 +118,8 @@ Data types:
 | Financial info → **Other financial info** (شماره کارت – اختیاری) | Yes | No | No | Optional | App functionality |
 | Photos → **Photos** (رسید – اختیاری) | Yes | No | No | Optional | App functionality |
 | App activity → **Other user-generated content** (هزینه‌ها) | Yes | No | No | Required | App functionality |
-| Device or other IDs → **Device or other IDs** (Advertising ID – AdMob) | Yes | **Yes** (Google AdMob) | No | Required | Advertising or marketing, Analytics |
-| App info & performance → **Diagnostics** | Yes | Yes | No | Required | Analytics (AdMob SDK) |
+| Device or other IDs → **Device or other IDs** (Advertising ID – تپسل) | Yes | **Yes** (Tapsell) | No | Required | Advertising or marketing, Analytics |
+| App info & performance → **Diagnostics** | Yes | Yes | No | Required | Analytics (Tapsell SDK) |
 
 (داده‌های گروه فقط بین اعضای همان گروه و به‌صورت رمزشده رد و بدل می‌شود؛ ما سروری نداریم که آن را بخواند.)
 
@@ -171,7 +185,7 @@ No.
 | پیام Google | راه‌حل |
 |---|---|
 | «Advertising ID declaration» | Policy → App content → Advertising ID → **Yes, uses Advertising ID** → هدف: Advertising, Analytics |
-| «Data safety mismatch» | جدول 4.7 را دقیقاً همان‌طور پر کن (Device IDs + Diagnostics به‌خاطر AdMob اجباری است) |
+| «Data safety mismatch» | جدول 4.7 را دقیقاً همان‌طور پر کن (Device IDs + Diagnostics به‌خاطر SDK تپسل اجباری است) |
 | «Financial features» | «doesn't provide any financial features» را انتخاب کن |
-| «Deceptive behavior / permissions» | مجوزهای اپ فقط INTERNET، VIBRATE، POST_NOTIFICATIONS است — در فرم Permissions بنویس: «Notifications for debt reminders» |
+| «Deceptive behavior / permissions» | مجوزهای اپ فقط INTERNET، VIBRATE، POST_NOTIFICATIONS، AD_ID است — در فرم Permissions بنویس: «Notifications for debt reminders» |
 | «Upload key mismatch» | secrets مرحله ۱ عوض شده؛ همان keystore اول را برگردان یا از Play Console → App integrity → Request upload key reset |

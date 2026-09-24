@@ -10,7 +10,8 @@ android {
         // versionCode is supplied by CI (-PDONG_VERSION_CODE=<run number>) so every upload is unique
         versionCode (project.hasProperty('DONG_VERSION_CODE') ? project.property('DONG_VERSION_CODE').toInteger() : 1)
         versionName (project.hasProperty('DONG_VERSION_NAME') ? project.property('DONG_VERSION_NAME') : "1.0.0")
-        manifestPlaceholders = [admobAppId: (project.hasProperty('ADMOB_APP_ID') ? project.property('ADMOB_APP_ID') : "ca-app-pub-3940256099942544~3347511713")]
+        // Tapsell Mediation app key: injected by CI (-PTAPSELL_APP_ID=...). Default = Tapsell's public TEST key.
+        manifestPlaceholders = [TapsellMediationAppKey: (project.hasProperty('TAPSELL_APP_ID') ? project.property('TAPSELL_APP_ID') : "76798342-99a7-4a5f-bf5a-60a088d5dcfb")]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -48,6 +49,9 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    // Ads: Tapsell Mediation (+ Tapsell's own network via the legacy adapter)
+    implementation "ir.tapsell:tapsell:$tapsellVersion"
+    implementation "ir.tapsell.mediation.adapter:legacy:$tapsellVersion"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
