@@ -50,6 +50,11 @@ CREATE TABLE IF NOT EXISTS reminders (
   id TEXT PRIMARY KEY, groupId TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE, targetUserId TEXT NOT NULL, createdBy TEXT NOT NULL,
   frequency TEXT NOT NULL DEFAULT 'every_3_days', active INTEGER NOT NULL DEFAULT 1, lastSentAt TEXT, createdAt TEXT NOT NULL, UNIQUE(groupId, targetUserId)
 );
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, title TEXT NOT NULL, body TEXT NOT NULL,
+  groupId TEXT, createdAt TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_notifications_user ON notifications(userId, createdAt);
 CREATE TABLE IF NOT EXISTS push_subscriptions (
   id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, endpoint TEXT NOT NULL UNIQUE, keys TEXT NOT NULL, createdAt TEXT NOT NULL
 );

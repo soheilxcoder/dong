@@ -15,7 +15,7 @@ import { ExpenseFormPage } from '@/features/expenses/ExpenseFormPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
 import { ActivityAllPage } from '@/features/home/ActivityAllPage';
 import { initNative } from '@/lib/capacitor';
-import { enablePush } from '@/lib/push';
+import { enablePush, disablePush } from '@/lib/push';
 import { ApiAdapter } from '@/data/api';
 
 function Protected() {
@@ -51,7 +51,8 @@ export function App() {
   const toast = useStore((s) => s.toast);
   const notifOn = useStore((s) => s.settings.notifications);
   useEffect(() => {
-    if (!user || !notifOn || !(adapter instanceof ApiAdapter)) return;
+    if (!user || !(adapter instanceof ApiAdapter)) return;
+    if (!notifOn) { disablePush(adapter.pushApi).catch(() => {}); return; }
     enablePush(adapter.pushApi, {
       onOpen: (url) => nav(url),
       onForeground: (title, body) => { toast(`${title} — ${body}`, 'info'); refresh().catch(() => {}); },

@@ -72,6 +72,11 @@ r.delete('/users/me/push', auth, wrap((req, res) => {
   if (endpoint) run('DELETE FROM push_subscriptions WHERE endpoint = ? AND userId = ?', endpoint, req.userId);
   res.json({ ok: true });
 }));
+/** Inbox for the app's own background poller: everything after `since` (ISO), newest last, max 50. */
+r.get('/users/me/notifications', auth, wrap((req, res) => {
+  const since = typeof req.query.since === 'string' && req.query.since ? req.query.since : new Date(Date.now() - 7 * 86400000).toISOString();
+  res.json(all('SELECT id, title, body, groupId, createdAt FROM notifications WHERE userId = ? AND createdAt > ? ORDER BY createdAt ASC LIMIT 50', req.userId, since));
+}));
 r.get('/push/config', wrap((_req, res) => res.json({ channels: pushChannels(), vapidPublicKey: process.env.VAPID_PUBLIC_KEY ?? null })));
 
 /* ---------------- groups ---------------- */

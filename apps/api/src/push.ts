@@ -7,7 +7,7 @@
 import fs from 'node:fs';
 import webpush from 'web-push';
 import { JWT } from 'google-auth-library';
-import { all, run } from './db.js';
+import { all, run, uid, now } from './db.js';
 
 const webEnabled = !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 if (webEnabled) webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? 'mailto:admin@example.com', process.env.VAPID_PUBLIC_KEY!, process.env.VAPID_PRIVATE_KEY!);
@@ -45,7 +45,15 @@ async function sendFcm(token: string, title: string, body: string, data: Record<
   }
 }
 
+/**
+ * Deliver a notification to a user.
+ * 1. ALWAYS stored in the `notifications` inbox — the Android app polls GET /users/me/notifications in the background
+ *    (WorkManager, no Google services needed) and the web app polls it while open.
+ * 2. Additionally pushed instantly via FCM / Web Push when those channels are configured.
+ */
 export async function sendPush(userId: string, title: string, body: string, groupId?: string) {
+  run('INSERT INTO notifications (id, userId, title, body, groupId, createdAt) VALUES (?,?,?,?,?,?)', uid(), userId, title, body, groupId ?? null, now());
+  run("DELETE FROM notifications WHERE userId = ? AND createdAt < datetime('now', '-30 days')", userId);
   if (!fcm && !webEnabled) return;
   const data = { groupId: groupId ?? '', url: groupId ? `#/g/${groupId}` : '#/' };
   const subs = all<{ id: string; endpoint: string; keys: string }>('SELECT * FROM push_subscriptions WHERE userId = ?', userId);
