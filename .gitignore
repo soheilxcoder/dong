@@ -20,3 +20,4 @@ apps/web/android/capacitor-cordova-android-plugins/build/
 release-keys/
 apps/api/web/
 apps/api/data/
+apps/web/android/app/google-services.json

@@ -7,7 +7,6 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { r } from './routes.js';
 import { HttpError, auth } from './lib.js';
-import { startCron } from './cron.js';
 import './db.js';
 
 const app = express();
@@ -51,4 +50,4 @@ app.use((err: unknown, _q: express.Request, res: express.Response, _n: express.N
 });
 
 const port = Number(process.env.PORT ?? 4000);
-app.listen(port, '0.0.0.0', () => { console.log(`dong server listening on http://0.0.0.0:${port}  (db: ${process.env.DATABASE_FILE ?? './data/dong.db'})`); startCron(); });
+app.listen(port, '0.0.0.0', () => { console.log(`dong server listening on http://0.0.0.0:${port}  (db: ${process.env.DATABASE_FILE ?? './data/dong.db'})`);});

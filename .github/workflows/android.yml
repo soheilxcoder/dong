@@ -40,6 +40,18 @@ jobs:
       - name: Capacitor sync
         run: npx cap sync android
         working-directory: apps/web
+      # Firebase config for real push notifications (optional). Without it the app builds fine, just no push.
+      - name: Firebase google-services.json
+        working-directory: apps/web/android/app
+        env:
+          GS_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GS_JSON" ]; then
+            if echo "$GS_JSON" | head -c1 | grep -q '{'; then printf '%s' "$GS_JSON" > google-services.json; else echo "$GS_JSON" | base64 -d > google-services.json; fi
+            echo "PUSH=فعال (Firebase)" >> $GITHUB_ENV
+          else
+            echo "PUSH=غیرفعال (GOOGLE_SERVICES_JSON تنظیم نشده)" >> $GITHUB_ENV
+          fi
 
       # Signing: uses repo secrets if present (Play Store), otherwise a stable debug-style key
       - name: Prepare keystore
@@ -95,6 +107,7 @@ jobs:
             - نسخه: `${{ env.VERSION_NAME }}` (versionCode `${{ env.VERSION_CODE }}`)
             - امضا: ${{ env.SIGNING }}
             - تبلیغات: ${{ env.ADS }}
+            - نوتیفیکیشن: ${{ env.PUSH }}
             - نسخه وب: https://soheilxcoder.github.io/dong/
             - Commit: ${{ github.sha }}
           prerelease: true

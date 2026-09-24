@@ -15,6 +15,8 @@ import { ExpenseFormPage } from '@/features/expenses/ExpenseFormPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
 import { ActivityAllPage } from '@/features/home/ActivityAllPage';
 import { initNative } from '@/lib/capacitor';
+import { enablePush } from '@/lib/push';
+import { ApiAdapter } from '@/data/api';
 
 function Protected() {
   const user = useStore((s) => s.user);
@@ -45,6 +47,17 @@ export function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (adapter.kind === 'api' && user) refresh().catch(() => {}); }, [loc.pathname]);
   useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
+  // Server mode: register this phone/browser for push (new expense, payment to confirm, confirmed/rejected, manual reminders).
+  const toast = useStore((s) => s.toast);
+  const notifOn = useStore((s) => s.settings.notifications);
+  useEffect(() => {
+    if (!user || !notifOn || !(adapter instanceof ApiAdapter)) return;
+    enablePush(adapter.pushApi, {
+      onOpen: (url) => nav(url),
+      onForeground: (title, body) => { toast(`${title} — ${body}`, 'info'); refresh().catch(() => {}); },
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, adapter, notifOn]);
 
   return (
     <>

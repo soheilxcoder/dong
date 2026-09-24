@@ -152,15 +152,33 @@ sudo docker run --rm -v dong_dong-data:/data -v $PWD:/backup alpine tar czf /bac
 
 ---
 
-## ۷) یادآوری‌های خودکار (Push) — اختیاری
+## ۷) نوتیفیکیشن روی گوشی اعضا (Firebase) — ۱۰ دقیقه، رایگان
 
-سرور هر روز ساعت ۱۰ صبح به بدهکاران نوتیفیکیشن مرورگری می‌فرستد، به شرطی که کلیدهای VAPID را تنظیم کرده باشی:
+وقتی یکی هزینه ثبت می‌کند، پرداختی می‌فرستد، پرداخت تأیید/رد می‌شود یا کسی دکمهٔ «یادآوری» را می‌زند، طرف مقابل روی گوشی‌اش نوتیفیکیشن می‌گیرد — حتی وقتی اپ بسته است. (یادآوری خودکار روزانه وجود ندارد؛ یادآوری فقط دستی و حداکثر روزی یک بار برای هر نفر است.)
+
+### الف) اپ اندروید (FCM)
+
+1. برو به <https://console.firebase.google.com> → **Add project** (اسم دلخواه، Analytics لازم نیست).
+2. داخل پروژه: **Add app → Android** → Package name: `ir.dong.app` → Register → فایل **`google-services.json`** را دانلود کن.
+3. **Project settings → Service accounts → Generate new private key** → یک فایل JSON دانلود می‌شود (این فایل محرمانه است).
+4. **روی سرور**: فایل مرحلهٔ ۳ را در `apps/api/data/firebase-service-account.json` بگذار (در Docker: داخل volume، مسیر `/data/firebase-service-account.json`) و در `.env`:
+   ```
+   FIREBASE_SERVICE_ACCOUNT=./data/firebase-service-account.json
+   ```
+   ری‌استارت کن؛ در لاگ باید `FCM push enabled (project ...)` ببینی.
+5. **در GitHub** (برای ساخت اپ): Settings → Secrets and variables → Actions → New secret با نام **`GOOGLE_SERVICES_JSON`** و مقدار = کل محتوای فایل `google-services.json` (همان متن را paste کن). بعد Actions → «Android APK» → Run workflow. در متن ریلیز باید «نوتیفیکیشن: فعال (Firebase)» بیاید.
+6. کاربر بعد از ورود به سرور، یک بار اجازهٔ نوتیفیکیشن می‌دهد؛ تمام. (در پروفایل قابل خاموش‌کردن است.)
+
+> بدون Google Play Services (بعضی گوشی‌های هواوی) FCM کار نمی‌کند؛ اپ بدون خطا ادامه می‌دهد.
+
+### ب) مرورگر / PWA (Web Push)
 
 ```bash
 npx web-push generate-vapid-keys
 ```
+خروجی را در `.env` بگذار (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT=mailto:you@example.com`) و ری‌استارت کن. مرورگرهای کروم/فایرفاکس/اج و PWA نصب‌شده نوتیف می‌گیرند.
 
-خروجی را در `.env` بگذار (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT=mailto:you@example.com`) و ری‌استارت کن. بدون این کلیدها سرور بدون خطا کار می‌کند، فقط Push ندارد.
+بدون هیچ‌کدام از این کلیدها سرور بدون خطا کار می‌کند؛ فقط نوتیفیکیشن ندارد. `GET /api/push/config` نشان می‌دهد کدام کانال فعال است.
 
 ---
 
@@ -189,4 +207,5 @@ npx web-push generate-vapid-keys
 | `PUBLIC_APP_URL` | — | آدرس عمومی اپ برای لینک دعوت/QR |
 | `CORS_ORIGIN` | * | اگر وب‌اپ از دامنهٔ دیگری سرو می‌شود، آن را بنویس |
 | `WEB_DIR` | خودکار | پوشهٔ وب‌اپ ساخته‌شده |
-| `VAPID_*` | خالی | Web Push |
+| `FIREBASE_SERVICE_ACCOUNT` | خالی | کلید سرویس Firebase برای نوتیف اپ اندروید |
+| `VAPID_*` | خالی | Web Push مرورگر |

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone } from 'lucide-react';
+import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone, Bell } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { formatCardNumber, isValidCardNumber, detectBank } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
@@ -67,6 +67,7 @@ export function ProfilePage() {
               {themes.map(({ v, I, l }) => <button key={v} onClick={() => setSettings({ theme: v })} className={`rounded-2xl py-2.5 text-sm font-bold flex items-center justify-center gap-1.5 ${settings.theme === v ? 'text-white' : 'bg-surface-2 text-ink-2'}`} style={settings.theme === v ? { background: 'var(--grad-brand)' } : undefined}><I size={16} /> {l}</button>)}
             </div>
           </div>
+          {adapter.kind === 'api' && <Row icon={<Bell size={18} />} label="نوتیفیکیشن (هزینه، پرداخت، یادآوری)" right={<Toggle on={settings.notifications} onChange={(v) => setSettings({ notifications: v })} />} />}
           <Row icon={settings.sound ? <Volume2 size={18} /> : <VolumeX size={18} />} label="صدای «دینگ» تأیید" right={<Toggle on={settings.sound} onChange={(v) => setSettings({ sound: v })} />} />
           <Row icon={<KeyRound size={18} />} label="تغییر رمز عبور" onClick={() => setPwOpen(true)} />
           <Row icon={<Server size={18} />} label="همگام‌سازی" sub={settings.apiUrl ? `سرور اختصاصی: ${settings.apiUrl}` : 'خودکار و رمزنگاری‌شده (بدون نیاز به سرور)'} onClick={() => setApiOpen(true)} />

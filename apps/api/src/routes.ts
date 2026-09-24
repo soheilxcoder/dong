@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import { computeNetBalances, simplifyDebts, normalizeCardNumber, formatToman } from '@dong/core';
 import { auth, bad, forbidden, notFound, parse, requireMember, signToken, token, wrap } from './lib.js';
 import { type DbSettlement, all, expensesOf, getGroup, getGroupByToken, getMembership, getUser, getUserByName, groupDetail, log, memberIds, membersOf, now, one, run, safeUser, settlementsOf, tx, uid } from './db.js';
-import { sendPush } from './push.js';
+import { sendPush, pushChannels } from './push.js';
 
 export const r = Router();
 const userName = (id: string) => getUser(id)?.fullName ?? 'کاربر';
@@ -54,11 +54,25 @@ r.post('/users/me/password', auth, wrap(async (req, res) => {
   run('UPDATE users SET passwordHash = ?, updatedAt = ? WHERE id = ?', await bcrypt.hash(b.newPassword, 10), now(), u.id);
   res.json({ ok: true });
 }));
+/** Register a push target: either a Web Push subscription {endpoint, keys} or an Android FCM device token {fcmToken}. */
 r.post('/users/me/push', auth, wrap((req, res) => {
-  const b = parse(z.object({ endpoint: z.string().url(), keys: z.object({ p256dh: z.string(), auth: z.string() }) }), req.body);
-  run('INSERT INTO push_subscriptions (id, userId, endpoint, keys, createdAt) VALUES (?,?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET userId = excluded.userId, keys = excluded.keys', uid(), req.userId, b.endpoint, JSON.stringify(b.keys), now());
+  const b = parse(z.union([
+    z.object({ endpoint: z.string().url(), keys: z.object({ p256dh: z.string(), auth: z.string() }) }),
+    z.object({ fcmToken: z.string().min(10) }),
+  ]), req.body);
+  const endpoint = 'fcmToken' in b ? `fcm:${b.fcmToken}` : b.endpoint;
+  const keys = 'fcmToken' in b ? '{}' : JSON.stringify(b.keys);
+  run('INSERT INTO push_subscriptions (id, userId, endpoint, keys, createdAt) VALUES (?,?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET userId = excluded.userId, keys = excluded.keys', uid(), req.userId, endpoint, keys, now());
+  res.json({ ok: true, channels: pushChannels() });
+}));
+/** Unregister this device (called on logout so the next user of the phone doesn't get someone else's notifications). */
+r.delete('/users/me/push', auth, wrap((req, res) => {
+  const b = parse(z.object({ endpoint: z.string().optional(), fcmToken: z.string().optional() }), req.body ?? {});
+  const endpoint = b.fcmToken ? `fcm:${b.fcmToken}` : b.endpoint;
+  if (endpoint) run('DELETE FROM push_subscriptions WHERE endpoint = ? AND userId = ?', endpoint, req.userId);
   res.json({ ok: true });
 }));
+r.get('/push/config', wrap((_req, res) => res.json({ channels: pushChannels(), vapidPublicKey: process.env.VAPID_PUBLIC_KEY ?? null })));
 
 /* ---------------- groups ---------------- */
 const balancesOf = (groupId: string) => {
@@ -96,7 +110,7 @@ r.post('/groups/join/:token', auth, wrap((req, res) => {
       run('INSERT INTO memberships (id, groupId, userId, role, joinedAt, updatedAt) VALUES (?,?,?,?,?,?)', uid(), gid, req.userId, 'member', t, t);
       log(gid, req.userId, 'member_joined', `${userName(req.userId)} به گروه پیوست`);
     });
-    for (const m of memberIds(gid)) if (m !== req.userId) sendPush(m, 'عضو جدید در دُنگ', `${userName(req.userId)} به «${g.name}» پیوست`).catch(() => {});
+    for (const m of memberIds(gid)) if (m !== req.userId) sendPush(m, 'عضو جدید در دُنگ', `${userName(req.userId)} به «${g.name}» پیوست`, gid).catch(() => {});
   }
   res.json(g);
 }));
@@ -175,7 +189,7 @@ r.post('/groups/:id/expenses', auth, wrap((req, res) => {
     writeParticipants(id, b.participants);
     log(req.params.id, req.userId, 'expense_created', `${userName(req.userId)} هزینه «${b.title.trim()}» به مبلغ ${formatToman(b.totalAmount)} ثبت کرد`, { expenseId: id });
   });
-  for (const p of b.participants) if (p.userId !== req.userId) sendPush(p.userId, 'هزینه جدید در دُنگ', `${userName(req.userId)}: «${b.title}» — سهم شما ${formatToman(p.amountOwed)}`).catch(() => {});
+  for (const p of b.participants) if (p.userId !== req.userId) sendPush(p.userId, 'هزینه جدید در دُنگ', `${userName(req.userId)}: «${b.title}» — سهم شما ${formatToman(p.amountOwed)}`, req.params.id).catch(() => {});
   res.status(201).json(expenseById(id));
 }));
 r.patch('/expenses/:id', auth, wrap((req, res) => {
@@ -220,7 +234,7 @@ r.post('/settlements', auth, wrap((req, res) => {
       id, b.groupId, from, b.toUser, b.amount, b.receiptImageUrl ?? null, auto ? 'confirmed' : 'pending_confirmation', b.note ?? null, t, auto ? t : null, t);
     log(b.groupId, req.userId, auto ? 'settlement_confirmed' : 'settlement_submitted', auto ? `${userName(req.userId)} دریافت ${formatToman(b.amount)} از ${userName(from)} را ثبت کرد` : `${userName(from)} پرداخت ${formatToman(b.amount)} به ${userName(b.toUser)} را ثبت کرد (در انتظار تأیید)`, { settlementId: id });
   });
-  if (!auto) sendPush(b.toUser, 'پرداخت جدید برای تأیید', `${userName(from)} ${formatToman(b.amount)} برایت واریز کرده — تأیید کن`).catch(() => {});
+  if (!auto) sendPush(b.toUser, 'پرداخت جدید برای تأیید', `${userName(from)} ${formatToman(b.amount)} برایت واریز کرده — تأیید کن`, b.groupId).catch(() => {});
   res.status(201).json(settlement(id));
 }));
 r.post('/settlements/:id/confirm', auth, wrap((req, res) => {
@@ -231,7 +245,7 @@ r.post('/settlements/:id/confirm', auth, wrap((req, res) => {
     run('UPDATE settlements SET status = ?, confirmedAt = ?, updatedAt = ? WHERE id = ?', 'confirmed', now(), now(), s.id);
     log(s.groupId, req.userId, 'settlement_confirmed', `${userName(req.userId)} دریافت ${formatToman(Number(s.amount))} از ${userName(s.fromUser)} را تأیید کرد`, { settlementId: s.id });
   });
-  sendPush(s.fromUser, 'پرداختت تأیید شد ✅', `${userName(req.userId)} دریافت ${formatToman(Number(s.amount))} را تأیید کرد`).catch(() => {});
+  sendPush(s.fromUser, 'پرداختت تأیید شد ✅', `${userName(req.userId)} دریافت ${formatToman(Number(s.amount))} را تأیید کرد`, s.groupId).catch(() => {});
   res.json({ ok: true });
 }));
 r.post('/settlements/:id/reject', auth, wrap((req, res) => {
@@ -243,7 +257,7 @@ r.post('/settlements/:id/reject', auth, wrap((req, res) => {
     run('UPDATE settlements SET status = ?, rejectReason = ?, updatedAt = ? WHERE id = ?', 'rejected', b.reason, now(), s.id);
     log(s.groupId, req.userId, 'settlement_rejected', `${userName(req.userId)} پرداخت ${formatToman(Number(s.amount))} از ${userName(s.fromUser)} را رد کرد: «${b.reason}»`, { settlementId: s.id });
   });
-  sendPush(s.fromUser, 'پرداختت رد شد', `${userName(req.userId)}: ${b.reason}`).catch(() => {});
+  sendPush(s.fromUser, 'پرداختت رد شد', `${userName(req.userId)}: ${b.reason}`, s.groupId).catch(() => {});
   res.json({ ok: true });
 }));
 r.delete('/settlements/:id', auth, wrap((req, res) => {
@@ -264,6 +278,6 @@ r.post('/reminders', auth, wrap((req, res) => {
     else run('INSERT INTO reminders (id, groupId, targetUserId, createdBy, frequency, active, lastSentAt, createdAt) VALUES (?,?,?,?,?,1,?,?)', uid(), b.groupId, b.targetUserId, req.userId, b.frequency ?? 'every_3_days', now(), now());
     log(b.groupId, req.userId, 'reminder_sent', `${userName(req.userId)} برای ${userName(b.targetUserId)} یادآوری بدهی ${formatToman(b.amount)} فرستاد`);
   });
-  sendPush(b.targetUserId, 'یادآوری دُنگ 🔔', `${userName(b.targetUserId)}، ${formatToman(b.amount)} به ${userName(req.userId)} بدهکاری`).catch(() => {});
+  sendPush(b.targetUserId, 'یادآوری دُنگ 🔔', `${userName(b.targetUserId)}، ${formatToman(b.amount)} به ${userName(req.userId)} بدهکاری`, b.groupId).catch(() => {});
   res.json(one('SELECT * FROM reminders WHERE groupId = ? AND targetUserId = ?', b.groupId, b.targetUserId));
 }));

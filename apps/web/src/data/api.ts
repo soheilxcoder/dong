@@ -1,3 +1,4 @@
+import { disablePush } from '@/lib/push';
 import type { Activity, Expense, Group, Reminder, Settlement, User } from '@dong/core';
 import { AppError, type DataAdapter, type ExpenseInput, type GroupDetail, type RegisterInput } from './adapter';
 
@@ -50,7 +51,9 @@ export class ApiAdapter implements DataAdapter {
 
   async register(input: RegisterInput) { const r = await this.req<{ user: User; token: string }>('POST', '/auth/register', input); this.setToken(r.token); this.emit(); return r.user; }
   async login(username: string, password: string) { const r = await this.req<{ user: User; token: string }>('POST', '/auth/login', { username, password }); this.setToken(r.token); this.emit(); return r.user; }
-  async logout() { this.setToken(null); this.emit(); }
+  /** what lib/push needs to talk to the server */
+  get pushApi() { return { base: this.base, token: () => this.token }; }
+  async logout() { try { await disablePush(this.pushApi); } catch { /* ignore */ } this.setToken(null); this.emit(); }
   async me() { if (!this.token) return null; try { return await this.req<User>('GET', '/users/me'); } catch { this.setToken(null); return null; } }
   async getSecurityQuestion(username: string) { return (await this.req<{ question: string | null }>('GET', `/auth/security-question/${encodeURIComponent(username)}`)).question; }
   async resetPassword(username: string, answer: string, newPassword: string) { await this.req('POST', '/auth/reset-password-with-security-answer', { username, answer, newPassword }); }

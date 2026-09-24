@@ -48,6 +48,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+        <!-- Push (FCM) defaults: white status-bar icon, brand colour, channel created by the app -->
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_dong" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/dong_brand" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="dong" />
     </application>
 
     <!-- Permissions -->
