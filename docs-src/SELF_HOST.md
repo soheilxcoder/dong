@@ -123,6 +123,32 @@ sudo certbot --nginx -d dong.example.com     # گواهی رایگان + تمد�
 
 ---
 
+## ۴ب) نصب زیر یک مسیر، مثلاً `products.mydomain.com/dong`
+
+می‌شود. دو تفاوت با نصب معمولی:
+
+1. موقع ساخت، مسیر پایه را بده:
+   ```bash
+   DONG_BASE=/dong/ npm run build:selfhost
+   ```
+   و در `.env`: `PUBLIC_APP_URL=https://products.mydomain.com/dong/`
+2. در nginxِ همان سایت، این بلوک را داخل `server { … }` موجود اضافه کن (پیشوند `/dong/` حذف شده به سرور دُنگ می‌رسد):
+   ```nginx
+   location = /dong { return 301 /dong/; }
+   location /dong/ {
+       client_max_body_size 10m;
+       proxy_pass http://127.0.0.1:4000/;
+       proxy_http_version 1.1;
+       proxy_set_header Host $host;
+       proxy_set_header X-Forwarded-Proto $scheme;
+   }
+   ```
+   (اگر سایتت روی Apache/cPanel است، همین را با `ProxyPass /dong/ http://127.0.0.1:4000/` می‌شود انجام داد — ولی به Node ≥ 22 روی همان سرور نیاز داری؛ هاست اشتراکی معمولاً ندارد.)
+
+آدرس API برای اپ اندروید می‌شود `https://products.mydomain.com/dong/api`.
+
+اگر فقط **نسخهٔ وبِ بدون سرور** (مثل GitHub Pages) را می‌خواهی زیر آن مسیر بگذاری، ساده‌تر است: `VITE_BASE=/dong/ npm run build -w @dong/web` و محتوای `apps/web/dist` را در پوشهٔ `dong/` هاستت آپلود کن — هر هاست استاتیکی کافی است.
+
 ## ۵) اتصال اپ اندروید به سرور خودت
 
 دو راه:
