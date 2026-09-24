@@ -73,10 +73,15 @@ jobs:
         working-directory: apps/web/android
         run: |
           chmod +x gradlew
+          set -o pipefail
           ./gradlew assembleRelease bundleRelease --no-daemon \
             -PDONG_KEYSTORE=$PWD/release.keystore -PDONG_KS_PASS=$KS_PASS -PDONG_KEY_ALIAS=$KEY_ALIAS -PDONG_KEY_PASS=$KEY_PASS \
             -PDONG_VERSION_CODE=$VERSION_CODE -PDONG_VERSION_NAME=$VERSION_NAME \
-            -PTAPSELL_APP_ID="${{ secrets.TAPSELL_APP_ID || '76798342-99a7-4a5f-bf5a-60a088d5dcfb' }}"
+            -PTAPSELL_APP_ID="${{ secrets.TAPSELL_APP_ID || '76798342-99a7-4a5f-bf5a-60a088d5dcfb' }}" 2>&1 | tee gradle.log || {
+              # surface the real error as annotations (readable via the API even when log download is blocked)
+              grep -nE "^e: |error:|What went wrong|Duplicate class|Execution failed|Could not|AAPT|Manifest merger" -A3 gradle.log | head -60 | while IFS= read -r l; do echo "::error::$l"; done
+              exit 1
+            }
           echo "SIGNING=$([ -n '${{ secrets.ANDROID_KEYSTORE_B64 }}' ] && echo 'کلید آپلود شما (Play-ready)' || echo 'کلید موقت (فقط تست — برای Play باید secrets را تنظیم کنید)')" >> $GITHUB_ENV
           echo "ADS=$([ -n '${{ secrets.TAPSELL_APP_ID }}' ] && echo 'تپسل واقعی' || echo 'تبلیغات تستی تپسل')" >> $GITHUB_ENV
           cp app/build/outputs/apk/release/app-release.apk ../../../dong-latest.apk
