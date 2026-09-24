@@ -20,7 +20,14 @@
 
 ---
 
-## ۲) روش سریع: Docker (پیشنهادی)
+## ۲) ساده‌ترین روش: نصب تک‌دستوری (پیشنهادی)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/soheilxcoder/dong/main/scripts/install.sh | bash
+```
+همه‌چیز (Node، nginx، HTTPS، سرویس systemd، بک‌آپ شبانه) را خودش انجام می‌دهد و فقط دامنه و ایمیل را می‌پرسد. راهنمای کلیک‌به‌کلیک: [SETUP_CLICK_BY_CLICK.md](SETUP_CLICK_BY_CLICK.md)
+
+## ۲ب) روش Docker
 
 ```bash
 # روی سرور:

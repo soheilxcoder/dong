@@ -53,7 +53,8 @@ docker compose up -d --build           # http://IP:4000
 # یا بدون Docker (Node ≥ 22.13):
 npm ci && npm run build:selfhost && npm start
 ```
-راهنمای کامل مبتدی‌پسند (VPS، دامنه/HTTPS، pm2، بک‌آپ، اتصال اپ اندروید): [docs-src/SELF_HOST.md](docs-src/SELF_HOST.md)
+**نصب تک‌دستوری روی VPS:** `curl -fsSL https://raw.githubusercontent.com/soheilxcoder/dong/main/scripts/install.sh | bash`
+راهنمای کلیک‌به‌کلیک (سرور + Firebase برای نوتیفیکیشن + GitHub): [docs-src/SETUP_CLICK_BY_CLICK.md](docs-src/SETUP_CLICK_BY_CLICK.md) · راهنمای فنی‌تر: [docs-src/SELF_HOST.md](docs-src/SELF_HOST.md)
 در اپ: **پروفایل ← اتصال به سرور** ← `https://دامنه/api`.
 
 ### اندروید
