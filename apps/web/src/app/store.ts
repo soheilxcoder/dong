@@ -7,8 +7,10 @@ import { ApiAdapter } from '@/data/api';
 export type Theme = 'dark' | 'light' | 'system';
 
 interface Settings { theme: Theme; sound: boolean; notifications: boolean; onboarded: boolean; apiUrl: string; tours: Record<string, boolean> }
+/** Self-hosted builds bake the server URL in (VITE_API_URL, e.g. "/api"); GitHub Pages / store builds default to local mode. */
+const DEFAULT_API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
 const loadSettings = (): Settings => ({
-  theme: 'light', sound: true, notifications: true, onboarded: false, apiUrl: '', tours: {},
+  theme: 'light', sound: true, notifications: true, onboarded: false, apiUrl: DEFAULT_API_URL, tours: {},
   ...JSON.parse(localStorage.getItem('dong.settings') ?? '{}'),
 });
 
@@ -63,8 +65,9 @@ export const useStore = create<State>((set, get) => ({
     localStorage.setItem('dong.settings', JSON.stringify(settings));
     set({ settings });
     if (p.theme) applyTheme(p.theme);
-    if (p.apiUrl !== undefined && p.apiUrl !== get().adapter.constructor.name) {
+    if (p.apiUrl !== undefined) {
       const adapter = makeAdapter(p.apiUrl);
+      (adapter as { onSyncStatus?: (cb: (s: State['syncStatus']) => void) => void }).onSyncStatus?.((syncStatus) => set({ syncStatus }));
       set({ adapter, user: undefined, groups: [] });
       adapter.subscribe(() => { get().refresh().catch(() => {}); });
       get().refresh().catch(() => set({ user: null }));

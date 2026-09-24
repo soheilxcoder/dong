@@ -5,16 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "seed": "tsx prisma/seed.ts"
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --packages=external --alias:@dong/core=../../packages/core/src/index.ts --outfile=dist/server.js",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@dong/core": "*",
-    "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "express": "^4.21.1",
@@ -23,7 +19,8 @@
     "node-cron": "^3.0.3",
     "qrcode": "^1.5.4",
     "web-push": "^3.6.7",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -35,8 +32,11 @@
     "@types/node-cron": "^3.0.11",
     "@types/qrcode": "^1.5.5",
     "@types/web-push": "^3.6.4",
-    "prisma": "^5.22.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "esbuild": "^0.24.0"
+  },
+  "engines": {
+    "node": ">=22.13"
   }
 }

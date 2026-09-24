@@ -19,7 +19,7 @@ type Tab = 'expenses' | 'settle' | 'members' | 'activity';
 export function GroupPage() {
   const { id = '' } = useParams();
   const nav = useNavigate();
-  const { user, groups, adapter, toast, syncStatus } = useStore();
+  const { user, groups, adapter, toast, syncStatus, refresh } = useStore();
   const g = groups.find((x) => x.group.id === id);
   const [tab, setTab] = useState<Tab>('expenses');
   const [menu, setMenu] = useState(false);
@@ -27,6 +27,8 @@ export function GroupPage() {
   const [activity, setActivity] = useState<Activity[]>([]);
 
   useEffect(() => { if (tab === 'activity' && g) adapter.activity(g.group.id).then(setActivity); }, [tab, g, adapter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (adapter.kind === 'api') refresh().catch(() => {}); }, [tab]);
 
   const calc = useMemo(() => {
     if (!g) return null;
@@ -63,7 +65,7 @@ export function GroupPage() {
           <div className="flex items-center justify-between text-white">
             <button onClick={() => nav('/')} className="p-2 rounded-full bg-white/15" aria-label="بازگشت"><ChevronRight size={22} /></button>
             <div className="flex gap-2 items-center">
-              {g.group.syncKey && (
+              {(g.group.syncKey || adapter.kind === 'api') && (
                 <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-white/15" title="همگام‌سازی">
                   {syncStatus === 'online' ? <Wifi size={14} className="text-pos" /> : syncStatus === 'error' ? <WifiOff size={14} className="text-neg" /> : <Loader2 size={14} className="animate-spin" />}
                   {syncStatus === 'online' ? 'همگام' : syncStatus === 'error' ? 'آفلاین' : 'اتصال…'}

@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import type { NextFunction, Request, Response } from 'express';
 import { z } from 'zod';
 import crypto from 'node:crypto';
+import { getMembership } from './db.js';
 
-export const prisma = new PrismaClient();
 export const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me';
 
 export class HttpError extends Error {
@@ -16,7 +15,7 @@ export const notFound = (msg = 'پیدا نشد') => new HttpError(404, 'NOT_FOU
 
 export interface AuthedRequest extends Request { userId: string }
 
-export function signToken(userId: string) { return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: '90d' }); }
+export function signToken(userId: string) { return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: '180d' }); }
 
 export function auth(req: Request, _res: Response, next: NextFunction) {
   const h = req.headers.authorization;
@@ -25,8 +24,8 @@ export function auth(req: Request, _res: Response, next: NextFunction) {
   catch { next(new HttpError(401, 'UNAUTHENTICATED', 'نشست نامعتبر است')); }
 }
 
-export const wrap = (fn: (req: AuthedRequest, res: Response) => Promise<unknown>) =>
-  (req: Request, res: Response, next: NextFunction) => fn(req as AuthedRequest, res).catch(next);
+export const wrap = (fn: (req: AuthedRequest, res: Response) => unknown | Promise<unknown>) =>
+  (req: Request, res: Response, next: NextFunction) => Promise.resolve().then(() => fn(req as AuthedRequest, res)).catch(next);
 
 export function parse<T>(schema: z.ZodSchema<T>, data: unknown): T {
   const r = schema.safeParse(data);
@@ -36,24 +35,8 @@ export function parse<T>(schema: z.ZodSchema<T>, data: unknown): T {
 
 export const token = () => crypto.randomBytes(9).toString('base64url');
 
-/** BigInt-safe JSON: amounts are serialised as numbers (safe under 2^53 toman). */
-export function json(v: unknown) {
-  return JSON.parse(JSON.stringify(v, (_k, x) => (typeof x === 'bigint' ? Number(x) : x)));
-}
-
-export async function requireMember(groupId: string, userId: string) {
-  const m = await prisma.groupMember.findUnique({ where: { groupId_userId: { groupId, userId } } });
+export function requireMember(groupId: string, userId: string) {
+  const m = getMembership(groupId, userId);
   if (!m) throw forbidden('شما عضو این گروه نیستید');
   return m;
-}
-
-export async function log(groupId: string, actorId: string, actionType: string, description: string, meta?: object) {
-  await prisma.activityLog.create({ data: { groupId, actorId, actionType, description, meta: meta as never } });
-}
-
-export function toCoreExpense(e: { id: string; groupId: string; title: string; totalAmount: bigint; paidBy: string; paidAt: Date; splitType: string; status: string; createdBy: string; createdAt: Date; participants: { userId: string; amountOwed: bigint }[] }) {
-  return { ...e, totalAmount: Number(e.totalAmount), paidAt: e.paidAt.toISOString(), createdAt: e.createdAt.toISOString(), splitType: e.splitType as 'equal', status: e.status as 'open', participants: e.participants.map((p) => ({ userId: p.userId, amountOwed: Number(p.amountOwed) })) };
-}
-export function toCoreSettlement(s: { id: string; groupId: string; fromUser: string; toUser: string; amount: bigint; status: string; submittedAt: Date }) {
-  return { ...s, amount: Number(s.amount), status: s.status as 'confirmed', submittedAt: s.submittedAt.toISOString() };
 }

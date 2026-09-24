@@ -40,6 +40,10 @@ export function App() {
   const nav = useNavigate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { init(); initNative(nav); }, []);
+  // Server mode: other members may have changed things — refetch on every screen change so forms never use stale data.
+  const { adapter, refresh, user } = useStore();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (adapter.kind === 'api' && user) refresh().catch(() => {}); }, [loc.pathname]);
   useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
 
   return (

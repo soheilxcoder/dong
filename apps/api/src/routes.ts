@@ -3,250 +3,267 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import QRCode from 'qrcode';
 import { computeNetBalances, simplifyDebts, normalizeCardNumber, formatToman } from '@dong/core';
-import { auth, bad, forbidden, json, log, notFound, parse, prisma, requireMember, signToken, toCoreExpense, toCoreSettlement, token, wrap } from './lib.js';
+import { auth, bad, forbidden, notFound, parse, requireMember, signToken, token, wrap } from './lib.js';
+import { type DbSettlement, all, expensesOf, getGroup, getGroupByToken, getMembership, getUser, getUserByName, groupDetail, log, memberIds, membersOf, now, one, run, safeUser, settlementsOf, tx, uid } from './db.js';
 import { sendPush } from './push.js';
 
 export const r = Router();
-const safeUser = { id: true, fullName: true, username: true, avatarUrl: true, cardNumber: true, cardHolderName: true, createdAt: true } as const;
+const userName = (id: string) => getUser(id)?.fullName ?? 'کاربر';
 
 /* ---------------- auth ---------------- */
 r.post('/auth/register', wrap(async (req, res) => {
-  const b = parse(z.object({ fullName: z.string().min(2), username: z.string().regex(/^[a-z0-9_]{3,20}$/), password: z.string().min(4), securityQuestion: z.string().optional(), securityAnswer: z.string().optional(), cardNumber: z.string().optional() }), req.body);
-  if (await prisma.user.findUnique({ where: { username: b.username } })) throw bad('این نام کاربری قبلاً گرفته شده', 'USERNAME_TAKEN');
-  if (b.cardNumber && !/^\d{16}$/.test(normalizeCardNumber(b.cardNumber))) throw bad('شماره کارت باید ۱۶ رقم باشد');
-  const u = await prisma.user.create({
-    data: { fullName: b.fullName, username: b.username, passwordHash: await bcrypt.hash(b.password, 10), securityQuestion: b.securityQuestion || null, securityAnswerHash: b.securityAnswer ? await bcrypt.hash(b.securityAnswer.trim(), 10) : null, cardNumber: b.cardNumber ? normalizeCardNumber(b.cardNumber) : null },
-    select: safeUser,
-  });
-  res.json({ user: u, token: signToken(u.id) });
+  const b = parse(z.object({ fullName: z.string().min(2), username: z.string().regex(/^[a-z0-9_]{3,20}$/i), password: z.string().min(4), securityQuestion: z.string().optional(), securityAnswer: z.string().optional(), cardNumber: z.string().optional() }), req.body);
+  const username = b.username.toLowerCase();
+  if (getUserByName(username)) throw bad('این نام کاربری قبلاً گرفته شده', 'USERNAME_TAKEN');
+  const card = b.cardNumber ? normalizeCardNumber(b.cardNumber) : null;
+  if (card && !/^\d{16}$/.test(card)) throw bad('شماره کارت باید ۱۶ رقم باشد');
+  const id = uid(); const t = now();
+  run('INSERT INTO users (id, fullName, username, passwordHash, securityQuestion, securityAnswerHash, cardNumber, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?)',
+    id, b.fullName.trim(), username, await bcrypt.hash(b.password, 10), b.securityQuestion?.trim() || null, b.securityAnswer ? await bcrypt.hash(b.securityAnswer.trim(), 10) : null, card, t, t);
+  res.status(201).json({ user: safeUser(getUser(id)!), token: signToken(id) });
 }));
 r.post('/auth/login', wrap(async (req, res) => {
   const b = parse(z.object({ username: z.string(), password: z.string() }), req.body);
-  const u = await prisma.user.findUnique({ where: { username: b.username.toLowerCase() } });
+  const u = getUserByName(b.username);
   if (!u || !(await bcrypt.compare(b.password, u.passwordHash))) throw bad('نام کاربری یا رمز عبور اشتباه است', 'BAD_CREDENTIALS');
-  const { passwordHash: _p, securityAnswerHash: _s, securityQuestion: _q, ...user } = u;
-  res.json({ user, token: signToken(u.id) });
+  res.json({ user: safeUser(u), token: signToken(u.id) });
 }));
-r.get('/auth/security-question/:username', wrap(async (req, res) => {
-  const u = await prisma.user.findUnique({ where: { username: req.params.username.toLowerCase() } });
-  res.json({ question: u?.securityQuestion ?? null });
-}));
+r.get('/auth/security-question/:username', wrap((req, res) => { res.json({ question: getUserByName(req.params.username)?.securityQuestion ?? null }); }));
 r.post('/auth/reset-password-with-security-answer', wrap(async (req, res) => {
   const b = parse(z.object({ username: z.string(), answer: z.string(), newPassword: z.string().min(4) }), req.body);
-  const u = await prisma.user.findUnique({ where: { username: b.username.toLowerCase() } });
+  const u = getUserByName(b.username);
   if (!u?.securityAnswerHash || !(await bcrypt.compare(b.answer.trim(), u.securityAnswerHash))) throw bad('پاسخ سؤال امنیتی اشتباه است', 'BAD_ANSWER');
-  await prisma.user.update({ where: { id: u.id }, data: { passwordHash: await bcrypt.hash(b.newPassword, 10) } });
+  run('UPDATE users SET passwordHash = ?, updatedAt = ? WHERE id = ?', await bcrypt.hash(b.newPassword, 10), now(), u.id);
   res.json({ ok: true });
 }));
 
 /* ---------------- users ---------------- */
-r.get('/users/me', auth, wrap(async (req, res) => { res.json(await prisma.user.findUnique({ where: { id: req.userId }, select: safeUser })); }));
-r.patch('/users/me', auth, wrap(async (req, res) => {
+r.get('/users/me', auth, wrap((req, res) => { const u = getUser(req.userId); if (!u) throw notFound('کاربر پیدا نشد'); res.json(safeUser(u)); }));
+r.patch('/users/me', auth, wrap((req, res) => {
   const b = parse(z.object({ fullName: z.string().min(2).optional(), avatarUrl: z.string().nullable().optional(), cardNumber: z.string().nullable().optional(), cardHolderName: z.string().nullable().optional() }), req.body);
   if (b.cardNumber) { b.cardNumber = normalizeCardNumber(b.cardNumber); if (!/^\d{16}$/.test(b.cardNumber)) throw bad('شماره کارت باید ۱۶ رقم باشد'); }
-  res.json(await prisma.user.update({ where: { id: req.userId }, data: b, select: safeUser }));
+  const u = getUser(req.userId)!;
+  run('UPDATE users SET fullName = ?, avatarUrl = ?, cardNumber = ?, cardHolderName = ?, updatedAt = ? WHERE id = ?',
+    b.fullName ?? u.fullName, b.avatarUrl === undefined ? u.avatarUrl : b.avatarUrl, b.cardNumber === undefined ? u.cardNumber : b.cardNumber, b.cardHolderName === undefined ? u.cardHolderName : b.cardHolderName, now(), u.id);
+  res.json(safeUser(getUser(u.id)!));
 }));
 r.post('/users/me/password', auth, wrap(async (req, res) => {
   const b = parse(z.object({ oldPassword: z.string(), newPassword: z.string().min(4) }), req.body);
-  const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId } });
+  const u = getUser(req.userId)!;
   if (!(await bcrypt.compare(b.oldPassword, u.passwordHash))) throw bad('رمز فعلی اشتباه است', 'BAD_CREDENTIALS');
-  await prisma.user.update({ where: { id: u.id }, data: { passwordHash: await bcrypt.hash(b.newPassword, 10) } });
+  run('UPDATE users SET passwordHash = ?, updatedAt = ? WHERE id = ?', await bcrypt.hash(b.newPassword, 10), now(), u.id);
   res.json({ ok: true });
 }));
-r.post('/users/me/push', auth, wrap(async (req, res) => {
+r.post('/users/me/push', auth, wrap((req, res) => {
   const b = parse(z.object({ endpoint: z.string().url(), keys: z.object({ p256dh: z.string(), auth: z.string() }) }), req.body);
-  await prisma.pushSubscription.upsert({ where: { endpoint: b.endpoint }, create: { userId: req.userId, endpoint: b.endpoint, keys: b.keys }, update: { userId: req.userId, keys: b.keys } });
+  run('INSERT INTO push_subscriptions (id, userId, endpoint, keys, createdAt) VALUES (?,?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET userId = excluded.userId, keys = excluded.keys', uid(), req.userId, b.endpoint, JSON.stringify(b.keys), now());
   res.json({ ok: true });
 }));
 
 /* ---------------- groups ---------------- */
-const detail = async (groupId: string) => {
-  const group = await prisma.group.findUnique({ where: { id: groupId } });
-  if (!group) throw notFound('گروه پیدا نشد');
-  const members = await prisma.groupMember.findMany({ where: { groupId }, include: { user: { select: safeUser } }, orderBy: { joinedAt: 'asc' } });
-  const expenses = await prisma.expense.findMany({ where: { groupId }, include: { participants: true }, orderBy: [{ paidAt: 'desc' }, { createdAt: 'desc' }] });
-  const settlements = await prisma.settlement.findMany({ where: { groupId }, orderBy: { submittedAt: 'desc' } });
-  return json({ group, members, expenses, settlements });
+const balancesOf = (groupId: string) => {
+  const balances = computeNetBalances(memberIds(groupId), expensesOf(groupId) as never, settlementsOf(groupId) as never);
+  return { balances, transfers: simplifyDebts(balances), pending: settlementsOf(groupId).filter((s) => s.status === 'pending_confirmation') };
 };
-const balancesOf = async (groupId: string) => {
-  const ms = await prisma.groupMember.findMany({ where: { groupId } });
-  const ex = await prisma.expense.findMany({ where: { groupId }, include: { participants: true } });
-  const st = await prisma.settlement.findMany({ where: { groupId } });
-  const balances = computeNetBalances(ms.map((m) => m.userId), ex.map(toCoreExpense) as never, st.map(toCoreSettlement) as never);
-  return { balances, transfers: simplifyDebts(balances), pending: st.filter((s) => s.status === 'pending_confirmation') };
-};
+const detailOr404 = (id: string) => { const d = groupDetail(id); if (!d) throw notFound('گروه پیدا نشد'); return d; };
 
-r.get('/groups', auth, wrap(async (req, res) => {
-  const ms = await prisma.groupMember.findMany({ where: { userId: req.userId } });
-  res.json(await Promise.all(ms.map((m) => detail(m.groupId))));
+r.get('/groups', auth, wrap((req, res) => {
+  const ids = all<{ groupId: string }>('SELECT groupId FROM memberships WHERE userId = ? ORDER BY joinedAt DESC', req.userId).map((m) => m.groupId);
+  res.json(ids.map((id) => groupDetail(id)).filter(Boolean));
 }));
-r.post('/groups', auth, wrap(async (req, res) => {
-  const b = parse(z.object({ name: z.string().min(2), description: z.string().optional(), coverImageUrl: z.string().nullable().optional() }), req.body);
-  const g = await prisma.group.create({ data: { ...b, createdBy: req.userId, inviteToken: token(), members: { create: { userId: req.userId, role: 'owner' } } } });
-  const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId } });
-  await log(g.id, req.userId, 'group_created', `${u.fullName} گروه «${g.name}» را ساخت`);
-  res.status(201).json(g);
+r.post('/groups', auth, wrap((req, res) => {
+  const b = parse(z.object({ name: z.string().min(2), description: z.string().nullable().optional(), coverImageUrl: z.string().nullable().optional() }), req.body);
+  const id = uid(); const t = now();
+  tx(() => {
+    run('INSERT INTO groups (id, name, description, coverImageUrl, createdBy, inviteToken, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?)', id, b.name.trim(), b.description ?? null, b.coverImageUrl ?? null, req.userId, token(), t, t);
+    run('INSERT INTO memberships (id, groupId, userId, role, joinedAt, updatedAt) VALUES (?,?,?,?,?,?)', uid(), id, req.userId, 'owner', t, t);
+    log(id, req.userId, 'group_created', `${userName(req.userId)} گروه «${b.name.trim()}» را ساخت`);
+  });
+  res.status(201).json(getGroup(id));
 }));
-r.get('/groups/invite/:token', wrap(async (req, res) => {
-  const g = await prisma.group.findUnique({ where: { inviteToken: req.params.token }, select: { id: true, name: true, description: true, coverImageUrl: true, _count: { select: { members: true } } } });
+r.get('/groups/invite/:token', wrap((req, res) => {
+  const g = getGroupByToken(req.params.token);
   if (!g) throw notFound('لینک دعوت نامعتبر است');
-  res.json({ group: g, memberCount: g._count.members });
+  res.json({ group: g, memberCount: memberIds(g.id).length });
 }));
-r.post('/groups/join/:token', auth, wrap(async (req, res) => {
-  const g = await prisma.group.findUnique({ where: { inviteToken: req.params.token } });
+r.post('/groups/join/:token', auth, wrap((req, res) => {
+  const g = getGroupByToken(req.params.token);
   if (!g) throw notFound('لینک دعوت نامعتبر است');
-  const exists = await prisma.groupMember.findUnique({ where: { groupId_userId: { groupId: g.id, userId: req.userId } } });
-  if (!exists) {
-    await prisma.groupMember.create({ data: { groupId: g.id, userId: req.userId, role: 'member' } });
-    const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId } });
-    await log(g.id, req.userId, 'member_joined', `${u.fullName} به گروه پیوست`);
+  const gid = g.id;
+  if (!getMembership(gid, req.userId)) {
+    const t = now();
+    tx(() => {
+      run('INSERT INTO memberships (id, groupId, userId, role, joinedAt, updatedAt) VALUES (?,?,?,?,?,?)', uid(), gid, req.userId, 'member', t, t);
+      log(gid, req.userId, 'member_joined', `${userName(req.userId)} به گروه پیوست`);
+    });
+    for (const m of memberIds(gid)) if (m !== req.userId) sendPush(m, 'عضو جدید در دُنگ', `${userName(req.userId)} به «${g.name}» پیوست`).catch(() => {});
   }
   res.json(g);
 }));
-r.get('/groups/:id', auth, wrap(async (req, res) => { await requireMember(req.params.id, req.userId); res.json(await detail(req.params.id)); }));
-r.patch('/groups/:id', auth, wrap(async (req, res) => {
-  const m = await requireMember(req.params.id, req.userId); if (m.role !== 'owner') throw forbidden();
+r.get('/groups/:id', auth, wrap((req, res) => { requireMember(req.params.id, req.userId); res.json(detailOr404(req.params.id)); }));
+r.patch('/groups/:id', auth, wrap((req, res) => {
+  if (requireMember(req.params.id, req.userId).role !== 'owner') throw forbidden('فقط مالک گروه می‌تواند ویرایش کند');
   const b = parse(z.object({ name: z.string().min(2).optional(), description: z.string().nullable().optional(), coverImageUrl: z.string().nullable().optional() }), req.body);
-  res.json(await prisma.group.update({ where: { id: req.params.id }, data: b }));
+  const g = getGroup(req.params.id)!;
+  run('UPDATE groups SET name = ?, description = ?, coverImageUrl = ?, updatedAt = ? WHERE id = ?', b.name ?? g.name, b.description === undefined ? g.description : b.description, b.coverImageUrl === undefined ? g.coverImageUrl : b.coverImageUrl, now(), g.id);
+  res.json(getGroup(req.params.id));
 }));
-r.post('/groups/:id/invite/regenerate', auth, wrap(async (req, res) => {
-  const m = await requireMember(req.params.id, req.userId); if (m.role !== 'owner') throw forbidden();
-  const g = await prisma.group.update({ where: { id: req.params.id }, data: { inviteToken: token() } });
-  res.json({ inviteToken: g.inviteToken });
+r.post('/groups/:id/invite/regenerate', auth, wrap((req, res) => {
+  if (requireMember(req.params.id, req.userId).role !== 'owner') throw forbidden();
+  const t = token();
+  run('UPDATE groups SET inviteToken = ?, updatedAt = ? WHERE id = ?', t, now(), req.params.id);
+  res.json({ inviteToken: t });
 }));
 r.get('/groups/:id/invite-qr', auth, wrap(async (req, res) => {
-  await requireMember(req.params.id, req.userId);
-  const g = await prisma.group.findUniqueOrThrow({ where: { id: req.params.id } });
-  const url = `${(process.env.PUBLIC_APP_URL ?? 'http://localhost:5173/').replace(/\/?$/, '/')}#/join/${g.inviteToken}`;
+  requireMember(req.params.id, req.userId);
+  const g = getGroup(req.params.id)!;
+  const url = `${(process.env.PUBLIC_APP_URL ?? 'http://localhost:4000/').replace(/\/?$/, '/')}#/join/${g.inviteToken}`;
   res.json({ url, qr: await QRCode.toDataURL(url, { margin: 1, width: 512 }) });
 }));
-r.get('/groups/:id/balances', auth, wrap(async (req, res) => { await requireMember(req.params.id, req.userId); res.json(json(await balancesOf(req.params.id))); }));
-r.get('/groups/:id/activity', auth, wrap(async (req, res) => {
-  await requireMember(req.params.id, req.userId);
-  res.json(await prisma.activityLog.findMany({ where: { groupId: req.params.id }, orderBy: { createdAt: 'desc' }, take: 200 }));
+r.get('/groups/:id/balances', auth, wrap((req, res) => { requireMember(req.params.id, req.userId); res.json(balancesOf(req.params.id)); }));
+r.get('/groups/:id/activity', auth, wrap((req, res) => {
+  requireMember(req.params.id, req.userId);
+  res.json(all('SELECT * FROM activity WHERE groupId = ? ORDER BY createdAt DESC LIMIT 300', req.params.id).map((a) => ({ ...a, meta: a.meta ? JSON.parse(String(a.meta)) : undefined })));
 }));
-const assertSettled = async (groupId: string, userId: string) => {
-  const { balances, pending } = await balancesOf(groupId);
+r.get('/activity', auth, wrap((req, res) => {
+  res.json(all('SELECT a.* FROM activity a JOIN memberships m ON m.groupId = a.groupId AND m.userId = ? ORDER BY a.createdAt DESC LIMIT 300', req.userId).map((a) => ({ ...a, meta: a.meta ? JSON.parse(String(a.meta)) : undefined })));
+}));
+const assertSettled = (groupId: string, userId: string) => {
+  const { balances, pending } = balancesOf(groupId);
   if ((balances.find((b) => b.userId === userId)?.balance ?? 0) !== 0) throw bad('ابتدا حساب‌ها را تسویه کنید', 'UNSETTLED');
   if (pending.some((s) => s.fromUser === userId || s.toUser === userId)) throw bad('یک پرداخت در انتظار تأیید وجود دارد', 'PENDING');
 };
-r.delete('/groups/:id/members/:userId', auth, wrap(async (req, res) => {
-  const me = await requireMember(req.params.id, req.userId);
+r.delete('/groups/:id/members/:userId', auth, wrap((req, res) => {
+  const me = requireMember(req.params.id, req.userId);
   const self = req.params.userId === req.userId;
   if (!self && me.role !== 'owner') throw forbidden('فقط مالک گروه می‌تواند عضو حذف کند');
-  await assertSettled(req.params.id, req.params.userId);
-  await prisma.groupMember.delete({ where: { groupId_userId: { groupId: req.params.id, userId: req.params.userId } } });
-  const [actor, target] = await Promise.all([prisma.user.findUniqueOrThrow({ where: { id: req.userId } }), prisma.user.findUniqueOrThrow({ where: { id: req.params.userId } })]);
-  await log(req.params.id, req.userId, self ? 'member_left' : 'member_removed', self ? `${actor.fullName} از گروه خارج شد` : `${actor.fullName} ${target.fullName} را از گروه حذف کرد`);
+  if (!getMembership(req.params.id, req.params.userId)) throw notFound('عضو پیدا نشد');
+  assertSettled(req.params.id, req.params.userId);
+  tx(() => {
+    run('DELETE FROM memberships WHERE groupId = ? AND userId = ?', req.params.id, req.params.userId);
+    log(req.params.id, req.userId, self ? 'member_left' : 'member_removed', self ? `${userName(req.userId)} از گروه خارج شد` : `${userName(req.userId)} ${userName(req.params.userId)} را از گروه حذف کرد`);
+  });
   res.json({ ok: true });
 }));
 
 /* ---------------- expenses ---------------- */
 const expenseSchema = z.object({
-  title: z.string().min(1), totalAmount: z.number().int().positive(), paidBy: z.string(), paidAt: z.string().datetime(),
+  title: z.string().min(1), totalAmount: z.number().int().positive(), paidBy: z.string(), paidAt: z.string(),
   splitType: z.enum(['equal', 'custom', 'by_payer']), participants: z.array(z.object({ userId: z.string(), amountOwed: z.number().int().nonnegative() })).min(1),
   receiptImageUrl: z.string().nullable().optional(), notes: z.string().nullable().optional(),
 });
-const validateExpense = async (groupId: string, b: z.infer<typeof expenseSchema>) => {
+const validateExpense = (groupId: string, b: z.infer<typeof expenseSchema>) => {
   const sum = b.participants.reduce((s, p) => s + p.amountOwed, 0);
   if (sum !== b.totalAmount) throw bad(`مجموع سهم‌ها (${formatToman(sum)}) با مبلغ کل برابر نیست`, 'SUM_MISMATCH');
-  const ids = new Set((await prisma.groupMember.findMany({ where: { groupId } })).map((m) => m.userId));
+  const ids = new Set(memberIds(groupId));
   if (!ids.has(b.paidBy) || b.participants.some((p) => !ids.has(p.userId))) throw bad('همه شرکت‌کننده‌ها باید عضو گروه باشند');
+  if (Number.isNaN(Date.parse(b.paidAt))) throw bad('تاریخ نامعتبر است');
 };
-r.get('/groups/:id/expenses', auth, wrap(async (req, res) => { await requireMember(req.params.id, req.userId); res.json(json(await prisma.expense.findMany({ where: { groupId: req.params.id }, include: { participants: true }, orderBy: { paidAt: 'desc' } }))); }));
-r.post('/groups/:id/expenses', auth, wrap(async (req, res) => {
-  await requireMember(req.params.id, req.userId);
-  const b = parse(expenseSchema, req.body); await validateExpense(req.params.id, b);
-  const e = await prisma.expense.create({ data: { groupId: req.params.id, title: b.title, totalAmount: BigInt(b.totalAmount), paidBy: b.paidBy, paidAt: new Date(b.paidAt), splitType: b.splitType, receiptImageUrl: b.receiptImageUrl, notes: b.notes, createdBy: req.userId, participants: { create: b.participants.map((p) => ({ userId: p.userId, amountOwed: BigInt(p.amountOwed) })) } }, include: { participants: true } });
-  const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId } });
-  await log(req.params.id, req.userId, 'expense_created', `${u.fullName} هزینه «${e.title}» به مبلغ ${formatToman(b.totalAmount)} ثبت کرد`, { expenseId: e.id });
-  for (const p of b.participants) if (p.userId !== req.userId) sendPush(p.userId, 'هزینه جدید در دُنگ', `${u.fullName}: «${e.title}» — سهم شما ${formatToman(p.amountOwed)}`).catch(() => {});
-  res.status(201).json(json(e));
-}));
-r.patch('/expenses/:id', auth, wrap(async (req, res) => {
-  const old = await prisma.expense.findUnique({ where: { id: req.params.id } }); if (!old) throw notFound();
-  const m = await requireMember(old.groupId, req.userId);
-  if (old.createdBy !== req.userId && m.role !== 'owner') throw forbidden('فقط ثبت‌کننده یا مالک گروه می‌تواند ویرایش کند');
-  const b = parse(expenseSchema, req.body); await validateExpense(old.groupId, b);
-  const e = await prisma.$transaction(async (tx) => {
-    await tx.expenseParticipant.deleteMany({ where: { expenseId: old.id } });
-    return tx.expense.update({ where: { id: old.id }, data: { title: b.title, totalAmount: BigInt(b.totalAmount), paidBy: b.paidBy, paidAt: new Date(b.paidAt), splitType: b.splitType, receiptImageUrl: b.receiptImageUrl, notes: b.notes, participants: { create: b.participants.map((p) => ({ userId: p.userId, amountOwed: BigInt(p.amountOwed) })) } }, include: { participants: true } });
+const expenseById = (id: string) => expensesOf((one<{ groupId: string }>('SELECT groupId FROM expenses WHERE id = ?', id)?.groupId) ?? '').find((e) => e.id === id);
+const writeParticipants = (expenseId: string, ps: { userId: string; amountOwed: number }[]) => {
+  run('DELETE FROM expense_participants WHERE expenseId = ?', expenseId);
+  for (const p of ps) run('INSERT INTO expense_participants (expenseId, userId, amountOwed) VALUES (?,?,?)', expenseId, p.userId, p.amountOwed);
+};
+r.get('/groups/:id/expenses', auth, wrap((req, res) => { requireMember(req.params.id, req.userId); res.json(expensesOf(req.params.id)); }));
+r.post('/groups/:id/expenses', auth, wrap((req, res) => {
+  requireMember(req.params.id, req.userId);
+  const b = parse(expenseSchema, req.body); validateExpense(req.params.id, b);
+  const id = uid(); const t = now();
+  tx(() => {
+    run('INSERT INTO expenses (id, groupId, title, totalAmount, paidBy, paidAt, splitType, receiptImageUrl, notes, status, createdBy, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      id, req.params.id, b.title.trim(), b.totalAmount, b.paidBy, new Date(b.paidAt).toISOString(), b.splitType, b.receiptImageUrl ?? null, b.notes ?? null, 'open', req.userId, t, t);
+    writeParticipants(id, b.participants);
+    log(req.params.id, req.userId, 'expense_created', `${userName(req.userId)} هزینه «${b.title.trim()}» به مبلغ ${formatToman(b.totalAmount)} ثبت کرد`, { expenseId: id });
   });
-  const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId } });
-  await log(old.groupId, req.userId, 'expense_updated', Number(old.totalAmount) !== b.totalAmount ? `${u.fullName} مبلغ «${e.title}» را از ${formatToman(Number(old.totalAmount))} به ${formatToman(b.totalAmount)} ویرایش کرد` : `${u.fullName} هزینه «${e.title}» را ویرایش کرد`, { expenseId: e.id });
-  res.json(json(e));
+  for (const p of b.participants) if (p.userId !== req.userId) sendPush(p.userId, 'هزینه جدید در دُنگ', `${userName(req.userId)}: «${b.title}» — سهم شما ${formatToman(p.amountOwed)}`).catch(() => {});
+  res.status(201).json(expenseById(id));
 }));
-r.delete('/expenses/:id', auth, wrap(async (req, res) => {
-  const e = await prisma.expense.findUnique({ where: { id: req.params.id } }); if (!e) throw notFound();
-  const m = await requireMember(e.groupId, req.userId);
+r.patch('/expenses/:id', auth, wrap((req, res) => {
+  const old = expenseById(req.params.id); if (!old) throw notFound();
+  const m = requireMember(old.groupId, req.userId);
+  if (old.createdBy !== req.userId && m.role !== 'owner') throw forbidden('فقط ثبت‌کننده یا مالک گروه می‌تواند ویرایش کند');
+  const b = parse(expenseSchema, req.body); validateExpense(old.groupId, b);
+  tx(() => {
+    run('UPDATE expenses SET title = ?, totalAmount = ?, paidBy = ?, paidAt = ?, splitType = ?, receiptImageUrl = ?, notes = ?, updatedAt = ? WHERE id = ?',
+      b.title.trim(), b.totalAmount, b.paidBy, new Date(b.paidAt).toISOString(), b.splitType, b.receiptImageUrl ?? null, b.notes ?? null, now(), old.id);
+    writeParticipants(old.id, b.participants);
+    log(old.groupId, req.userId, 'expense_updated', Number(old.totalAmount) !== b.totalAmount ? `${userName(req.userId)} مبلغ «${b.title}» را از ${formatToman(Number(old.totalAmount))} به ${formatToman(b.totalAmount)} ویرایش کرد` : `${userName(req.userId)} هزینه «${b.title}» را ویرایش کرد`, { expenseId: old.id });
+  });
+  res.json(expenseById(old.id));
+}));
+r.delete('/expenses/:id', auth, wrap((req, res) => {
+  const e = expenseById(req.params.id); if (!e) throw notFound();
+  const m = requireMember(e.groupId, req.userId);
   if (e.createdBy !== req.userId && m.role !== 'owner') throw forbidden('فقط ثبت‌کننده یا مالک گروه می‌تواند حذف کند');
-  const pending = await prisma.settlement.count({ where: { groupId: e.groupId, status: 'pending_confirmation' } });
-  if (pending) throw bad('پرداخت در انتظار تأیید وجود دارد؛ ابتدا آن‌ها را تعیین تکلیف کنید', 'HAS_SETTLEMENTS');
-  await prisma.expense.delete({ where: { id: e.id } });
-  const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId } });
-  await log(e.groupId, req.userId, 'expense_deleted', `${u.fullName} هزینه «${e.title}» (${formatToman(Number(e.totalAmount))}) را حذف کرد`);
+  if (settlementsOf(e.groupId).some((s) => s.status === 'pending_confirmation')) throw bad('پرداخت در انتظار تأیید وجود دارد؛ ابتدا آن‌ها را تعیین تکلیف کنید', 'HAS_SETTLEMENTS');
+  tx(() => {
+    run('DELETE FROM expenses WHERE id = ?', e.id);
+    log(e.groupId, req.userId, 'expense_deleted', `${userName(req.userId)} هزینه «${e.title}» (${formatToman(Number(e.totalAmount))}) را حذف کرد`);
+  });
   res.json({ ok: true });
 }));
 
 /* ---------------- settlements ---------------- */
-r.get('/groups/:id/settlements', auth, wrap(async (req, res) => { await requireMember(req.params.id, req.userId); res.json(json(await prisma.settlement.findMany({ where: { groupId: req.params.id }, orderBy: { submittedAt: 'desc' } }))); }));
-r.post('/settlements', auth, wrap(async (req, res) => {
-  const b = parse(z.object({ groupId: z.string(), toUser: z.string(), amount: z.number().int().positive(), receiptImageUrl: z.string().nullable().optional(), note: z.string().nullable().optional() }), req.body);
-  await requireMember(b.groupId, req.userId); await requireMember(b.groupId, b.toUser);
-  if (b.toUser === req.userId) throw bad('نمی‌توانید به خودتان پرداخت کنید');
-  const s = await prisma.settlement.create({ data: { groupId: b.groupId, fromUser: req.userId, toUser: b.toUser, amount: BigInt(b.amount), receiptImageUrl: b.receiptImageUrl, note: b.note } });
-  const [u, to] = await Promise.all([prisma.user.findUniqueOrThrow({ where: { id: req.userId } }), prisma.user.findUniqueOrThrow({ where: { id: b.toUser } })]);
-  await log(b.groupId, req.userId, 'settlement_submitted', `${u.fullName} پرداخت ${formatToman(b.amount)} به ${to.fullName} را ثبت کرد (در انتظار تأیید)`, { settlementId: s.id });
-  sendPush(b.toUser, 'پرداخت جدید برای تأیید', `${u.fullName} ${formatToman(b.amount)} برایت واریز کرده — تأیید کن`).catch(() => {});
-  res.status(201).json(json(s));
+const settlement = (id: string) => one<DbSettlement>('SELECT * FROM settlements WHERE id = ?', id);
+r.get('/groups/:id/settlements', auth, wrap((req, res) => { requireMember(req.params.id, req.userId); res.json(settlementsOf(req.params.id)); }));
+r.post('/settlements', auth, wrap((req, res) => {
+  const b = parse(z.object({ groupId: z.string(), toUser: z.string(), amount: z.number().int().positive(), receiptImageUrl: z.string().nullable().optional(), note: z.string().nullable().optional(), fromUser: z.string().optional() }), req.body);
+  requireMember(b.groupId, req.userId); requireMember(b.groupId, b.toUser);
+  const from = b.fromUser && b.fromUser !== req.userId ? b.fromUser : req.userId;
+  if (from !== req.userId) requireMember(b.groupId, from);
+  if (b.toUser === from) throw bad('نمی‌توانید به خودتان پرداخت کنید');
+  const id = uid(); const t = now();
+  // creditor recording a payment they received from someone => auto-confirmed
+  const auto = b.toUser === req.userId;
+  tx(() => {
+    run('INSERT INTO settlements (id, groupId, fromUser, toUser, amount, receiptImageUrl, status, note, submittedAt, confirmedAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+      id, b.groupId, from, b.toUser, b.amount, b.receiptImageUrl ?? null, auto ? 'confirmed' : 'pending_confirmation', b.note ?? null, t, auto ? t : null, t);
+    log(b.groupId, req.userId, auto ? 'settlement_confirmed' : 'settlement_submitted', auto ? `${userName(req.userId)} دریافت ${formatToman(b.amount)} از ${userName(from)} را ثبت کرد` : `${userName(from)} پرداخت ${formatToman(b.amount)} به ${userName(b.toUser)} را ثبت کرد (در انتظار تأیید)`, { settlementId: id });
+  });
+  if (!auto) sendPush(b.toUser, 'پرداخت جدید برای تأیید', `${userName(from)} ${formatToman(b.amount)} برایت واریز کرده — تأیید کن`).catch(() => {});
+  res.status(201).json(settlement(id));
 }));
-r.post('/settlements/:id/confirm', auth, wrap(async (req, res) => {
-  const s = await prisma.settlement.findUnique({ where: { id: req.params.id } });
+r.post('/settlements/:id/confirm', auth, wrap((req, res) => {
+  const s = settlement(req.params.id);
   if (!s || s.status !== 'pending_confirmation') throw bad('این پرداخت قابل تأیید نیست', 'BAD_STATE');
   if (s.toUser !== req.userId) throw forbidden('فقط دریافت‌کننده می‌تواند تأیید کند');
-  await prisma.settlement.update({ where: { id: s.id }, data: { status: 'confirmed', confirmedAt: new Date() } });
-  const [u, from] = await Promise.all([prisma.user.findUniqueOrThrow({ where: { id: req.userId } }), prisma.user.findUniqueOrThrow({ where: { id: s.fromUser } })]);
-  await log(s.groupId, req.userId, 'settlement_confirmed', `${u.fullName} دریافت ${formatToman(Number(s.amount))} از ${from.fullName} را تأیید کرد`, { settlementId: s.id });
-  sendPush(s.fromUser, 'پرداختت تأیید شد ✅', `${u.fullName} دریافت ${formatToman(Number(s.amount))} را تأیید کرد`).catch(() => {});
+  tx(() => {
+    run('UPDATE settlements SET status = ?, confirmedAt = ?, updatedAt = ? WHERE id = ?', 'confirmed', now(), now(), s.id);
+    log(s.groupId, req.userId, 'settlement_confirmed', `${userName(req.userId)} دریافت ${formatToman(Number(s.amount))} از ${userName(s.fromUser)} را تأیید کرد`, { settlementId: s.id });
+  });
+  sendPush(s.fromUser, 'پرداختت تأیید شد ✅', `${userName(req.userId)} دریافت ${formatToman(Number(s.amount))} را تأیید کرد`).catch(() => {});
   res.json({ ok: true });
 }));
-r.post('/settlements/:id/reject', auth, wrap(async (req, res) => {
+r.post('/settlements/:id/reject', auth, wrap((req, res) => {
   const b = parse(z.object({ reason: z.string().min(1) }), req.body);
-  const s = await prisma.settlement.findUnique({ where: { id: req.params.id } });
+  const s = settlement(req.params.id);
   if (!s || s.status !== 'pending_confirmation') throw bad('این پرداخت قابل رد نیست', 'BAD_STATE');
   if (s.toUser !== req.userId) throw forbidden('فقط دریافت‌کننده می‌تواند رد کند');
-  await prisma.settlement.update({ where: { id: s.id }, data: { status: 'rejected', rejectReason: b.reason } });
-  const [u, from] = await Promise.all([prisma.user.findUniqueOrThrow({ where: { id: req.userId } }), prisma.user.findUniqueOrThrow({ where: { id: s.fromUser } })]);
-  await log(s.groupId, req.userId, 'settlement_rejected', `${u.fullName} پرداخت ${formatToman(Number(s.amount))} از ${from.fullName} را رد کرد: «${b.reason}»`, { settlementId: s.id });
-  sendPush(s.fromUser, 'پرداختت رد شد', `${u.fullName}: ${b.reason}`).catch(() => {});
+  tx(() => {
+    run('UPDATE settlements SET status = ?, rejectReason = ?, updatedAt = ? WHERE id = ?', 'rejected', b.reason, now(), s.id);
+    log(s.groupId, req.userId, 'settlement_rejected', `${userName(req.userId)} پرداخت ${formatToman(Number(s.amount))} از ${userName(s.fromUser)} را رد کرد: «${b.reason}»`, { settlementId: s.id });
+  });
+  sendPush(s.fromUser, 'پرداختت رد شد', `${userName(req.userId)}: ${b.reason}`).catch(() => {});
   res.json({ ok: true });
 }));
-r.delete('/settlements/:id', auth, wrap(async (req, res) => {
-  const s = await prisma.settlement.findUnique({ where: { id: req.params.id } });
+r.delete('/settlements/:id', auth, wrap((req, res) => {
+  const s = settlement(req.params.id);
   if (!s || s.status !== 'pending_confirmation' || s.fromUser !== req.userId) throw bad('قابل لغو نیست', 'BAD_STATE');
-  await prisma.settlement.delete({ where: { id: s.id } }); res.json({ ok: true });
+  run('DELETE FROM settlements WHERE id = ?', s.id); res.json({ ok: true });
 }));
 
 /* ---------------- reminders ---------------- */
-r.post('/reminders', auth, wrap(async (req, res) => {
+r.get('/groups/:id/reminders', auth, wrap((req, res) => { requireMember(req.params.id, req.userId); res.json(all('SELECT * FROM reminders WHERE groupId = ?', req.params.id).map((x) => ({ ...x, active: !!x.active }))); }));
+r.post('/reminders', auth, wrap((req, res) => {
   const b = parse(z.object({ groupId: z.string(), targetUserId: z.string(), amount: z.number().int().positive(), frequency: z.enum(['once', 'every_1_day', 'every_2_days', 'every_3_days', 'weekly']).optional() }), req.body);
-  await requireMember(b.groupId, req.userId);
-  const existing = await prisma.reminder.findUnique({ where: { groupId_targetUserId: { groupId: b.groupId, targetUserId: b.targetUserId } } });
-  if (existing?.lastSentAt && Date.now() - existing.lastSentAt.getTime() < 86400000) throw bad('روزی فقط یک یادآوری می‌توانید بفرستید', 'RATE_LIMIT');
-  const rem = await prisma.reminder.upsert({ where: { groupId_targetUserId: { groupId: b.groupId, targetUserId: b.targetUserId } }, create: { groupId: b.groupId, targetUserId: b.targetUserId, createdBy: req.userId, frequency: b.frequency ?? 'every_3_days', lastSentAt: new Date() }, update: { lastSentAt: new Date(), active: true, ...(b.frequency ? { frequency: b.frequency } : {}) } });
-  const [u, t] = await Promise.all([prisma.user.findUniqueOrThrow({ where: { id: req.userId } }), prisma.user.findUniqueOrThrow({ where: { id: b.targetUserId } })]);
-  await log(b.groupId, req.userId, 'reminder_sent', `${u.fullName} برای ${t.fullName} یادآوری بدهی ${formatToman(b.amount)} فرستاد`);
-  sendPush(b.targetUserId, 'یادآوری دُنگ 🔔', `${t.fullName}، ${formatToman(b.amount)} به ${u.fullName} بدهکاری`).catch(() => {});
-  res.json(rem);
-}));
-r.patch('/reminders/:id', auth, wrap(async (req, res) => {
-  const b = parse(z.object({ active: z.boolean().optional(), frequency: z.enum(['once', 'every_1_day', 'every_2_days', 'every_3_days', 'weekly']).optional() }), req.body);
-  const rem = await prisma.reminder.findUnique({ where: { id: req.params.id } }); if (!rem) throw notFound();
-  if (rem.createdBy !== req.userId) throw forbidden();
-  res.json(await prisma.reminder.update({ where: { id: rem.id }, data: b }));
-}));
-r.delete('/reminders/:id', auth, wrap(async (req, res) => {
-  const rem = await prisma.reminder.findUnique({ where: { id: req.params.id } }); if (!rem) throw notFound();
-  if (rem.createdBy !== req.userId) throw forbidden();
-  await prisma.reminder.delete({ where: { id: rem.id } }); res.json({ ok: true });
+  requireMember(b.groupId, req.userId); requireMember(b.groupId, b.targetUserId);
+  const existing = one('SELECT * FROM reminders WHERE groupId = ? AND targetUserId = ?', b.groupId, b.targetUserId);
+  if (existing?.lastSentAt && Date.now() - Date.parse(String(existing.lastSentAt)) < 86400000) throw bad('روزی فقط یک یادآوری می‌توانید بفرستید', 'RATE_LIMIT');
+  tx(() => {
+    if (existing) run('UPDATE reminders SET lastSentAt = ?, active = 1, frequency = ? WHERE id = ?', now(), b.frequency ?? existing.frequency, existing.id);
+    else run('INSERT INTO reminders (id, groupId, targetUserId, createdBy, frequency, active, lastSentAt, createdAt) VALUES (?,?,?,?,?,1,?,?)', uid(), b.groupId, b.targetUserId, req.userId, b.frequency ?? 'every_3_days', now(), now());
+    log(b.groupId, req.userId, 'reminder_sent', `${userName(req.userId)} برای ${userName(b.targetUserId)} یادآوری بدهی ${formatToman(b.amount)} فرستاد`);
+  });
+  sendPush(b.targetUserId, 'یادآوری دُنگ 🔔', `${userName(b.targetUserId)}، ${formatToman(b.amount)} به ${userName(req.userId)} بدهکاری`).catch(() => {});
+  res.json(one('SELECT * FROM reminders WHERE groupId = ? AND targetUserId = ?', b.groupId, b.targetUserId));
 }));

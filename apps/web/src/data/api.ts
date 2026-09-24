@@ -6,16 +6,33 @@ export class ApiAdapter implements DataAdapter {
   readonly kind = 'api' as const;
   private listeners = new Set<() => void>();
   private token = localStorage.getItem('dong.token');
-  constructor(private base: string) { this.base = base.replace(/\/$/, ''); }
+  private status: 'connecting' | 'online' | 'error' = 'connecting';
+  private statusCb?: (s: 'connecting' | 'online' | 'error') => void;
+  /** same contract as LocalAdapter.onSyncStatus — store wires the header pill through this */
+  onSyncStatus(cb: (s: 'connecting' | 'online' | 'error') => void) { this.statusCb = cb; cb(this.status); }
+  constructor(private base: string) {
+    // accept "/api", "api", "https://host/api" — always resolve against the page origin
+    this.base = new URL(base, location.href).toString().replace(/\/$/, '');
+  }
+  /** used by store.onSyncStatus wiring (same contract as LocalAdapter) */
+  get syncStatus() { return this.status; }
+  private setStatus(s: 'connecting' | 'online' | 'error') { if (s !== this.status) { this.status = s; this.statusCb?.(s); } }
 
   private emit() { this.listeners.forEach((l) => l()); }
-  subscribe(cb: () => void) { this.listeners.add(cb); const t = setInterval(cb, 20000); return () => { this.listeners.delete(cb); clearInterval(t); }; }
+  subscribe(cb: () => void) {
+    this.listeners.add(cb);
+    const t = setInterval(() => { if (document.visibilityState === 'visible') cb(); }, 8000);
+    const onVis = () => { if (document.visibilityState === 'visible') cb(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { this.listeners.delete(cb); clearInterval(t); document.removeEventListener('visibilitychange', onVis); };
+  }
 
   private async req<T>(method: string, path: string, body?: unknown): Promise<T> {
     let res: Response;
     try {
       res = await fetch(this.base + path, { method, headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
-    } catch { throw new AppError('NETWORK', 'ارتباط با سرور برقرار نشد'); }
+    } catch { this.setStatus('error'); throw new AppError('NETWORK', 'ارتباط با سرور برقرار نشد'); }
+    this.setStatus('online');
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new AppError(data.code ?? 'ERROR', data.message ?? 'خطای سرور');
     return data as T;
@@ -27,7 +44,8 @@ export class ApiAdapter implements DataAdapter {
     const fd = new FormData(); fd.append('file', blob, 'image.jpg');
     const res = await fetch(`${this.base}/uploads`, { method: 'POST', headers: { Authorization: `Bearer ${this.token}` }, body: fd });
     if (!res.ok) throw new AppError('UPLOAD', 'آپلود تصویر ناموفق بود');
-    return this.base + (await res.json()).url;
+    const { url: stored } = (await res.json()) as { url: string };
+    return new URL(stored, this.base + '/').toString();
   }
 
   async register(input: RegisterInput) { const r = await this.req<{ user: User; token: string }>('POST', '/auth/register', input); this.setToken(r.token); this.emit(); return r.user; }
@@ -53,12 +71,12 @@ export class ApiAdapter implements DataAdapter {
   async updateExpense(id: string, input: ExpenseInput) { const e = await this.req<Expense>('PATCH', `/expenses/${id}`, { ...input, receiptImageUrl: await this.uploadIfDataUrl(input.receiptImageUrl) }); this.emit(); return e; }
   async deleteExpense(id: string) { await this.req('DELETE', `/expenses/${id}`); this.emit(); }
 
-  async submitSettlement(groupId: string, toUser: string, amount: number, receiptImageUrl?: string | null, note?: string | null) { const s = await this.req<Settlement>('POST', '/settlements', { groupId, toUser, amount, receiptImageUrl: await this.uploadIfDataUrl(receiptImageUrl), note }); this.emit(); return s; }
+  async submitSettlement(groupId: string, toUser: string, amount: number, receiptImageUrl?: string | null, note?: string | null, fromUser?: string) { const s = await this.req<Settlement>('POST', '/settlements', { groupId, toUser, amount, receiptImageUrl: await this.uploadIfDataUrl(receiptImageUrl), note, fromUser }); this.emit(); return s; }
   async confirmSettlement(id: string) { await this.req('POST', `/settlements/${id}/confirm`); this.emit(); }
   async rejectSettlement(id: string, reason: string) { await this.req('POST', `/settlements/${id}/reject`, { reason }); this.emit(); }
   async cancelSettlement(id: string) { await this.req('DELETE', `/settlements/${id}`); this.emit(); }
 
-  async activity(groupId: string) { return (await this.req<(Omit<Activity, 'type'> & { actionType: Activity['type'] })[]>('GET', `/groups/${groupId}/activity`)).map((a) => ({ ...a, type: a.actionType })); }
+  async activity(groupId: string) { return this.req<Activity[]>('GET', groupId ? `/groups/${groupId}/activity` : '/activity'); }
   async sendReminder(groupId: string, targetUserId: string, amount: number) { await this.req('POST', '/reminders', { groupId, targetUserId, amount }); this.emit(); }
-  async reminders(_groupId: string): Promise<Reminder[]> { return []; }
+  async reminders(groupId: string): Promise<Reminder[]> { return this.req<Reminder[]>('GET', `/groups/${groupId}/reminders`); }
 }
