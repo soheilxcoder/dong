@@ -46,13 +46,15 @@ npm run dev         # http://localhost:5173
 npm run build       # خروجی apps/web/dist
 ```
 
-### بک‌اند (اختیاری)
+### سرور اختصاصی (اختیاری) — وب‌اپ + API + SQLite در یک برنامه
 ```bash
-cd apps/api && cp .env.example .env
-docker compose up -d           # Postgres + API روی :4000
-npm run prisma:migrate -w @dong/api && npm run seed -w @dong/api
+cp .env.example .env && nano .env      # JWT_SECRET و PUBLIC_APP_URL
+docker compose up -d --build           # http://IP:4000
+# یا بدون Docker (Node ≥ 22.13):
+npm ci && npm run build:selfhost && npm start
 ```
-سپس در اپ: **پروفایل ← اتصال به سرور** آدرس API را وارد کنید.
+راهنمای کامل مبتدی‌پسند (VPS، دامنه/HTTPS، pm2، بک‌آپ، اتصال اپ اندروید): [docs-src/SELF_HOST.md](docs-src/SELF_HOST.md)
+در اپ: **پروفایل ← اتصال به سرور** ← `https://دامنه/api`.
 
 ### اندروید
 ```bash
