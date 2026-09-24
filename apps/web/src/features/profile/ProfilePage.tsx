@@ -72,7 +72,7 @@ export function ProfilePage() {
           <Row icon={<Server size={18} />} label="همگام‌سازی" sub={settings.apiUrl ? `سرور اختصاصی: ${settings.apiUrl}` : 'خودکار و رمزنگاری‌شده (بدون نیاز به سرور)'} onClick={() => setApiOpen(true)} />
           <Row icon={<Info size={18} />} label="نمایش دوباره راهنماها" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
           {!Capacitor.isNativePlatform() && <Row icon={<Smartphone size={18} />} label="دانلود اپ اندروید (APK)" sub="نصب مستقیم — سریع‌تر و با اعلان" onClick={() => window.open('https://github.com/soheilxcoder/dong/releases/tag/apk-latest', '_blank')} />}
-          <Row icon={<Info size={18} />} label="درباره دُنگ" sub="نسخه ۱.۰.۰ — حساب‌کتاب دنگی، بدون دعوا" />
+          <Row icon={<Info size={18} />} label="درباره دُنگ" sub={`نسخه ${import.meta.env.VITE_APP_VERSION ?? "1.0.0"} — حساب‌کتاب دنگی، بدون دعوا`} />
         </div>
 
         <button onClick={async () => { await adapter.logout(); nav('/auth', { replace: true }); }} className="btn-ghost text-neg w-full"><LogOut size={18} /> خروج از حساب</button>

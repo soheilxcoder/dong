@@ -17,3 +17,4 @@ apps/web/android/app/build/
 apps/web/android/build/
 apps/web/android/.idea/
 apps/web/android/capacitor-cordova-android-plugins/build/
+release-keys/

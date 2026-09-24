@@ -1,3 +1,4 @@
+import { maybeShowInterstitial } from '@/lib/ads';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -61,7 +62,7 @@ export function ExpenseFormPage() {
       const input = { title: title.trim(), totalAmount: total, paidBy, paidAt: new Date(date + 'T12:00:00').toISOString(), splitType: split, participants: shares, receiptImageUrl: img, notes: notes || null };
       if (editing) { await adapter.updateExpense(editing.id, input); toast('ویرایش شد', 'ok'); }
       else { await adapter.addExpense(g.group.id, input); toast('هزینه ثبت شد 🎉', 'ok'); fireCelebration(); }
-      haptic('success'); nav(`/g/${id}`, { replace: true });
+      haptic('success'); nav(`/g/${id}`, { replace: true }); if (!editing) setTimeout(() => { void maybeShowInterstitial(); }, 600);
     } catch (e) { setErr((e as Error).message); haptic('error'); } finally { setBusy(false); }
   };
 

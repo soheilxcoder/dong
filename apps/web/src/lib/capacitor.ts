@@ -1,3 +1,4 @@
+import { initAds } from './ads';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -10,6 +11,7 @@ import '@capacitor/local-notifications';
 /** Native bootstrap: deep links, status bar, back button. No-op on web. */
 export function initNative(navigate: (path: string) => void) {
   if (!Capacitor.isNativePlatform()) return;
+  setTimeout(() => { void initAds(); }, 1500); // after first paint
   StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
   StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
   SplashScreen.hide().catch(() => {});

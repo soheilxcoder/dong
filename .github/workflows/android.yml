@@ -24,11 +24,19 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" "platform-tools" >/dev/null
 
       - run: npm ci
+      - name: Version
+        run: |
+          echo "VERSION_CODE=$((100 + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
+          echo "VERSION_NAME=1.$((GITHUB_RUN_NUMBER / 100)).$((GITHUB_RUN_NUMBER % 100))" >> $GITHUB_ENV
       - name: Build web (native build – root base)
         run: npm run build
         env:
           VITE_BASE: /
           VITE_PUBLIC_URL: https://soheilxcoder.github.io/dong/
+          VITE_APP_VERSION: ${{ env.VERSION_NAME }}
+          # Real AdMob unit ids come from repo secrets; without them Google TEST ads are used.
+          VITE_ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
+          VITE_ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
       - name: Capacitor sync
         run: npx cap sync android
         working-directory: apps/web
@@ -54,7 +62,11 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease --no-daemon \
-            -PDONG_KEYSTORE=$PWD/release.keystore -PDONG_KS_PASS=$KS_PASS -PDONG_KEY_ALIAS=$KEY_ALIAS -PDONG_KEY_PASS=$KEY_PASS
+            -PDONG_KEYSTORE=$PWD/release.keystore -PDONG_KS_PASS=$KS_PASS -PDONG_KEY_ALIAS=$KEY_ALIAS -PDONG_KEY_PASS=$KEY_PASS \
+            -PDONG_VERSION_CODE=$VERSION_CODE -PDONG_VERSION_NAME=$VERSION_NAME \
+            -PADMOB_APP_ID="${{ secrets.ADMOB_APP_ID || 'ca-app-pub-3940256099942544~3347511713' }}"
+          echo "SIGNING=$([ -n '${{ secrets.ANDROID_KEYSTORE_B64 }}' ] && echo 'کلید آپلود شما (Play-ready)' || echo 'کلید موقت (فقط تست — برای Play باید secrets را تنظیم کنید)')" >> $GITHUB_ENV
+          echo "ADS=$([ -n '${{ secrets.ADMOB_APP_ID }}' ] && echo 'AdMob واقعی' || echo 'تبلیغات تستی گوگل')" >> $GITHUB_ENV
           cp app/build/outputs/apk/release/app-release.apk ../../../dong-latest.apk
           cp app/build/outputs/bundle/release/app-release.aab ../../../dong-latest.aab
           cp app/build/outputs/apk/release/app-release.apk ../../../dong-${GITHUB_SHA::7}.apk
@@ -77,9 +89,14 @@ jobs:
           tag_name: apk-latest
           name: دُنگ — آخرین نسخه اندروید
           body: |
-            نصب مستقیم: فایل `.apk` را دانلود و نصب کنید (نصب از منابع ناشناس را اجازه دهید).
-            نسخه وب: https://soheilxcoder.github.io/dong/
-            Commit: ${{ github.sha }}
+            نصب مستقیم: فایل `dong-latest.apk` را دانلود و نصب کنید (نصب از منابع ناشناس را اجازه دهید).
+            برای Google Play فایل `dong-latest.aab` را آپلود کنید.
+
+            - نسخه: `${{ env.VERSION_NAME }}` (versionCode `${{ env.VERSION_CODE }}`)
+            - امضا: ${{ env.SIGNING }}
+            - تبلیغات: ${{ env.ADS }}
+            - نسخه وب: https://soheilxcoder.github.io/dong/
+            - Commit: ${{ github.sha }}
           prerelease: true
           files: |
             dong-latest.apk

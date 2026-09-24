@@ -7,8 +7,10 @@ android {
         applicationId "ir.dong.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+        // versionCode is supplied by CI (-PDONG_VERSION_CODE=<run number>) so every upload is unique
+        versionCode (project.hasProperty('DONG_VERSION_CODE') ? project.property('DONG_VERSION_CODE').toInteger() : 1)
+        versionName (project.hasProperty('DONG_VERSION_NAME') ? project.property('DONG_VERSION_NAME') : "1.0.0")
+        manifestPlaceholders = [admobAppId: (project.hasProperty('ADMOB_APP_ID') ? project.property('ADMOB_APP_ID') : "ca-app-pub-3940256099942544~3347511713")]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
