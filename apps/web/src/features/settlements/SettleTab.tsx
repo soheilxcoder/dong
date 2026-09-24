@@ -1,4 +1,3 @@
-import { maybeShowInterstitial } from '@/lib/ads';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, BellRing, Camera, Check, RotateCw, X, Clock, HandCoins } from 'lucide-react';
@@ -25,7 +24,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
   const history = g.settlements.filter((s) => s.status !== 'pending_confirmation').slice(0, 20);
 
   const confirm = async (s: Settlement) => {
-    try { await adapter.confirmSettlement(s.id); haptic('success'); ding(settings.sound); fireCelebration(); setCelebrated(true); setTimeout(() => setCelebrated(false), 1600); setTimeout(() => { void maybeShowInterstitial(); }, 2200); }
+    try { await adapter.confirmSettlement(s.id); haptic('success'); ding(settings.sound); fireCelebration(); setCelebrated(true); setTimeout(() => setCelebrated(false), 1600); }
     catch (e) { toast((e as Error).message, 'err'); }
   };
   const remind = async (t: Transfer) => {

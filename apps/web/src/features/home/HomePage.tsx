@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, Sparkles, Bell, ChevronLeft, Link2 } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Mascot } from '@/design-system/Mascot';
 import type { GroupDetail } from '@/data/adapter';
 import { fmtAgo } from '@/lib/date';
 import { Tour } from '@/design-system/Tour';
+import { showStartupAd } from '@/lib/ads';
 
 export function useGroupSummary(g: GroupDetail, me: string) {
   return useMemo(() => {
@@ -24,6 +25,8 @@ export function useGroupSummary(g: GroupDetail, me: string) {
 }
 
 export function HomePage() {
+  // The one and only ad: shown once per launch, right after login / when home first appears.
+  useEffect(() => { const t = setTimeout(() => { void showStartupAd(); }, 1200); return () => clearTimeout(t); }, []);
   const { user, groups, adapter, toast } = useStore();
   const nav = useNavigate();
   const [busyDemo, setBusyDemo] = useState(false);

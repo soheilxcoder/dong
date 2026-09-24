@@ -1,4 +1,8 @@
 /**
+ * Ads policy (owner's decision): exactly ONE full-screen ad per app launch, shown right after
+ * login / when the home screen first appears. No banners, nothing during expense entry or settlements.
+ * The skip/close timing inside the ad is controlled by Tapsell, not by the app.
+ *
  * Monetisation: Tapsell Mediation (Iranian ad network) via our tiny native bridge
  * (android/app/src/main/java/ir/dong/app/TapsellPlugin.java). Native Android only — never on web.
  *
@@ -35,54 +39,41 @@ export const ADS = {
 };
 
 let ready = false;
-let bannerShown = false;
 let interstitialReady = false;
-let lastInterstitial = 0;
-const INTERSTITIAL_GAP_MS = 3 * 60 * 1000;
-const FIRST_INTERSTITIAL_DELAY_MS = 60 * 1000;
-
-function setBottomInset(px: number) {
-  document.documentElement.style.setProperty('--safe-bottom', `calc(env(safe-area-inset-bottom, 0px) + ${px}px)`);
-}
+let shownThisLaunch = false;
 
 export async function initAds() {
   if (!ADS.enabled || ready) return;
   ready = true;
-  lastInterstitial = Date.now() - INTERSTITIAL_GAP_MS + FIRST_INTERSTITIAL_DELAY_MS;
   try {
-    await Tapsell.addListener('bannerHeight', ({ height }) => setBottomInset(height));
-    await Tapsell.addListener('interstitialClosed', () => { interstitialReady = false; setTimeout(() => { void prepareInterstitial(); }, 5000); });
-    await showBanner();
-    void prepareInterstitial();
+    await Tapsell.addListener('interstitialClosed', () => { interstitialReady = false; });
+    await prepareInterstitial();
   } catch (e) {
     console.warn('[ads] init failed', e);
   }
 }
 
-export async function showBanner() {
-  if (!ready || bannerShown) return;
-  try { await Tapsell.showBanner({ zoneId: ADS.banner }); bannerShown = true; }
-  catch (e) { console.warn('[ads] banner', e); setTimeout(() => { void showBanner(); }, 60_000); } // retry later (no fill / offline)
-}
-
-export async function hideBanner() {
-  if (!ready || !bannerShown) return;
-  try { await Tapsell.hideBanner(); } catch { /* ignore */ }
-  bannerShown = false; setBottomInset(0);
-}
-
 async function prepareInterstitial() {
-  if (!ready || interstitialReady) return;
+  if (!ready || interstitialReady || shownThisLaunch) return;
   try { await Tapsell.prepareInterstitial({ zoneId: ADS.interstitial }); interstitialReady = true; }
-  catch { setTimeout(() => { void prepareInterstitial(); }, 90_000); }
+  catch { /* no fill / offline — we simply skip the ad this launch */ }
 }
 
-/** Call at natural break points (after saving an expense / confirming a settlement). Rate-limited. */
-export async function maybeShowInterstitial() {
-  if (!ready || !interstitialReady) return;
-  if (Date.now() - lastInterstitial < INTERSTITIAL_GAP_MS) return;
-  try {
-    const { shown } = await Tapsell.showInterstitial();
-    if (shown) { lastInterstitial = Date.now(); interstitialReady = false; }
-  } catch { interstitialReady = false; }
+/** The single startup ad: called when the home screen appears after login. Waits up to ~12s for the ad to load, shows once per launch. */
+export async function showStartupAd() {
+  if (!ADS.enabled || shownThisLaunch) return;
+  shownThisLaunch = true;
+  if (!ready) await initAds();
+  for (let i = 0; i < 24 && !interstitialReady; i++) { // ad may still be loading
+    if (i % 6 === 5) void prepareInterstitial();
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  if (!interstitialReady) return;
+  try { await Tapsell.showInterstitial(); } catch { /* ignore */ }
+  interstitialReady = false;
 }
+
+/** Kept for API compatibility — no longer shows anything (one ad per launch only). */
+export async function maybeShowInterstitial() { /* intentionally empty */ }
+export async function showBanner() { /* banners removed */ }
+export async function hideBanner() { /* banners removed */ }
