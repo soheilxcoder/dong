@@ -54,7 +54,12 @@ export class ApiAdapter implements DataAdapter {
   /** what lib/push needs to talk to the server */
   get pushApi() { return { base: this.base, token: () => this.token }; }
   async logout() { try { await disablePush(this.pushApi); } catch { /* ignore */ } this.setToken(null); this.emit(); }
-  async me() { if (!this.token) return null; try { return await this.req<User>('GET', '/users/me'); } catch { this.setToken(null); return null; } }
+  /** null = not logged in. Throws AppError('NETWORK') when the server is unreachable — the caller must NOT treat that as "logged out". */
+  async me() {
+    if (!this.token) return null;
+    try { return await this.req<User>('GET', '/users/me'); }
+    catch (e) { if (e instanceof AppError && e.code === 'NETWORK') throw e; this.setToken(null); return null; }
+  }
   async getSecurityQuestion(username: string) { return (await this.req<{ question: string | null }>('GET', `/auth/security-question/${encodeURIComponent(username)}`)).question; }
   async resetPassword(username: string, answer: string, newPassword: string) { await this.req('POST', '/auth/reset-password-with-security-answer', { username, answer, newPassword }); }
   async updateMe(patch: Partial<Pick<User, 'fullName' | 'avatarUrl' | 'cardNumber' | 'cardHolderName'>>) { const p = { ...patch }; if (p.avatarUrl) p.avatarUrl = await this.uploadIfDataUrl(p.avatarUrl); const u = await this.req<User>('PATCH', '/users/me', p); this.emit(); return u; }

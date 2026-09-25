@@ -24,6 +24,8 @@ interface State {
   toasts: Toast[];
   celebrate: number; // increments to trigger confetti
   syncStatus: 'off' | 'connecting' | 'online' | 'error';
+  /** server mode only: first load failed because there is no connection */
+  offline: boolean;
   init(): Promise<void>;
   refresh(): Promise<void>;
   setUser(u: User | null): void;
@@ -43,21 +45,30 @@ export const useStore = create<State>((set, get) => ({
   toasts: [],
   celebrate: 0,
   syncStatus: 'off',
+  offline: false,
   async init() {
     const { adapter } = get();
     (adapter as { onSyncStatus?: (cb: (s: State['syncStatus']) => void) => void }).onSyncStatus?.((syncStatus) => set({ syncStatus }));
     applyTheme(get().settings.theme);
-    const u = await adapter.me();
-    set({ user: u });
-    if (u) await get().refresh();
+    try {
+      const u = await adapter.me();
+      set({ user: u, offline: false });
+      if (u) await get().refresh();
+    } catch {
+      // no connection on first open (server mode): keep the splash with an "offline" notice and let the user retry
+      set({ offline: true });
+      const retry = () => { window.removeEventListener('online', retry); if (get().user === undefined) void get().init(); };
+      window.addEventListener('online', retry);
+      return;
+    }
     adapter.subscribe(() => { get().refresh().catch(() => {}); });
   },
   async refresh() {
     const { adapter } = get();
-    const u = await adapter.me();
+    const u = await adapter.me(); // throws on network error → callers ignore, cached state stays
     if (!u) { set({ user: null, groups: [] }); return; }
     const groups = await adapter.myGroups();
-    set({ user: u, groups });
+    set({ user: u, groups, offline: false });
   },
   setUser(u) { set({ user: u }); },
   setSettings(p) {

@@ -13,6 +13,20 @@
     <title>دُنگ — تقسیم هزینه گروهی</title>
   </head>
   <body>
+    <!-- Pre-React splash: shown instantly from the HTML itself, removed by React once the app has mounted -->
+    <style>
+      #boot{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:radial-gradient(120vmax 120vmax at 50% 42%,#0f7f63 0%,#0a5c46 45%,#083a3a 100%);font-family:Vazirmatn,system-ui,sans-serif;transition:opacity .35s}
+      #boot.hide{opacity:0;pointer-events:none}
+      #boot .w{display:flex;flex-direction:column;align-items:center;transform:translateY(-4vh)}
+      #boot img{width:min(30vw,140px);height:auto;filter:drop-shadow(0 12px 28px rgba(0,0,0,.35))}
+      #boot h1{color:#fff;font-size:clamp(44px,14vw,72px);font-weight:900;margin:10px 0 0;line-height:1.1}
+      #boot p{color:rgba(255,255,255,.66);font-size:15px;margin:4px 0 0}
+      #boot .off{display:none;margin-top:28px;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:12px 18px;font-size:14px;max-width:80vw;text-align:center;line-height:1.8}
+      #boot.offline .off{display:block}
+    </style>
+    <div id="boot"><div class="w"><img src="./icons/coin.png" alt=""><h1>دُنگ</h1><p>حساب‌کتاب دنگی، بدون دعوا</p>
+      <div class="off">📶 اینترنت وصل نیست<br><small>برای ورود به دُنگ اتصال اینترنت را وصل کن؛ خودکار ادامه می‌دهیم.</small></div></div></div>
+    <script>(function(){var b=document.getElementById('boot');function u(){if(!navigator.onLine)b.classList.add('offline');else b.classList.remove('offline')}u();addEventListener('online',u);addEventListener('offline',u);})();</script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

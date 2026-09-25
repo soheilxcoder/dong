@@ -7,6 +7,7 @@ import { useStore, type Theme } from '@/app/store';
 import { Avatar, CopyButton, Field, PageHeader, Sheet } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import { compressImage, haptic } from '@/lib/native';
+import { Tour } from '@/design-system/Tour';
 
 export function ProfilePage() {
   const { user, adapter, refresh, toast, settings, setSettings } = useStore();
@@ -27,6 +28,10 @@ export function ProfilePage() {
   return (
     <div className="safe-b">
       <PageHeader title="پروفایل" back={false} />
+      <Tour id="profile" delay={600} steps={[
+        { target: 'card', title: 'شماره کارتت رو ثبت کن', text: 'وقتی کسی به تو بدهکار باشه، شماره کارتت با یک ضربه براش کپی می‌شه. بانک هم خودکار تشخیص داده می‌شه.' },
+        { target: 'sync', title: 'همگام‌سازی', text: 'به‌صورت پیش‌فرض همه‌چیز رمزنگاری‌شده و خودکار بین اعضا همگام می‌شه. اگر سرور اختصاصی داری، آدرسش رو همین‌جا وارد کن تا نوتیفیکیشن هم بگیری.', mood: 'happy' },
+      ]} />
       <div className="px-5 flex flex-col gap-4">
         <div className="card p-5 flex items-center gap-4">
           <label className="relative cursor-pointer">
@@ -41,7 +46,7 @@ export function ProfilePage() {
         </div>
 
         {/* Bank card */}
-        <button onClick={() => setCardOpen(true)} className="relative overflow-hidden rounded-card p-5 text-right text-white grain aspect-[1.7] flex flex-col justify-between shadow-xl"
+        <button data-tour="card" onClick={() => setCardOpen(true)} className="relative overflow-hidden rounded-card p-5 text-right text-white grain aspect-[1.7] flex flex-col justify-between shadow-xl"
           style={{ background: bank ? `linear-gradient(135deg, ${bank.color} 0%, #0e3b52 100%)` : 'var(--grad-brand)' }}>
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2 font-bold text-sm"><CreditCard size={18} /> {bank?.name ?? 'کارت بانکی'}</span>
@@ -70,7 +75,7 @@ export function ProfilePage() {
           {adapter.kind === 'api' && <Row icon={<Bell size={18} />} label="نوتیفیکیشن (هزینه، پرداخت، یادآوری)" right={<Toggle on={settings.notifications} onChange={(v) => setSettings({ notifications: v })} />} />}
           <Row icon={settings.sound ? <Volume2 size={18} /> : <VolumeX size={18} />} label="صدای «دینگ» تأیید" right={<Toggle on={settings.sound} onChange={(v) => setSettings({ sound: v })} />} />
           <Row icon={<KeyRound size={18} />} label="تغییر رمز عبور" onClick={() => setPwOpen(true)} />
-          <Row icon={<Server size={18} />} label="همگام‌سازی" sub={settings.apiUrl ? `سرور اختصاصی: ${settings.apiUrl}` : 'خودکار و رمزنگاری‌شده (بدون نیاز به سرور)'} onClick={() => setApiOpen(true)} />
+          <Row data-tour="sync" icon={<Server size={18} />} label="همگام‌سازی" sub={settings.apiUrl ? `سرور اختصاصی: ${settings.apiUrl}` : 'خودکار و رمزنگاری‌شده (بدون نیاز به سرور)'} onClick={() => setApiOpen(true)} />
           <Row icon={<Info size={18} />} label="نمایش دوباره راهنماها" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
           {!Capacitor.isNativePlatform() && <Row icon={<Smartphone size={18} />} label="دانلود اپ اندروید (APK)" sub="نصب مستقیم — سریع‌تر و با اعلان" onClick={() => window.open('https://github.com/soheilxcoder/dong/releases/tag/apk-latest', '_blank')} />}
           <Row icon={<Info size={18} />} label="درباره دُنگ" sub={`نسخه ${import.meta.env.VITE_APP_VERSION ?? "1.0.0"} — حساب‌کتاب دنگی، بدون دعوا`} />
@@ -105,10 +110,10 @@ export function ProfilePage() {
   );
 }
 
-function Row({ icon, label, sub, right, onClick }: { icon: React.ReactNode; label: string; sub?: string; right?: React.ReactNode; onClick?: () => void }) {
+function Row({ icon, label, sub, right, onClick, 'data-tour': tour }: { icon: React.ReactNode; label: string; sub?: string; right?: React.ReactNode; onClick?: () => void; 'data-tour'?: string }) {
   const C = onClick ? 'button' : 'div';
   return (
-    <C onClick={onClick} className="w-full p-4 flex items-center gap-3 text-right">
+    <C onClick={onClick} data-tour={tour} className="w-full p-4 flex items-center gap-3 text-right">
       <span className="h-9 w-9 rounded-xl bg-surface-2 grid place-items-center text-ink-2">{icon}</span>
       <div className="flex-1 min-w-0"><p className="text-sm font-bold">{label}</p>{sub && <p className="text-xs text-ink-2 truncate mt-0.5" dir="auto">{sub}</p>}</div>
       {right}

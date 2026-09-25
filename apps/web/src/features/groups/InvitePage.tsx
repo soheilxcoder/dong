@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useStore } from '@/app/store';
 import { CopyButton, PageHeader, Sheet } from '@/design-system/ui';
 import { shareText } from '@/lib/native';
+import { Tour } from '@/design-system/Tour';
 
 export function inviteUrl(token: string, snapshot?: string) {
   const base = import.meta.env.VITE_PUBLIC_URL || `${location.origin}${location.pathname}`;
@@ -24,16 +25,20 @@ export function InvitePage() {
   return (
     <div className="min-h-dvh mx-auto max-w-lg">
       <PageHeader title="دعوت به گروه" right={<button onClick={() => nav(`/g/${id}`, { replace: true })} className="text-brand font-bold text-sm px-3">رفتن به گروه</button>} />
+      <Tour id="invite" delay={600} steps={[
+        { target: 'qr', title: 'دعوت با یک اسکن', text: 'دوستت این QR رو با دوربین گوشی اسکن کنه، مستقیم عضو گروه می‌شه — حتی اگر اپ رو نداشته باشه، نسخه وب باز می‌شه.' },
+        { target: 'share', title: 'یا لینک رو بفرست', text: 'لینک دعوت رو توی تلگرام/واتساپ بفرست. هر کسی بازش کنه عضو می‌شه. اگر لینک لو رفت، «لینک جدید» بزن تا قبلی باطل بشه.', mood: 'happy' },
+      ]} />
       <div className="px-5 pt-4 flex flex-col items-center gap-5">
         <p className="text-ink-2 text-sm text-center leading-7">دوستانت رو با اسکن QR یا لینک به «{g.group.name}» دعوت کن.{adapter.kind === 'local' && ' اطلاعات گروه داخل خود لینک است؛ هر بار لینک جدید بفرستی، آخرین هزینه‌ها هم منتقل می‌شود.'}</p>
-        <div className="bg-white p-5 rounded-[28px] shadow-xl"><QRCodeSVG value={url} size={220} level="L" fgColor="#0e3b52" /></div>
+        <div data-tour="qr" className="bg-white p-5 rounded-[28px] shadow-xl"><QRCodeSVG value={url} size={220} level="L" fgColor="#0e3b52" /></div>
         <div className="card w-full p-3 flex items-center gap-2">
           <LinkIcon size={16} className="text-ink-2 shrink-0" />
           <span className="text-xs text-ink-2 truncate flex-1" dir="ltr">{url}</span>
           <CopyButton text={url} label="کپی لینک" small />
         </div>
         <div className="grid grid-cols-2 gap-3 w-full">
-          <button onClick={() => shareText('دعوت به دُنگ', `بیا به گروه «${g.group.name}» توی دُنگ:`, url)} className="btn-primary"><Share2 size={18} /> اشتراک‌گذاری</button>
+          <button data-tour="share" onClick={() => shareText('دعوت به دُنگ', `بیا به گروه «${g.group.name}» توی دُنگ:`, url)} className="btn-primary"><Share2 size={18} /> اشتراک‌گذاری</button>
           <button onClick={async () => { await adapter.regenerateInvite(g.group.id); toast('لینک جدید ساخته شد', 'ok'); }} className="btn-ghost"><RefreshCw size={18} /> لینک جدید</button>
         </div>
         <div className="card w-full p-4">
