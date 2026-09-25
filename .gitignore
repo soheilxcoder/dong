@@ -21,3 +21,4 @@ release-keys/
 apps/api/web/
 apps/api/data/
 apps/web/android/app/google-services.json
+.cache/

@@ -1,16 +1,16 @@
 // Renders tools/splash/splash.html → all Android splash densities + web boot image.
-// usage: LD_LIBRARY_PATH=/tmp/al/lib node render.mjs   (needs puppeteer in /tmp/pw or node_modules)
+// usage (from repo root): npm run render:splash   — uses puppeteer-core + @sparticuz/chromium unpacked in .cache/chromium
 import { createRequire } from 'module'; import { execSync } from 'child_process'; import path from 'path';
-const require = createRequire('/tmp/pw/'); const puppeteer = require('puppeteer');
+const require = createRequire(import.meta.url); const puppeteer = require('puppeteer-core');
 const here = path.dirname(new URL(import.meta.url).pathname); const root = path.resolve(here, '../..');
-const b = await puppeteer.launch({ executablePath: process.env.CHROME || '/tmp/al/chromium', args: ['--no-sandbox','--disable-gpu','--single-process','--no-zygote','--allow-file-access-from-files'] });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME || root + '/.cache/chromium/chromium', args: ['--no-sandbox','--disable-gpu','--single-process','--no-zygote','--allow-file-access-from-files'] });
 const p = await b.newPage(); await p.setViewport({ width: 2732, height: 2732 });
 await p.goto('file://' + here + '/splash.html'); await p.evaluate(() => document.fonts.ready); await new Promise(r => setTimeout(r, 600));
 const out = root + '/store-assets/splash-2732.png'; await p.screenshot({ path: out });
 // landscape/tablet variant: content pulled tighter (no footer, smaller art) so nothing is cropped by CENTER_CROP on wide screens
-await p.addStyleTag({ content: '.foot{display:none}.art{width:1200px;height:1200px;top:44%;transform:translate(-50%,-50%)}.t{top:1520px}h1{font-size:190px}p{font-size:56px}' });
+await p.addStyleTag({ content: '.foot{display:none}.art{width:1500px;height:1500px;top:44%;transform:translate(-50%,-52%)}.t{top:1560px}h1{font-size:190px}p{font-size:56px}' });
 await new Promise(r => setTimeout(r, 200));
-const outLand = '/tmp/splash-land-2732.png'; await p.screenshot({ path: outLand }); await b.close();
+const outLand = root + '/store-assets/splash-land-2732.png'; await p.screenshot({ path: outLand }); await b.close();
 const res = root + '/apps/web/android/app/src/main/res';
 for (const d of execSync(`ls -d ${res}/drawable*/splash.png`).toString().trim().split('\n')) {
   const sz = execSync(`identify -format '%wx%h' ${d}`).toString().trim();
