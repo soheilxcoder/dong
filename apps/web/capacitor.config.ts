@@ -6,8 +6,8 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   android: { allowMixedContent: false, backgroundColor: '#0F1416' },
   plugins: {
-    SplashScreen: { launchShowDuration: 800, backgroundColor: '#083a3a', androidScaleType: 'CENTER_CROP', showSpinner: false },
-    StatusBar: { style: 'DARK', backgroundColor: '#0a5c46', overlaysWebView: true },
+    SplashScreen: { launchShowDuration: 800, backgroundColor: '#05292f', androidScaleType: 'CENTER_CROP', showSpinner: false },
+    StatusBar: { style: 'DARK', backgroundColor: '#05292f', overlaysWebView: true },
     LocalNotifications: { smallIcon: 'ic_stat_dong', iconColor: '#0FB88A' },
   },
 };

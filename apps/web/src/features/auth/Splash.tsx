@@ -8,9 +8,9 @@ export function Splash() {
   const { offline, init } = useStore();
   useEffect(() => { document.getElementById('boot')?.classList.add('hide'); }, []);
   return (
-    <div className="fixed inset-0 grid place-items-center" style={{ background: 'radial-gradient(120vmax 120vmax at 50% 42%, #0f7f63 0%, #0a5c46 45%, #083a3a 100%)' }}>
+    <div className="fixed inset-0 grid place-items-center" style={{ background: 'radial-gradient(90vmax 90vmax at 50% 34%, #0a5650 0%, #063f43 40%, #042a30 100%)' }}>
       <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }} className="flex flex-col items-center -translate-y-[4vh]">
-        <img src={`${import.meta.env.BASE_URL}icons/coin.png`} alt="" className="w-[min(30vw,140px)] drop-shadow-2xl" />
+        <img src={`${import.meta.env.BASE_URL}icons/splash-art.webp`} alt="" className="w-[min(78vw,340px)] -mb-[8vw]" style={{ WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 38%, transparent 70%)', maskImage: 'radial-gradient(circle at 50% 50%, #000 38%, transparent 70%)' }} />
         <h1 className="text-white font-black mt-2.5 leading-tight" style={{ fontSize: 'clamp(44px,14vw,72px)' }}>دُنگ</h1>
         <p className="text-white/65 text-[15px] mt-1">حساب‌کتاب دنگی، بدون دعوا</p>
         {offline && (
