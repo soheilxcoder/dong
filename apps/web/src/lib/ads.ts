@@ -33,7 +33,7 @@ const TEST_ZONES = {
 const env = import.meta.env as Record<string, string | undefined>;
 export const ADS = {
   enabled: Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' && env.VITE_ADS_ENABLED !== 'false',
-  usingTestZones: !env.VITE_TAPSELL_BANNER_ZONE,
+  usingTestZones: !env.VITE_TAPSELL_INTERSTITIAL_ZONE,
   banner: env.VITE_TAPSELL_BANNER_ZONE || TEST_ZONES.banner,
   interstitial: env.VITE_TAPSELL_INTERSTITIAL_ZONE || TEST_ZONES.interstitial,
 };
