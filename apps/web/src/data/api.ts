@@ -42,7 +42,7 @@ export class ApiAdapter implements DataAdapter {
   private async uploadIfDataUrl(url?: string | null) {
     if (!url || !url.startsWith('data:')) return url ?? null;
     const blob = await (await fetch(url)).blob();
-    const fd = new FormData(); fd.append('file', blob, 'image.jpg');
+    const fd = new FormData(); fd.append('file', blob, blob.type === 'image/webp' ? 'image.webp' : blob.type === 'image/png' ? 'image.png' : 'image.jpg');
     const res = await fetch(`${this.base}/uploads`, { method: 'POST', headers: { Authorization: `Bearer ${this.token}` }, body: fd });
     if (!res.ok) throw new AppError('UPLOAD', 'آپلود تصویر ناموفق بود');
     const { url: stored } = (await res.json()) as { url: string };
@@ -62,7 +62,7 @@ export class ApiAdapter implements DataAdapter {
 
   async myGroups() { return this.req<GroupDetail[]>('GET', '/groups'); }
   async createGroup(name: string, description?: string, coverImageUrl?: string | null) { const g = await this.req<Group>('POST', '/groups', { name, description, coverImageUrl: await this.uploadIfDataUrl(coverImageUrl) }); this.emit(); return g; }
-  async updateGroup(id: string, patch: Partial<Pick<Group, 'name' | 'description' | 'coverImageUrl'>>) { const g = await this.req<Group>('PATCH', `/groups/${id}`, patch); this.emit(); return g; }
+  async updateGroup(id: string, patch: Partial<Pick<Group, 'name' | 'description' | 'coverImageUrl'>>) { const p = { ...patch }; if (p.coverImageUrl) p.coverImageUrl = await this.uploadIfDataUrl(p.coverImageUrl); const g = await this.req<Group>('PATCH', `/groups/${id}`, p); this.emit(); return g; }
   async getGroup(id: string) { return this.req<GroupDetail>('GET', `/groups/${id}`); }
   async groupByInvite(token: string) { try { return await this.req<{ group: Group; memberCount: number }>('GET', `/groups/invite/${token}`); } catch { return null; } }
   async joinGroup(token: string) { const g = await this.req<Group>('POST', `/groups/join/${token}`); this.emit(); return g; }

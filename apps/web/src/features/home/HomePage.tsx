@@ -106,14 +106,15 @@ export function HomePage() {
               <motion.button key={g.group.id} layoutId={`g-${g.group.id}`} onClick={() => nav(`/g/${g.group.id}`)}
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                 className={`card text-right p-4 flex flex-col justify-between relative overflow-hidden ${big ? 'col-span-2 min-h-36' : 'min-h-36'}`}>
-                <div className="flex items-start justify-between gap-2">
+                {g.group.coverImageUrl && <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(to left, rgb(var(--c-surface) / 0.25), rgb(var(--c-surface)) 55%), url(${g.group.coverImageUrl}) left center / cover no-repeat` }} />}
+                <div className="relative flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="font-extrabold truncate text-base">{g.group.name}</h3>
                     <p className="text-xs text-ink-2 mt-0.5">{fmtAgo(last)}</p>
                   </div>
                   {pendingForMe > 0 && <span className="chip bg-amber2/15 text-amber2 shrink-0">{formatAmount(pendingForMe)} تأیید</span>}
                 </div>
-                <div className={`flex items-end justify-between mt-3 ${big ? '' : 'flex-col items-start gap-2'}`}>
+                <div className={`relative flex items-end justify-between mt-3 ${big ? '' : 'flex-col items-start gap-2'}`}>
                   <AvatarStack names={g.members.map((m) => ({ name: m.user.fullName, src: m.user.avatarUrl }))} size={big ? 30 : 26} max={big ? 6 : 3} />
                   <BalanceChip value={mine} />
                 </div>

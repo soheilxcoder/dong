@@ -8,7 +8,7 @@ import type { SplitType } from '@dong/core';
 import { formatAmount, parseAmount, splitEqual, validateCustomSplit, toPersianDigits } from '@dong/core';
 import { useStore } from '@/app/store';
 import { Avatar, Field, PageHeader, Segmented } from '@/design-system/ui';
-import { fileToDataUrl, haptic } from '@/lib/native';
+import { compressImage, haptic } from '@/lib/native';
 import { Tour } from '@/design-system/Tour';
 
 export function ExpenseFormPage() {
@@ -139,7 +139,7 @@ export function ExpenseFormPage() {
         <div className="mt-4">
           <label className="label">فاکتور (اختیاری)</label>
           {img ? <div className="relative"><img src={img} className="rounded-2xl w-full max-h-56 object-contain bg-surface-2" alt="" /><button onClick={() => setImg(null)} className="absolute top-2 left-2 p-2 rounded-full glass text-neg"><X size={16} /></button></div>
-            : <label className="btn-ghost w-full cursor-pointer"><Camera size={18} /> عکس فاکتور<input type="file" accept="image/*" capture="environment" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setImg(await fileToDataUrl(f)); }} /></label>}
+            : <label className="btn-ghost w-full cursor-pointer"><Camera size={18} /> عکس فاکتور<input type="file" accept="image/*" capture="environment" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setImg(await compressImage(f, 'receipt')); }} /></label>}
         </div>
         <Field label="یادداشت (اختیاری)"><textarea className="input py-3 min-h-20" value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
       </div>

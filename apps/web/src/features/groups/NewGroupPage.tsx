@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 import { useStore } from '@/app/store';
 import { Field, PageHeader } from '@/design-system/ui';
-import { fileToDataUrl } from '@/lib/native';
+import { compressImage } from '@/lib/native';
 
 export function NewGroupPage() {
   const { adapter, refresh, toast } = useStore();
@@ -24,7 +24,7 @@ export function NewGroupPage() {
         <label className="block relative h-40 rounded-card overflow-hidden mb-6 cursor-pointer grain" style={{ background: cover ? undefined : 'var(--grad-brand)' }}>
           {cover && <img src={cover} className="absolute inset-0 w-full h-full object-cover" alt="" />}
           <div className="absolute inset-0 grid place-items-center text-white"><span className="glass rounded-full px-4 py-2 text-sm font-bold flex items-center gap-2"><Camera size={16} /> {cover ? 'تغییر کاور' : 'کاور (اختیاری)'}</span></div>
-          <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setCover(await fileToDataUrl(f, 1200, 0.8)); }} />
+          <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setCover(await compressImage(f, 'cover')); }} />
         </label>
         <Field label="نام گروه" error={err}><input className="input text-lg font-bold" value={name} onChange={(e) => setName(e.target.value)} placeholder="مثلاً سفر شمال، خونه بچه‌ها، …" autoFocus /></Field>
         <Field label="توضیح (اختیاری)"><input className="input" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="یه توضیح کوتاه" /></Field>

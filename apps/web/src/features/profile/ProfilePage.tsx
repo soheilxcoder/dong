@@ -6,7 +6,7 @@ import { formatCardNumber, isValidCardNumber, detectBank } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
 import { Avatar, CopyButton, Field, PageHeader, Sheet } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
-import { fileToDataUrl, haptic } from '@/lib/native';
+import { compressImage, haptic } from '@/lib/native';
 
 export function ProfilePage() {
   const { user, adapter, refresh, toast, settings, setSettings } = useStore();
@@ -32,7 +32,7 @@ export function ProfilePage() {
           <label className="relative cursor-pointer">
             <Avatar name={me.fullName} src={me.avatarUrl} size={72} />
             <span className="absolute -bottom-1 -left-1 h-7 w-7 rounded-full grid place-items-center text-white ring-2 ring-surface" style={{ background: 'var(--grad-brand)' }}><Camera size={14} /></span>
-            <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { await adapter.updateMe({ avatarUrl: await fileToDataUrl(f, 400, 0.85) }); await refresh(); } }} />
+            <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { await adapter.updateMe({ avatarUrl: await compressImage(f, 'avatar') }); await refresh(); } }} />
           </label>
           <div className="flex-1 min-w-0">
             <button onClick={() => setNameOpen(true)} className="font-extrabold text-lg truncate block text-right">{me.fullName}</button>

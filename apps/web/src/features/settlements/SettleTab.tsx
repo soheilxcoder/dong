@@ -6,7 +6,7 @@ import { formatAmount, formatCardNumber, parseAmount, detectBank } from '@dong/c
 import { useStore } from '@/app/store';
 import { Avatar, CopyButton, Empty, Sheet, DrawCheck } from '@/design-system/ui';
 import type { GroupDetail } from '@/data/adapter';
-import { ding, fileToDataUrl, haptic, notify, rotateDataUrl } from '@/lib/native';
+import { ding, compressImage, haptic, notify, rotateDataUrl } from '@/lib/native';
 import { fmtDateTime } from '@/lib/date';
 import { Tour } from '@/design-system/Tour';
 
@@ -200,7 +200,7 @@ function PaySheet({ t, onClose, g }: { t: Transfer | null; onClose: () => void; 
                 <button onClick={() => setImg(null)} className="p-2 rounded-full glass text-neg"><X size={16} /></button>
               </div></div>
           ) : (
-            <label className="btn-ghost w-full mb-4 cursor-pointer"><Camera size={18} /> انتخاب از دوربین / گالری<input type="file" accept="image/*" capture="environment" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setImg(await fileToDataUrl(f)); }} /></label>
+            <label className="btn-ghost w-full mb-4 cursor-pointer"><Camera size={18} /> انتخاب از دوربین / گالری<input type="file" accept="image/*" capture="environment" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setImg(await compressImage(f, 'receipt')); }} /></label>
           )}
           <input className="input mb-4" placeholder="یادداشت (اختیاری)" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn-primary w-full text-base" disabled={busy} onClick={submit}>ثبت و ارسال برای تأیید</button>
