@@ -15,7 +15,8 @@
     "build:pages": "VITE_BASE=/dong/ VITE_PUBLIC_URL=https://soheilxcoder.github.io/dong/ npm run build -w @dong/web && rm -rf docs && cp -r apps/web/dist docs && cp docs/index.html docs/404.html && touch docs/.nojekyll",
     "build:selfhost": "npm run build -w @dong/core && VITE_BASE=${DONG_BASE:-/} VITE_API_URL=${DONG_BASE:-/}api npm run build -w @dong/web && npm run build -w @dong/api && rm -rf apps/api/web && cp -r apps/web/dist apps/api/web",
     "start": "node apps/api/dist/server.js",
-    "render:splash": "LD_LIBRARY_PATH=.cache/chromium/lib node tools/splash/render.mjs"
+    "render:splash": "LD_LIBRARY_PATH=.cache/chromium/lib node tools/splash/render.mjs",
+    "shots": "LD_LIBRARY_PATH=.cache/chromium/lib node tools/store/shots.mjs"
   },
   "devDependencies": {
     "@sparticuz/chromium": "^131.0.1",
