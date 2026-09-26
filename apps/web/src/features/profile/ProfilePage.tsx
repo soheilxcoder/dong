@@ -4,7 +4,7 @@ import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditC
 import { Capacitor } from '@capacitor/core';
 import { formatCardNumber, isValidCardNumber, detectBank, normalizeCardNumber, formatAmount } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
-import { Avatar, CopyButton, Field, PageHeader, Sheet } from '@/design-system/ui';
+import { Avatar, CopyCardNumber, Field, PageHeader, Sheet } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import { compressImage, haptic } from '@/lib/native';
 import { Tour } from '@/design-system/Tour';
@@ -74,7 +74,7 @@ export function ProfilePage() {
           ) : <p className="text-center font-bold opacity-90">شماره کارتت رو ثبت کن تا بقیه راحت‌تر بهت واریز کنن</p>}
           <div className="flex items-end justify-between">
             <span className="font-bold text-sm">{me.cardHolderName || me.fullName}</span>
-            {me.cardNumber && <span onClick={(e) => e.stopPropagation()}><CopyButton text={me.cardNumber} label="کپی شماره" /></span>}
+            {me.cardNumber && <span onClick={(e) => e.stopPropagation()}><CopyCardNumber number={me.cardNumber} /></span>}
           </div>
           <span className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" /><span className="absolute -left-6 -bottom-12 h-32 w-32 rounded-full bg-black/10" />
         </button>
