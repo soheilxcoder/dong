@@ -90,6 +90,9 @@ input, textarea, select, button { font-family: inherit; }
   .hero-ring::before { content: ''; position: absolute; inset: -6px; border-radius: 34px; z-index: -1; opacity: .35; filter: blur(14px);
     background: conic-gradient(from var(--ring-a), #0FB88A, #38bdf8, #a78bfa, #fbbf24, #34d399, #0FB88A); animation: ring-spin 7s linear infinite; }
   @keyframes ring-spin { to { --ring-a: 360deg; } }
+  .fab-ring { padding: 2.5px; background: conic-gradient(from var(--ring-a), #ffffff, #fbbf24, #ffffff, #38bdf8, #ffffff); animation: ring-spin 5s linear infinite;
+    box-shadow: 0 12px 30px -10px rgb(var(--c-brand) / 0.8), 0 0 0 4px rgb(var(--c-bg) / 0.9); }
+  .h-13 { height: 3.25rem; }
   @media (prefers-reduced-motion: reduce) { .hero-ring, .hero-ring::before { animation: none; } }
   .hero-blob { position: absolute; border-radius: 9999px; pointer-events: none; filter: blur(2px); }
   .hero-blob-a { width: 220px; height: 220px; right: -70px; top: -110px; background: radial-gradient(circle, #ffffff33, transparent 70%); }

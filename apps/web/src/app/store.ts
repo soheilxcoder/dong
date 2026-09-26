@@ -95,6 +95,7 @@ export const useStore = create<State>((set, get) => ({
 export function applyTheme(t: Theme) {
   const dark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.classList.toggle('dark', dark);
-  document.querySelector('meta[name=theme-color]')?.setAttribute('content', dark ? '#0F1416' : '#0FB88A');
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', dark ? '#0F1416' : '#F7F9FA');
+  import('@/lib/capacitor').then((m) => m.syncSystemBars(dark)).catch(() => {});
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(useStore.getState().settings.theme));

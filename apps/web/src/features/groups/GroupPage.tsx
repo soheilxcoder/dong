@@ -58,9 +58,10 @@ export function GroupPage() {
   return (
     <div className="min-h-dvh pb-32">
       {/* Parallax header */}
-      <motion.div layoutId={`g-${g.group.id}`} className="relative h-56 overflow-hidden curve-bottom grain">
+      <motion.div layoutId={`g-${g.group.id}`} className="relative h-52 overflow-hidden curve-bottom">
         <div className="absolute inset-0" style={{ background: g.group.coverImageUrl ? `url(${g.group.coverImageUrl}) center/cover` : 'var(--grad-hero)' }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/20" />
+        {g.group.coverImageUrl && <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(4,20,24,0.78) 0%, rgba(4,20,24,0.35) 45%, rgba(4,20,24,0.18) 100%)' }} />}
+        {!g.group.coverImageUrl && <><div className="hero-blob hero-blob-a" /><div className="hero-blob hero-blob-b" /></>}
         <div className="relative h-full flex flex-col justify-between p-4" style={{ paddingTop: 'calc(var(--safe-top) + 12px)' }}>
           <div className="flex items-center justify-between text-white">
             <button onClick={() => nav('/')} className="p-2 rounded-full bg-white/15" aria-label="بازگشت"><ChevronRight size={22} /></button>
@@ -76,8 +77,10 @@ export function GroupPage() {
             </div>
           </div>
           <div className="text-white">
-            <h1 className="text-2xl font-black drop-shadow">{g.group.name}</h1>
-            <div className="flex items-center justify-between mt-2">
+            <div className="inline-flex max-w-full items-center rounded-2xl px-3.5 py-2 backdrop-blur-md" style={{ background: 'rgba(6,18,22,0.45)', boxShadow: '0 0 0 1px rgba(255,255,255,0.18) inset' }}>
+              <h1 className="text-xl font-black text-white truncate">{g.group.name}</h1>
+            </div>
+            <div className="flex items-center justify-between mt-2.5">
               <button data-tour="avatars" onClick={() => nav(`/g/${id}/invite`)}><AvatarStack names={g.members.map((m) => ({ name: m.user.fullName, src: m.user.avatarUrl }))} size={30} /></button>
               <BalanceChip value={calc.mine} />
             </div>
@@ -144,13 +147,15 @@ export function GroupPage() {
                     <p className="font-bold truncate">{m.user.fullName} {m.userId === me.id && <span className="text-xs text-ink-2">(من)</span>} {m.role === 'owner' && <span className="chip bg-amber2/15 text-amber2 mr-1">مالک</span>}</p>
                     {m.user.cardNumber ? <p className="mono text-[11px] text-ink-2 mt-0.5 whitespace-nowrap" dir="ltr" style={{ letterSpacing: "0.05em" }}>{formatCardNumber(m.user.cardNumber)}</p> : <p className="text-[11px] text-ink-2 mt-0.5">شماره کارت ثبت نشده</p>}
                   </div>
-                  <div className="flex flex-col items-end gap-1.5">
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
                     <BalanceChip value={b} />
-                    {m.user.cardNumber && <CopyButton text={m.user.cardNumber} label="کپی شماره کارت" small />}
+                    <div className="flex items-center gap-1">
+                      {m.user.cardNumber && <CopyButton text={m.user.cardNumber} label="کپی شماره کارت" small />}
+                      {isOwner && m.userId !== me.id && (
+                        <button onClick={async () => { if (!confirm(`«${m.user.fullName}» از گروه حذف شود؟`)) return; try { await adapter.removeMember(g.group.id, m.userId); toast('حذف شد'); } catch (e) { toast((e as Error).message, 'err'); } }} className="h-7 w-7 rounded-full grid place-items-center bg-neg/10 text-neg" aria-label="حذف عضو"><Trash2 size={14} /></button>
+                      )}
+                    </div>
                   </div>
-                  {isOwner && m.userId !== me.id && (
-                    <button onClick={async () => { if (!confirm(`«${m.user.fullName}» از گروه حذف شود؟`)) return; try { await adapter.removeMember(g.group.id, m.userId); toast('حذف شد'); } catch (e) { toast((e as Error).message, 'err'); } }} className="p-2 text-ink-2" aria-label="حذف"><Trash2 size={16} /></button>
-                  )}
                 </div>
               );
             })}
@@ -167,8 +172,8 @@ export function GroupPage() {
         { title: 'شفافیت کامل', text: 'همه اتفاقات گروه (هزینه، ویرایش، پرداخت، تأیید) در تب فعالیت ثبت می‌شه تا هیچ‌کس گیج نشه.', target: 'tab-activity' },
       ]} />
       <motion.button data-tour="fab-expense" whileTap={{ scale: 0.92 }} onClick={() => nav(`/g/${id}/expense/new`)}
-        className="fixed left-5 bottom-[calc(var(--safe-bottom)+24px)] z-40 h-14 pl-5 pr-4 rounded-full flex items-center gap-2 text-white font-extrabold shadow-2xl" style={{ background: 'var(--grad-brand)' }}>
-        <Plus size={24} strokeWidth={2.5} /> ثبت هزینه
+        className="fab-ring fixed left-5 bottom-[calc(var(--safe-bottom)+24px)] z-40 h-13 rounded-full">
+        <span className="h-full w-full rounded-full flex items-center gap-2 pl-5 pr-4 py-3 text-white font-extrabold" style={{ background: 'var(--grad-brand)' }}><Plus size={22} strokeWidth={2.5} /> ثبت هزینه</span>
       </motion.button>
 
       {/* Menu */}

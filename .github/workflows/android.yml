@@ -32,7 +32,7 @@ jobs:
         run: npm run build
         env:
           VITE_BASE: /
-          VITE_PUBLIC_URL: https://soheilxcoder.github.io/dong/
+          VITE_PUBLIC_URL: https://products.arounidea.com/dong/
           VITE_APP_VERSION: ${{ env.VERSION_NAME }}
           # Real Tapsell zone ids come from repo secrets; without them Tapsell TEST zones are used.
           VITE_TAPSELL_BANNER_ZONE: ${{ secrets.TAPSELL_BANNER_ZONE }}

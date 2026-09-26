@@ -88,6 +88,17 @@ export class GroupSync {
     entry.close = () => sub.close();
   }
 
+  /** Force-reconnect every subscription (after app resume / network back) and pull the latest snapshot once. */
+  async resync(getKey: (groupId: string) => Promise<string | undefined>) {
+    const ids = [...this.subs.keys()];
+    for (const id of ids) { this.subs.get(id)?.close(); this.subs.delete(id); }
+    for (const id of ids) {
+      const key = await getKey(id); if (!key) continue;
+      this.watch(id, key).catch(() => {});
+      this.fetchLatest(id, key, 5000).then((snap) => { if (snap) return this.onIncoming(id, snap); }).catch(() => {});
+    }
+  }
+
   unwatch(groupId: string) { this.subs.get(groupId)?.close(); this.subs.delete(groupId); if (!this.subs.size) this.setStatus('off'); }
 
   /** Debounced publish of the full (slim) snapshot. */
@@ -105,7 +116,7 @@ export class GroupSync {
         const ok = results.some((r) => r.status === 'fulfilled');
         this.setStatus(ok ? 'online' : 'error');
       } catch { this.setStatus('error'); }
-    }, 800));
+    }, 250));
   }
 
   /** One-shot fetch of the latest snapshot for a key (used when joining). */

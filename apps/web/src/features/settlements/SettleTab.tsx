@@ -68,7 +68,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
       <section>
         <h3 className="text-sm font-extrabold text-ink-2 mb-2">کی به کی چقدر بده</h3>
         {transfers.length === 0 ? (
-          <Empty mood="happy" title="تمومه! صاف صافه 🎉" text="هیچ‌کس به کسی بدهکار نیست." />
+          <Empty mood="happy" title="حساب همه صافه" text="هیچ‌کس به کسی بدهکار نیست." />
         ) : (
           <div className="flex flex-col gap-2">
             {transfers.map((t, i) => {

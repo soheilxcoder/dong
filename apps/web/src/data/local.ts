@@ -74,6 +74,18 @@ export class LocalAdapter implements DataAdapter {
       const g = await db.groups.get(m.groupId);
       if (g?.syncKey) this.sync.watch(g.id, g.syncKey).catch(() => {});
     }
+    this.installResyncHooks();
+  }
+  private hooksInstalled = false;
+  /** Mobile radios drop WebSockets silently: reconnect + pull on resume / network back / every 20 s in foreground. */
+  private installResyncHooks() {
+    if (this.hooksInstalled) return; this.hooksInstalled = true;
+    const key = async (id: string) => (await db.groups.get(id))?.syncKey ?? undefined;
+    const resync = () => { if (document.visibilityState === 'visible' && navigator.onLine) this.sync.resync(key).catch(() => {}); };
+    document.addEventListener('visibilitychange', resync);
+    window.addEventListener('online', resync);
+    window.addEventListener('focus', resync);
+    setInterval(resync, 20000);
   }
   private async fullSnapshot(groupId: string): Promise<Snapshot> {
     const g = (await db.groups.get(groupId))!;

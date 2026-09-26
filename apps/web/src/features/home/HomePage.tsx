@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Sparkles, Bell, ChevronLeft, Link2 } from 'lucide-react';
+import { Plus, Sparkles, Bell, ChevronLeft, Link2, BadgeCheck } from 'lucide-react';
 import { computeNetBalances, simplifyDebts, userBalance, formatAmount } from '@dong/core';
 import { useStore } from '@/app/store';
 import { fmtDate } from '@/lib/date';
@@ -88,8 +88,8 @@ export function HomePage() {
           <AmountText value={Math.abs(total)} className={`text-4xl font-black ${total > 0 ? 'text-pos' : total < 0 ? 'text-neg' : 'text-ink'}`} suffix="" />
           <span className="text-ink-2 font-bold">تومان</span>
         </div>
-        <p className={`text-sm font-bold mt-1 ${total > 0 ? 'text-pos' : total < 0 ? 'text-neg' : 'text-neutral2'}`}>
-          {total > 0 ? 'در مجموع طلبکاری' : total < 0 ? 'در مجموع بدهکاری' : 'صاف صافی 🎉'}
+        <p className={`text-sm font-bold mt-1 flex items-center gap-1.5 ${total > 0 ? 'text-pos' : total < 0 ? 'text-neg' : 'text-pos'}`}>
+          {total > 0 ? 'در مجموع طلبکاری' : total < 0 ? 'در مجموع بدهکاری' : <><BadgeCheck size={16} /> حسابت صافه</>}
         </p>
         <div className="grid grid-cols-2 gap-3 mt-4">
           <div className="rounded-2xl bg-pos/10 p-3"><p className="text-xs text-ink-2">باید بگیری</p><p className="num font-extrabold text-pos mt-0.5">{formatAmount(owed)}</p></div>
@@ -116,32 +116,34 @@ export function HomePage() {
         <Empty mood="waiting" title="هنوز گروهی نداری" text="یک گروه بساز و دوستات رو با لینک یا QR دعوت کن؛ از همون لحظه هزینه‌ها رو ثبت کنید."
           action={<div className="flex gap-2"><button onClick={() => nav('/new-group')} className="btn-primary">گروه جدید</button>{isDev() && <button onClick={loadDemo} disabled={busyDemo} className="btn-ghost"><Sparkles size={16} /> نمونه</button>}</div>} />
       ) : (
-        <div className="px-5 mt-3 grid grid-cols-2 gap-3">
-          {summaries.map(({ g, mine, pendingForMe, last, urgency }, i) => {
-            const big = i === 0 || urgency >= 2;
-            return (
-              <motion.button key={g.group.id} layoutId={`g-${g.group.id}`} onClick={() => nav(`/g/${g.group.id}`)}
-                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                className={`card text-right p-4 flex flex-col justify-between relative overflow-hidden ${big ? 'col-span-2 min-h-36' : 'min-h-36'}`}>
-                {g.group.coverImageUrl && <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(to left, rgb(var(--c-surface) / 0.25), rgb(var(--c-surface)) 55%), url(${g.group.coverImageUrl}) left center / cover no-repeat` }} />}
-                <div className="relative flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <h3 className="font-extrabold truncate text-base">{g.group.name}</h3>
-                    <p className="text-xs text-ink-2 mt-0.5">{fmtAgo(last)}</p>
-                  </div>
-                  {pendingForMe > 0 && <span className="chip bg-amber2/15 text-amber2 shrink-0">{formatAmount(pendingForMe)} تأیید</span>}
+        <div className="px-5 mt-3 flex flex-col gap-2.5">
+          {summaries.map(({ g, mine, pendingForMe, last }, i) => (
+            <motion.button key={g.group.id} layoutId={`g-${g.group.id}`} onClick={() => nav(`/g/${g.group.id}`)}
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+              className="card text-right p-3 flex items-center gap-3 relative overflow-hidden">
+              <span className="absolute inset-y-0 right-0 w-1" style={{ background: mine > 0 ? 'rgb(var(--c-pos))' : mine < 0 ? 'rgb(var(--c-neg))' : 'var(--grad-brand)' }} />
+              <div className="h-12 w-12 rounded-2xl shrink-0 overflow-hidden grid place-items-center text-white font-black text-lg shadow-md"
+                style={{ background: g.group.coverImageUrl ? `url(${g.group.coverImageUrl}) center/cover` : 'var(--grad-hero)' }}>
+                {!g.group.coverImageUrl && g.group.name.trim().charAt(0)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="font-extrabold truncate text-[15px]">{g.group.name}</h3>
+                  {pendingForMe > 0 && <span className="chip bg-amber2/15 text-amber2 shrink-0 !py-0.5">{formatAmount(pendingForMe)} تأیید</span>}
                 </div>
-                <div className={`relative flex items-end justify-between mt-3 ${big ? '' : 'flex-col items-start gap-2'}`}>
-                  <AvatarStack names={g.members.map((m) => ({ name: m.user.fullName, src: m.user.avatarUrl }))} size={big ? 30 : 26} max={big ? 6 : 3} />
-                  <BalanceChip value={mine} />
+                <div className="flex items-center gap-2 mt-1.5">
+                  <AvatarStack names={g.members.map((m) => ({ name: m.user.fullName, src: m.user.avatarUrl }))} size={20} max={4} />
+                  <span className="text-[11px] text-ink-2">· {fmtAgo(last)}</span>
                 </div>
-                {big && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-2/40"><ChevronLeft /></span>}
-              </motion.button>
-            );
-          })}
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <BalanceChip value={mine} />
+                <ChevronLeft size={16} className="text-ink-2/50" />
+              </div>
+            </motion.button>
+          ))}
         </div>
       )}
-
       <Tour id="home" steps={[
         { title: 'به دُنگ خوش اومدی!', text: 'اینجا خلاصه کل حساب‌کتابت رو می‌بینی: چقدر طلب داری و چقدر بدهی. روی هر گروه بزن تا جزئیاتش رو ببینی.', target: 'balance', mood: 'happy' },
         { title: 'گروه بساز', text: 'برای هر سفر یا دورهمی یک گروه بساز و دوستات رو با لینک یا QR دعوت کن.', target: 'fab' },
@@ -150,9 +152,8 @@ export function HomePage() {
       ]} />
       {/* FAB */}
       <motion.button data-tour="fab" whileTap={{ scale: 0.92 }} onClick={() => nav('/new-group')} aria-label="گروه جدید"
-        className="fixed left-5 bottom-[calc(var(--safe-bottom)+92px)] z-40 h-16 w-16 rounded-full grid place-items-center text-white shadow-2xl"
-        style={{ background: 'var(--grad-celebrate)' }}>
-        <Plus size={30} strokeWidth={2.5} />
+        className="fab-ring fixed left-5 bottom-[calc(var(--safe-bottom)+96px)] z-40 h-14 w-14 rounded-full">
+        <span className="h-full w-full rounded-full grid place-items-center text-white" style={{ background: 'var(--grad-celebrate)' }}><Plus size={26} strokeWidth={2.5} /></span>
       </motion.button>
     </div>
   );
