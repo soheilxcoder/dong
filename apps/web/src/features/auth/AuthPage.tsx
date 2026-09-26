@@ -22,7 +22,8 @@ export function AuthPage() {
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   const fail = (m: string) => { setErr(m); haptic('error'); errTone(settings.sound); };
-  const go = () => { const to = sessionStorage.getItem('dong.after') ?? loc.state?.from ?? '/'; sessionStorage.removeItem('dong.after'); nav(to, { replace: true }); };
+  // after login only follow "safe" targets (invite links); a stale /g/<id> from another account/device would land on an empty page
+  const go = () => { const raw = sessionStorage.getItem('dong.after') ?? loc.state?.from ?? '/'; sessionStorage.removeItem('dong.after'); const to = typeof raw === 'string' && raw.startsWith('/join/') ? raw : '/'; nav(to, { replace: true }); };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setErr(null); setBusy(true);

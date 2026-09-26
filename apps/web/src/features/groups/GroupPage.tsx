@@ -6,6 +6,7 @@ import type { Activity, Expense } from '@dong/core';
 import { computeNetBalances, simplifyDebts, userBalance, formatAmount } from '@dong/core';
 import { useStore } from '@/app/store';
 import { Avatar, AvatarStack, BalanceChip, Empty, Sheet, CopyButton } from '@/design-system/ui';
+import { Mascot } from '@/design-system/Mascot';
 import { ActivityList } from './ActivityList';
 import { SettleTab } from '@/features/settlements/SettleTab';
 import { fmtDate } from '@/lib/date';
@@ -15,6 +16,31 @@ import { Tour } from '@/design-system/Tour';
 import { Wifi, WifiOff, Loader2 } from 'lucide-react';
 
 type Tab = 'expenses' | 'settle' | 'members' | 'activity';
+
+/** Shown when the URL points to a group this account is not a member of (stale link, other device/account).
+ *  Never a blank page: explain, offer home, and auto-return once a refresh confirms the group really isn't there. */
+function MissingGroup() {
+  const nav = useNavigate();
+  const { refresh, user } = useStore();
+  const [checked, setChecked] = useState(false);
+  useEffect(() => { let alive = true; refresh().catch(() => {}).finally(() => { if (alive) setChecked(true); }); return () => { alive = false; }; }, [refresh]);
+  useEffect(() => { if (!checked) return; const t = setTimeout(() => nav('/', { replace: true }), 6000); return () => clearTimeout(t); }, [checked, nav]);
+  return (
+    <div className="min-h-dvh grid place-items-center px-6" style={{ background: 'rgb(var(--c-bg))' }}>
+      <div className="card w-full max-w-sm p-6 flex flex-col items-center text-center gap-3">
+        <Mascot mood={checked ? 'confused' : 'idle'} size={100} />
+        {!checked ? <p className="text-ink-2">در حال دریافت گروه…</p> : (
+          <>
+            <h2 className="text-xl font-extrabold">این گروه توی حساب «{user?.fullName ?? 'شما'}» نیست</h2>
+            <p className="text-sm text-ink-2 leading-7">یا لینک قدیمی است، یا گروه با حساب دیگری ساخته شده. اگر دوستی گروه را ساخته، ازش لینک دعوت بگیر تا عضو شوی.</p>
+            <button onClick={() => nav('/', { replace: true })} className="btn-primary w-full mt-1"><Home size={18} /> بازگشت به خانه</button>
+            <button onClick={() => nav('/join/paste', { replace: true })} className="text-sm text-brand font-bold">لینک دعوت دارم</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function GroupPage() {
   const { id = '' } = useParams();
@@ -37,7 +63,7 @@ export function GroupPage() {
     return { balances, transfers: simplifyDebts(balances), mine: userBalance(user!.id, balances), total: g.expenses.reduce((s, e) => s + e.totalAmount, 0) };
   }, [g, user]);
 
-  if (!g || !calc) return <div className="min-h-dvh grid place-items-center text-ink-2">گروه پیدا نشد</div>;
+  if (!g || !calc) return <MissingGroup />;
   const me = user!;
   const name = (uid: string) => g.members.find((m) => m.userId === uid)?.user.fullName ?? 'حذف‌شده';
   const isOwner = g.members.find((m) => m.userId === me.id)?.role === 'owner';
