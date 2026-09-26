@@ -123,7 +123,7 @@ export function ProfilePage() {
       <Sheet open={apiOpen} onClose={() => setApiOpen(false)} title="اتصال به سرور">
         <p className="text-xs text-ink-2 leading-6 mb-4">فقط برای توسعه‌دهنده: آدرس سرور API دُنگ. خالی = حالت عادی.</p>
         <Field label="آدرس سرور"><input className="input" dir="ltr" value={api} onChange={(e) => setApi(e.target.value)} placeholder="https://api.example.com" /></Field>
-        <button className="btn-primary w-full" onClick={() => { setSettings({ apiUrl: api.trim() }); setApiOpen(false); toast(api.trim() ? 'به سرور متصل شد — وارد حساب سرور شوید' : 'حالت محلی فعال شد', 'ok'); }}>ذخیره</button>
+        <button className="btn-primary w-full" onClick={() => { const v = api.trim(); setSettings({ apiUrl: v === 'local' ? '' : v }); setApiOpen(false); toast(v && v !== 'local' ? 'به سرور متصل شد — وارد حساب سرور شوید' : 'حالت محلی فعال شد', 'ok'); }}>ذخیره</button>
       </Sheet>
     </div>
   );

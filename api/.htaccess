@@ -1,0 +1,16 @@
+# Dong API — every request under /dong/api/ goes through index.php
+Options -Indexes
+RewriteEngine On
+RewriteBase /dong/api/
+# keep the Authorization header for PHP (CGI/FPM setups strip it otherwise)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+# never serve the local data folder
+RewriteRule ^data(/|$) - [R=404,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]
+<IfModule mod_php.c>
+  php_value upload_max_filesize 4M
+  php_value post_max_size 5M
+</IfModule>

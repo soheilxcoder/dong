@@ -7,12 +7,14 @@ import { ApiAdapter } from '@/data/api';
 export type Theme = 'dark' | 'light' | 'system';
 
 interface Settings { theme: Theme; sound: boolean; notifications: boolean; onboarded: boolean; apiUrl: string; tours: Record<string, boolean> }
-/** Self-hosted builds bake the server URL in (VITE_API_URL, e.g. "/api"); GitHub Pages / store builds default to local mode. */
-const DEFAULT_API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
-const loadSettings = (): Settings => ({
-  theme: 'light', sound: true, notifications: true, onboarded: false, apiUrl: DEFAULT_API_URL, tours: {},
-  ...JSON.parse(localStorage.getItem('dong.settings') ?? '{}'),
-});
+/** The dedicated Dong server (PHP + SQLite, see /api). Builds may override with VITE_API_URL; "local" = offline/relay mode. */
+export const DEFAULT_API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://products.arounidea.com/dong/api';
+const loadSettings = (): Settings => {
+  const saved = JSON.parse(localStorage.getItem('dong.settings') ?? '{}') as Partial<Settings>;
+  // apiUrl semantics: undefined/'' → use the built-in server; 'local' → explicit offline mode (dev only); anything else → custom server
+  const apiUrl = saved.apiUrl === 'local' ? '' : (saved.apiUrl || DEFAULT_API_URL);
+  return { theme: 'light', sound: true, notifications: true, onboarded: false, tours: {}, ...saved, apiUrl };
+};
 
 interface Toast { id: number; text: string; kind: 'ok' | 'err' | 'info' }
 
@@ -73,7 +75,8 @@ export const useStore = create<State>((set, get) => ({
   setUser(u) { set({ user: u }); },
   setSettings(p) {
     const settings = { ...get().settings, ...p };
-    localStorage.setItem('dong.settings', JSON.stringify(settings));
+    // '' (offline/relay mode) is persisted as 'local' so it survives loadSettings' default-server fallback
+    localStorage.setItem('dong.settings', JSON.stringify({ ...settings, apiUrl: settings.apiUrl || 'local' }));
     set({ settings });
     if (p.theme) applyTheme(p.theme);
     if (p.apiUrl !== undefined) {

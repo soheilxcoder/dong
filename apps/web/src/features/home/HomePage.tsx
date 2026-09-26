@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Sparkles, Bell, ChevronLeft, Link2, BadgeCheck } from 'lucide-react';
+import { Plus, Sparkles, Bell, ChevronLeft, Link2, BadgeCheck, Receipt, HandCoins, UserPlus } from 'lucide-react';
 import { computeNetBalances, simplifyDebts, userBalance, formatAmount } from '@dong/core';
 import { useStore } from '@/app/store';
 import { fmtDate } from '@/lib/date';
@@ -45,13 +45,17 @@ export function HomePage() {
     const pendingForMe = g.settlements.filter((s) => s.status === 'pending_confirmation' && s.toUser === me.id).length;
     const last = g.expenses[0]?.createdAt ?? g.group.createdAt;
     const urgency = (pendingForMe ? 3 : 0) + (mine < 0 ? 2 : 0) + (mine > 0 ? 1 : 0);
-    return { g, mine, pendingForMe, last, urgency };
+    const spent = g.expenses.reduce((s, e) => s + e.totalAmount, 0);
+    const openDebt = balances.reduce((s, b) => s + Math.max(0, b.balance), 0);
+    const settledPct = spent === 0 ? 100 : Math.max(4, Math.round(100 - (openDebt / spent) * 100));
+    return { g, mine, pendingForMe, last, urgency, spent, settledPct };
   }).sort((a, b) => b.urgency - a.urgency || b.last.localeCompare(a.last));
 
   const total = summaries.reduce((s, x) => s + x.mine, 0);
   const owed = summaries.filter((x) => x.mine > 0).reduce((s, x) => s + x.mine, 0);
   const owe = summaries.filter((x) => x.mine < 0).reduce((s, x) => s - x.mine, 0);
   const pending = summaries.reduce((s, x) => s + x.pendingForMe, 0);
+  const recent = [...summaries].sort((a, b) => b.last.localeCompare(a.last))[0]?.g;
 
   const loadDemo = async () => { setBusyDemo(true); try { await adapter.loadDemo?.(); toast('گروه نمونه «سفر کیش» اضافه شد', 'ok'); } finally { setBusyDemo(false); } };
 
@@ -96,11 +100,36 @@ export function HomePage() {
           <div className="rounded-2xl bg-neg/10 p-3"><p className="text-xs text-ink-2">بدهی‌ات</p><p className="num font-extrabold text-neg mt-0.5">{formatAmount(owe)}</p></div>
         </div>
         <div className="absolute -left-4 -top-4 opacity-[0.07] pointer-events-none"><Mascot mood="idle" size={110} /></div>
+        <div className="absolute -right-10 -bottom-12 h-40 w-40 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, rgb(var(${total < 0 ? '--c-neg' : '--c-pos'}) / 0.14), transparent 70%)` }} />
       </motion.div>
+
+      {/* Quick actions */}
+      <div className="px-5 mt-4 grid grid-cols-3 gap-2.5">
+        {[
+          { icon: <Receipt size={18} />, label: 'ثبت هزینه', sub: recent ? recent.group.name : 'اول گروه بساز', to: recent ? `/g/${recent.group.id}/expense/new` : '/new-group', tone: 'brand' },
+          { icon: <HandCoins size={18} />, label: 'تسویه', sub: owe > 0 ? 'بدهی‌ات رو صاف کن' : owed > 0 ? 'طلبت رو بگیر' : 'همه‌چیز صافه', to: recent ? `/g/${recent.group.id}?tab=settle` : '/new-group', tone: 'amber' },
+          { icon: <UserPlus size={18} />, label: 'دعوت', sub: recent ? 'لینک و QR' : 'دوستات رو بیار', to: recent ? `/g/${recent.group.id}/invite` : '/new-group', tone: 'sky' },
+        ].map((a, i) => (
+          <motion.button key={a.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 + i * 0.05 }} whileTap={{ scale: 0.96 }} onClick={() => nav(a.to)}
+            className="card p-3 text-right flex flex-col gap-2 min-w-0">
+            <span className={`h-9 w-9 rounded-xl grid place-items-center ${a.tone === 'brand' ? 'bg-brand/15 text-brand' : a.tone === 'amber' ? 'bg-amber2/15 text-amber2' : 'bg-sky-500/15 text-sky-500'}`}>{a.icon}</span>
+            <span className="leading-tight"><span className="block text-[13px] font-extrabold">{a.label}</span><span className="block text-[10.5px] text-ink-2 truncate mt-0.5">{a.sub}</span></span>
+          </motion.button>
+        ))}
+      </div>
+
+      {pending > 0 && (
+        <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} onClick={() => nav('/activity')}
+          className="mx-5 mt-3 w-[calc(100%-2.5rem)] rounded-2xl p-3.5 flex items-center gap-3 text-right text-[#1E1B18]" style={{ background: 'linear-gradient(135deg, #fde68a, #fbbf24)', boxShadow: '0 10px 26px -12px rgba(251,191,36,0.7)' }}>
+          <span className="h-10 w-10 rounded-xl bg-white/50 grid place-items-center animate-[pulse_2s_ease-in-out_infinite]"><Bell size={18} /></span>
+          <span className="flex-1 leading-tight"><span className="block text-sm font-black">{formatAmount(pending)} پرداخت منتظر تأیید توئه</span><span className="block text-[11px] font-semibold opacity-80 mt-0.5">دوستات پول واریز کردن — یه نگاه بنداز و تأیید کن</span></span>
+          <ChevronLeft size={18} />
+        </motion.button>
+      )}
 
       {/* Groups bento */}
       <div className="px-5 mt-7 flex items-center justify-between">
-        <h2 className="text-lg font-extrabold">گروه‌ها</h2>
+        <h2 className="text-lg font-extrabold flex items-center gap-2">گروه‌ها{groups.length > 0 && <span className="chip bg-surface-2 text-ink-2 !py-0.5 num">{formatAmount(groups.length)}</span>}</h2>
         {isDev() && groups.length > 0 && !groups.some((g) => g.group.name === 'سفر کیش') && (
           <button onClick={loadDemo} disabled={busyDemo} className="text-xs font-bold text-brand flex items-center gap-1"><Sparkles size={14} /> گروه نمونه</button>
         )}
@@ -117,7 +146,7 @@ export function HomePage() {
           action={<div className="flex gap-2"><button onClick={() => nav('/new-group')} className="btn-primary">گروه جدید</button>{isDev() && <button onClick={loadDemo} disabled={busyDemo} className="btn-ghost"><Sparkles size={16} /> نمونه</button>}</div>} />
       ) : (
         <div className="px-5 mt-3 flex flex-col gap-2.5">
-          {summaries.map(({ g, mine, pendingForMe, last }, i) => (
+          {summaries.map(({ g, mine, pendingForMe, last, spent, settledPct }, i) => (
             <motion.button key={g.group.id} layoutId={`g-${g.group.id}`} onClick={() => nav(`/g/${g.group.id}`)}
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
               className="card text-right p-3 flex items-center gap-3 relative overflow-hidden">
@@ -135,6 +164,8 @@ export function HomePage() {
                   <AvatarStack names={g.members.map((m) => ({ name: m.user.fullName, src: m.user.avatarUrl }))} size={20} max={4} />
                   <span className="text-[11px] text-ink-2">· {fmtAgo(last)}</span>
                 </div>
+                <div className="mt-2 h-1 rounded-full bg-surface-2 overflow-hidden"><motion.span className="block h-full rounded-full" style={{ background: 'var(--grad-brand)' }} initial={{ width: 0 }} animate={{ width: `${settledPct}%` }} transition={{ delay: 0.2 + i * 0.04, duration: 0.6 }} /></div>
+                {spent > 0 && <div className="flex justify-between mt-1 text-[10px] text-ink-2"><span>خرج گروه: <span className="num font-bold text-ink">{formatAmount(spent)}</span> ت</span><span className="num">{formatAmount(settledPct)}٪ تسویه</span></div>}
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
                 <BalanceChip value={mine} />

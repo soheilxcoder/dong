@@ -7,7 +7,9 @@ RewriteBase /dong/
 # Block source folders and dotfiles
 RewriteRule ^(\.git|\.github|apps|packages|scripts|tools|docs-src|store-assets|release-keys|node_modules|package(-lock)?\.json|tsconfig.*|\.htaccess)(/|$) - [R=404,L]
 
-# Everything under /dong/* is served from /dong/deploy/dong/*
+# /dong/api/* is the PHP API (api/index.php) — leave it alone
+RewriteCond %{REQUEST_URI} !^/dong/api(/|$)
+# Everything else under /dong/* is served from /dong/deploy/dong/*
 RewriteCond %{REQUEST_URI} !^/dong/deploy/dong/
 RewriteRule ^(.*)$ deploy/dong/$1 [L]
 

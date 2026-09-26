@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronRight, Plus, UserPlus, MoreVertical, Receipt, Trash2, Pencil, LogOut, Image as ImageIcon, Share2 } from 'lucide-react';
+import { ChevronLeft, Home, Plus, UserPlus, MoreVertical, Receipt, Trash2, Pencil, LogOut, Image as ImageIcon, Share2 } from 'lucide-react';
 import type { Activity, Expense } from '@dong/core';
 import { computeNetBalances, simplifyDebts, userBalance, formatAmount } from '@dong/core';
 import { useStore } from '@/app/store';
@@ -21,7 +21,7 @@ export function GroupPage() {
   const nav = useNavigate();
   const { user, groups, adapter, toast, syncStatus, refresh } = useStore();
   const g = groups.find((x) => x.group.id === id);
-  const [tab, setTab] = useState<Tab>('expenses');
+  const [tab, setTab] = useState<Tab>(() => (new URLSearchParams(location.hash.split('?')[1] ?? '').get('tab') as Tab | null) ?? 'expenses');
   const [menu, setMenu] = useState(false);
   const [viewExpense, setViewExpense] = useState<Expense | null>(null);
   const [activity, setActivity] = useState<Activity[]>([]);
@@ -64,7 +64,11 @@ export function GroupPage() {
         {!g.group.coverImageUrl && <><div className="hero-blob hero-blob-a" /><div className="hero-blob hero-blob-b" /></>}
         <div className="relative h-full flex flex-col justify-between p-4" style={{ paddingTop: 'calc(var(--safe-top) + 12px)' }}>
           <div className="flex items-center justify-between text-white">
-            <button onClick={() => nav('/')} className="p-2 rounded-full bg-white/15" aria-label="بازگشت"><ChevronRight size={22} /></button>
+            <button onClick={() => nav('/')} className="group flex items-center gap-1.5 pr-2.5 pl-3.5 h-10 rounded-full text-sm font-extrabold text-white backdrop-blur-md active:scale-95 transition" style={{ background: 'rgba(6,18,22,0.42)', boxShadow: '0 0 0 1px rgba(255,255,255,0.22) inset, 0 6px 18px -8px rgba(0,0,0,0.5)' }} aria-label="بازگشت به خانه">
+              <span className="grid place-items-center h-7 w-7 rounded-full bg-white/20"><Home size={15} strokeWidth={2.5} /></span>
+              <span>خانه</span>
+              <ChevronLeft size={16} className="opacity-70 -mr-1 transition-transform group-active:-translate-x-0.5" />
+            </button>
             <div className="flex gap-2 items-center">
               {(g.group.syncKey || adapter.kind === 'api') && (
                 <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-white/15" title="همگام‌سازی">

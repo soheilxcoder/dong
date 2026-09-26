@@ -26,7 +26,7 @@ await p.goto(url, { waitUntil: 'networkidle0' });
 await p.evaluate(() => {
   const tours = Object.fromEntries(['home', 'group', 'invite', 'settle', 'expense', 'profile'].map((k) => [k, true]));
   localStorage.setItem('dong.dev', '1');
-  localStorage.setItem('dong.settings', JSON.stringify({ theme: 'light', sound: true, notifications: true, onboarded: true, apiUrl: '', tours }));
+  localStorage.setItem('dong.settings', JSON.stringify({ theme: 'light', sound: true, notifications: true, onboarded: true, apiUrl: 'local', tours }));
 });
 await p.goto(url + '#/auth', { waitUntil: 'networkidle0' }); await p.reload({ waitUntil: 'networkidle0' }); await sleep(800);
 const type = async (ph, v) => { const el = await p.$(`input[placeholder="${ph}"]`); await el.click({ clickCount: 3 }); await el.type(v, { delay: 5 }); };

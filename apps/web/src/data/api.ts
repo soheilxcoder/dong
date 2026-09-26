@@ -22,8 +22,19 @@ export class ApiAdapter implements DataAdapter {
   private emit() { this.listeners.forEach((l) => l()); }
   subscribe(cb: () => void) {
     this.listeners.add(cb);
-    const t = setInterval(() => { if (document.visibilityState === 'visible') cb(); }, 8000);
-    const onVis = () => { if (document.visibilityState === 'visible') cb(); };
+    // Near-realtime: every 2.5 s ask the server for a tiny change signature (one small row set, no payload);
+    // only when it differs do we refetch the actual data. Falls back to a full refresh every 30 s.
+    let lastSig: string | null = null; let ticks = 0; let busy = false;
+    const poll = async () => {
+      if (document.visibilityState !== 'visible' || !this.token || busy) return;
+      busy = true;
+      try {
+        const r = await this.req<{ sig: string }>('GET', '/sync');
+        const changed = lastSig !== null && r.sig !== lastSig; lastSig = r.sig; if (changed || ++ticks % 12 === 0) cb();
+      } catch { /* offline — status pill already updated by req() */ } finally { busy = false; }
+    };
+    const t = setInterval(() => { void poll(); }, 2500);
+    const onVis = () => { if (document.visibilityState === 'visible') { lastSig = null; cb(); } };
     document.addEventListener('visibilitychange', onVis);
     return () => { this.listeners.delete(cb); clearInterval(t); document.removeEventListener('visibilitychange', onVis); };
   }
