@@ -11,6 +11,9 @@
 
 /* ---------- Design tokens (light-first) ---------- */
 :root {
+  /* theme-independent — must live here, not in html.dark (otherwise every calc(var(--safe-*)) breaks in light mode) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
   --grad-brand: linear-gradient(135deg, #0fb88a 0%, #0891b2 100%);
   --grad-celebrate: linear-gradient(135deg, #22c55e 0%, #f5b942 100%);
   --c-brand: 15 184 138;
@@ -51,8 +54,6 @@ html.dark {
   --glass-border: rgba(255, 255, 255, 0.12);
   --grad-hero: linear-gradient(135deg, #0a5c46 0%, #0e3b52 100%);
   --shadow-card: 0 8px 32px -8px rgb(0 0 0 / 0.5);
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
 }
 * { -webkit-tap-highlight-color: transparent; }
