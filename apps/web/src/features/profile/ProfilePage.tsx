@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone, Bell, BookOpen } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
-import { formatCardNumber, isValidCardNumber, detectBank } from '@dong/core';
+import { formatCardNumber, isValidCardNumber, detectBank, normalizeCardNumber, formatAmount } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
 import { Avatar, CopyButton, Field, PageHeader, Sheet } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
@@ -20,12 +20,20 @@ export function ProfilePage() {
   const [apiOpen, setApiOpen] = useState(false); const [api, setApi] = useState(settings.apiUrl);
   const bank = me.cardNumber ? detectBank(me.cardNumber) : null;
   const [helpOpen, setHelpOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [dev, setDev] = useState(localStorage.getItem('dong.dev') === '1');
   const tapRef = useRef(0);
+  useEffect(() => { if (!cardOpen) { setCard(me.cardNumber ?? ''); setHolder(me.cardHolderName ?? ''); } }, [me.cardNumber, me.cardHolderName, cardOpen]);
 
-  const saveCard = async () => {
-    if (card && !isValidCardNumber(card)) return toast('شماره کارت باید ۱۶ رقم باشد', 'err');
-    await adapter.updateMe({ cardNumber: card || null, cardHolderName: holder || null }); await refresh(); setCardOpen(false); toast('ذخیره شد', 'ok'); haptic('success');
+  const saveCard = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (card && !isValidCardNumber(card)) return toast(`شماره کارت باید ۱۶ رقم باشد (الان ${formatAmount(normalizeCardNumber(card).length)} رقم)`, 'err');
+    setSaving(true);
+    try {
+      await adapter.updateMe({ cardNumber: card ? normalizeCardNumber(card) : null, cardHolderName: holder.trim() || null });
+      await refresh(); setCardOpen(false); toast('شماره کارت ذخیره شد', 'ok'); haptic('success');
+    } catch (ex) { toast(`ذخیره نشد: ${(ex as Error).message || 'خطای نامشخص'}`, 'err'); haptic('error'); }
+    finally { setSaving(false); }
   };
   const themes: { v: Theme; I: typeof Sun; l: string }[] = [{ v: 'system', I: Monitor, l: 'سیستم' }, { v: 'light', I: Sun, l: 'روشن' }, { v: 'dark', I: Moon, l: 'تاریک' }];
 
@@ -93,10 +101,12 @@ export function ProfilePage() {
 
       <Sheet open={cardOpen} onClose={() => setCardOpen(false)} title="شماره کارت بانکی">
         <p className="text-xs text-ink-2 leading-6 mb-4">فقط برای نمایش به اعضای گروه جهت واریز دستی. هیچ تراکنشی داخل اپ انجام نمی‌شود.</p>
-        <Field label="شماره کارت (۱۶ رقم)"><input className="input mono text-lg" inputMode="numeric" dir="ltr" value={formatCardNumber(card)} onChange={(e) => setCard(e.target.value)} placeholder="6037 9917 0000 0000" /></Field>
+        <form onSubmit={saveCard}>
+        <Field label="شماره کارت (۱۶ رقم)"><input className="input mono text-lg" inputMode="numeric" autoComplete="cc-number" dir="ltr" value={formatCardNumber(card)} onChange={(e) => setCard(e.target.value)} placeholder="6037 9917 0000 0000" /></Field>
         {card && detectBank(card) && <p className="text-xs font-bold mb-3" style={{ color: detectBank(card)!.color }}>● {detectBank(card)!.name}</p>}
         <Field label="نام صاحب کارت (اگر متفاوت است)"><input className="input" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder={me.fullName} /></Field>
-        <button onClick={saveCard} className="btn-primary w-full">ذخیره</button>
+        <button type="submit" disabled={saving} className="btn-primary w-full">{saving ? 'در حال ذخیره…' : 'ذخیره'}</button>
+        </form>
       </Sheet>
       <Sheet open={nameOpen} onClose={() => setNameOpen(false)} title="ویرایش نام">
         <input className="input mb-4" value={name} onChange={(e) => setName(e.target.value)} />
