@@ -1,0 +1,31 @@
+name: Deploy realtime hub (Cloudflare Worker)
+
+# Deploys rt/ (Worker + Durable Object) to the owner's Cloudflare account — free plan is enough.
+# Needs two repository secrets: CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers") and CLOUDFLARE_ACCOUNT_ID.
+on:
+  push:
+    branches: [main, 'arena/**']
+    paths: ['rt/**', '.github/workflows/realtime.yml']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ vars.RT_URL != '' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Deploy with wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: rt
+          command: deploy
+      - name: Smoke test
+        run: |
+          set -e
+          URL="${{ vars.RT_URL }}"
+          [ -n "$URL" ] || { echo "RT_URL variable not set yet — skip"; exit 0; }
+          curl -fsS "$(echo "$URL" | sed 's#^wss://#https://#; s#^ws://#http://#')/health"

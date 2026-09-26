@@ -73,7 +73,7 @@ export function GroupPage() {
               {(g.group.syncKey || adapter.kind === 'api') && (
                 <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-white/15" title="همگام‌سازی">
                   {syncStatus === 'online' ? <Wifi size={14} className="text-pos" /> : syncStatus === 'error' ? <WifiOff size={14} className="text-neg" /> : <Loader2 size={14} className="animate-spin" />}
-                  {syncStatus === 'online' ? 'همگام' : syncStatus === 'error' ? 'آفلاین' : 'اتصال…'}
+                  {syncStatus === 'online' ? ((adapter as { realtime?: boolean }).realtime ? 'زنده' : 'همگام') : syncStatus === 'error' ? 'آفلاین' : 'اتصال…'}
                 </span>
               )}
               <button onClick={shareSummary} className="p-2 rounded-full bg-white/15" aria-label="اشتراک خلاصه"><Share2 size={20} /></button>

@@ -44,6 +44,7 @@ jobs:
         env:
           VITE_BASE: ${{ env.BASE_PATH }}
           VITE_PUBLIC_URL: ${{ env.SITE_URL }}
+          VITE_RT_URL: ${{ vars.RT_URL }}
       - name: Stage into deploy/dong
         run: |
           rm -rf deploy/dong && mkdir -p deploy/dong
