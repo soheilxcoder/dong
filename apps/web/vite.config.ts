@@ -7,6 +7,7 @@ import path from 'node:path';
 const base = process.env.VITE_BASE ?? '/';
 
 export default defineConfig({
+  define: { __BUILD_ID__: JSON.stringify((process.env.GITHUB_SHA ?? 'local').slice(0, 7) + ' ' + new Date().toISOString().slice(0, 16)) },
   base,
   plugins: [
     react(),

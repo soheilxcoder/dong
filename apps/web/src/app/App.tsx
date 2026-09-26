@@ -18,6 +18,7 @@ import { initNative } from '@/lib/capacitor';
 import { enablePush, disablePush } from '@/lib/push';
 import { ApiAdapter } from '@/data/api';
 import { DesktopAside } from '@/features/install/GetApp';
+import { DebugPage } from '@/features/debug/DebugPage';
 
 function Protected() {
   const user = useStore((s) => s.user);
@@ -69,6 +70,7 @@ export function App() {
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/join/:token" element={<JoinPage />} />
+            <Route path="/debug" element={<DebugPage />} />
             <Route element={<Protected />}>
               <Route element={<Shell />}>
                 <Route path="/" element={<HomePage />} />

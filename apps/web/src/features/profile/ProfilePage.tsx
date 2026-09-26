@@ -10,6 +10,8 @@ import { compressImage, haptic } from '@/lib/native';
 import { Tour } from '@/design-system/Tour';
 import { HelpSheet } from '@/features/profile/HelpSheet';
 
+declare const __BUILD_ID__: string;
+
 export function ProfilePage() {
   const { user, adapter, refresh, toast, settings, setSettings } = useStore();
   const nav = useNavigate();
@@ -92,7 +94,7 @@ export function ProfilePage() {
           <Row icon={<Info size={18} />} label="نمایش دوباره راهنماهای کوتاه" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
           {dev && <Row icon={<Server size={18} />} label="حالت توسعه‌دهنده: سرور" sub={settings.apiUrl ? `سرور: ${settings.apiUrl}` : 'بدون سرور (همگام‌سازی رمزنگاری‌شده)'} onClick={() => setApiOpen(true)} />}
           {!Capacitor.isNativePlatform() && <Row icon={<Smartphone size={18} />} label="دانلود اپ اندروید (APK)" sub="نصب مستقیم — سریع‌تر و با اعلان" onClick={() => window.open('https://github.com/soheilxcoder/dong/releases/tag/apk-latest', '_blank')} />}
-          <Row icon={<Info size={18} />} label="درباره دُنگ" sub={`نسخه ${import.meta.env.VITE_APP_VERSION ?? "1.0.0"} — حساب‌کتاب دنگی، بدون دعوا`} onClick={() => { const n = (tapRef.current += 1); if (n >= 7) { tapRef.current = 0; const on = localStorage.getItem('dong.dev') !== '1'; localStorage.setItem('dong.dev', on ? '1' : '0'); setDev(on); toast(on ? 'حالت توسعه‌دهنده فعال شد' : 'حالت توسعه‌دهنده خاموش شد', 'info'); } }} />
+          <Row icon={<Info size={18} />} label="درباره دُنگ" sub={`نسخه ${import.meta.env.VITE_APP_VERSION ?? "1.0.0"} · build ${typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev"}`} onClick={() => { const n = (tapRef.current += 1); if (n >= 7) { tapRef.current = 0; const on = localStorage.getItem('dong.dev') !== '1'; localStorage.setItem('dong.dev', on ? '1' : '0'); setDev(on); toast(on ? 'حالت توسعه‌دهنده فعال شد' : 'حالت توسعه‌دهنده خاموش شد', 'info'); } }} />
         </div>
 
         <button onClick={async () => { await adapter.logout(); nav('/auth', { replace: true }); }} className="btn-ghost text-neg w-full"><LogOut size={18} /> خروج از حساب</button>
