@@ -1,7 +1,8 @@
 /**
  * Ads policy (owner's decision): exactly ONE full-screen ad per app launch, shown right after
  * login / when the home screen first appears. No banners, nothing during expense entry or settlements.
- * The skip/close timing inside the ad is controlled by Tapsell, not by the app.
+ * Tapsell decides the creative's own skip timing, but android/.../AdSkipGuard.java overlays a
+ * «رد تبلیغ ✕» button after 15 s so no ad can hold the user longer than that.
  *
  * Monetisation: Tapsell Mediation (Iranian ad network) via our tiny native bridge
  * (android/app/src/main/java/ir/dong/app/TapsellPlugin.java). Native Android only — never on web.

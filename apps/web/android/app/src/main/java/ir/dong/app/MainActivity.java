@@ -11,5 +11,6 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(DongNotifyPlugin.class);
         registerPlugin(SystemBarsPlugin.class);
         super.onCreate(savedInstanceState);
+        AdSkipGuard.install(getApplication()); // full-screen ads become skippable after 15 s
     }
 }
