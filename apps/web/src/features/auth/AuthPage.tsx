@@ -48,10 +48,12 @@ export function AuthPage() {
 
   return (
     <div className="min-h-dvh flex flex-col">
-      <div className="curve-bottom grain relative px-6 pb-10 flex flex-col items-center gap-2" style={{ background: 'var(--grad-hero)', paddingTop: 'calc(var(--safe-top) + 32px)' }}>
-        <Mascot mood={err ? 'confused' : 'idle'} size={96} />
-        <h1 className="text-4xl font-black text-white">دُنگ</h1>
-        <p className="text-white/70 text-sm">حساب‌کتاب دنگی، بدون دعوا</p>
+      <div className="hero relative px-6 pb-9 flex flex-col items-center gap-1 overflow-hidden" style={{ paddingTop: 'calc(var(--safe-top) + 24px)' }}>
+        <div className="hero-blob hero-blob-a" /><div className="hero-blob hero-blob-b" />
+        <div className="relative flex items-center gap-3">
+          <Mascot mood={err ? 'confused' : 'idle'} size={64} />
+          <div><h1 className="text-3xl font-black text-white leading-none">دُنگ</h1><p className="text-white/70 text-xs mt-1.5">حساب‌کتاب دنگی، بدون دعوا</p></div>
+        </div>
       </div>
       <div className="px-5 -mt-6">
         <div className="card p-5">

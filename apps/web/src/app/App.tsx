@@ -47,7 +47,7 @@ export function App() {
   const { adapter, refresh, user } = useStore();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (adapter.kind === 'api' && user) refresh().catch(() => {}); }, [loc.pathname]);
-  useEffect(() => { window.scrollTo(0, 0); document.getElementById('root')?.scrollTo(0, 0); }, [loc.pathname]);
+  useEffect(() => { window.scrollTo(0, 0); document.getElementById('scroll')?.scrollTo(0, 0); }, [loc.pathname]);
   useEffect(() => { if (user !== undefined) document.getElementById('boot')?.classList.add('hide'); }, [user]);
   // Server mode: register this phone/browser for push (new expense, payment to confirm, confirmed/rejected, manual reminders).
   const toast = useStore((s) => s.toast);
@@ -64,6 +64,7 @@ export function App() {
 
   return (
     <>
+      <div id="scroll" className="contents md:block">
       <Routes location={loc}>
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/auth" element={<AuthPage />} />
@@ -82,6 +83,7 @@ export function App() {
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </div>
       <Toasts />
       <Confetti />
       <DesktopAside />

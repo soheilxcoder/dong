@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Plus, Sparkles, Bell, ChevronLeft, Link2 } from 'lucide-react';
 import { computeNetBalances, simplifyDebts, userBalance, formatAmount } from '@dong/core';
 import { useStore } from '@/app/store';
+import { fmtDate } from '@/lib/date';
 import { AmountText, Avatar, AvatarStack, BalanceChip, Empty } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import type { GroupDetail } from '@/data/adapter';
@@ -23,6 +24,8 @@ export function useGroupSummary(g: GroupDetail, me: string) {
     return { balances, transfers, mine, pendingForMe, last, total };
   }, [g, me]);
 }
+
+const greeting = () => { const h = new Date().getHours(); return h < 5 ? 'شب بخیر' : h < 12 ? 'صبح بخیر' : h < 17 ? 'ظهر بخیر' : h < 20 ? 'عصر بخیر' : 'شب بخیر'; };
 
 export function HomePage() {
   // The one and only ad: shown once per launch, right after login / when home first appears.
@@ -52,20 +55,27 @@ export function HomePage() {
   return (
     <div className="safe-b">
       {/* Hero */}
-      <div className="curve-bottom grain relative px-5 pb-16" style={{ background: 'var(--grad-hero)', paddingTop: 'calc(var(--safe-top) + 20px)' }}>
-        <div className="flex items-center justify-between">
+      <div className="hero relative px-5 pb-14 overflow-hidden" style={{ paddingTop: 'calc(var(--safe-top) + 22px)' }}>
+        <div className="hero-blob hero-blob-a" /><div className="hero-blob hero-blob-b" />
+        <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/profile"><Avatar name={me.fullName} src={me.avatarUrl} size={44} /></Link>
-            <p className="text-white font-extrabold">{me.fullName}</p>
+            <Link to="/profile" className="ring-2 ring-white/30 rounded-full"><Avatar name={me.fullName} src={me.avatarUrl} size={40} /></Link>
+            <div className="leading-tight">
+              <p className="text-white/70 text-[11px] font-semibold">{greeting()}</p>
+              <p className="text-white font-extrabold text-[15px]">{me.fullName.split(' ')[0]} 👋</p>
+            </div>
           </div>
-          {pending > 0 && (
-            <Link to="/activity" className="relative p-2.5 rounded-full bg-white/10 text-white"><Bell size={20} /><span className="absolute -top-0.5 -left-0.5 h-5 min-w-5 px-1 rounded-full bg-amber2 text-[#1E1B18] text-[10px] font-black grid place-items-center">{formatAmount(pending)}</span></Link>
-          )}
+          <div className="flex items-center gap-2">
+            <span className="text-white/80 text-[11px] font-semibold bg-white/10 rounded-full px-3 py-1.5">{fmtDate(new Date().toISOString(), 'EEEE، d MMMM')}</span>
+            {pending > 0 && (
+              <Link to="/activity" className="relative p-2 rounded-full bg-white/10 text-white"><Bell size={18} /><span className="absolute -top-0.5 -left-0.5 h-4 min-w-4 px-1 rounded-full bg-amber2 text-[#1E1B18] text-[10px] font-black grid place-items-center">{formatAmount(pending)}</span></Link>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Total balance glass card */}
-      <motion.div data-tour="balance" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mx-5 -mt-12 glass rounded-card p-5 relative overflow-hidden" style={{ background: 'rgb(var(--c-surface) / 0.75)' }}>
+      <motion.div data-tour="balance" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mx-5 -mt-10 glass rounded-card p-5 relative overflow-hidden" style={{ background: 'rgb(var(--c-surface) / 0.75)' }}>
         <p className="text-ink-2 text-sm font-semibold">وضعیت کلی شما</p>
         <div className="mt-1 flex items-baseline gap-2">
           <AmountText value={Math.abs(total)} className={`text-4xl font-black ${total > 0 ? 'text-pos' : total < 0 ? 'text-neg' : 'text-ink'}`} suffix="" />

@@ -28,7 +28,7 @@
   --line-alpha: 0.06;
   --glass: rgba(255, 255, 255, 0.55);
   --glass-border: rgba(255, 255, 255, 0.7);
-  --grad-hero: linear-gradient(135deg, #12c993 0%, #0aa3c4 55%, #2b7fd6 100%);
+  --grad-hero: linear-gradient(135deg, #0FB88A 0%, #0A9BA8 55%, #0B6E9E 100%);
   --shadow-card: 0 10px 30px -12px rgb(14 59 82 / 0.18), 0 1px 2px rgb(0 0 0 / 0.04);
   color-scheme: light;
 }
@@ -82,6 +82,10 @@ input, textarea, select, button { font-family: inherit; }
   .label { @apply block text-sm font-semibold text-ink-2 mb-2; }
   .chip { @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold; }
   .curve-bottom { border-bottom-left-radius: 36px; border-bottom-right-radius: 36px; }
+  .hero { background: var(--grad-hero); border-bottom-left-radius: 32px; border-bottom-right-radius: 32px; }
+  .hero-blob { position: absolute; border-radius: 9999px; pointer-events: none; filter: blur(2px); }
+  .hero-blob-a { width: 220px; height: 220px; right: -70px; top: -110px; background: radial-gradient(circle, #ffffff33, transparent 70%); }
+  .hero-blob-b { width: 260px; height: 260px; left: -90px; bottom: -160px; background: radial-gradient(circle, #ffffff22, transparent 70%); }
   .skeleton { @apply rounded-xl bg-surface-2; background-image: linear-gradient(90deg, transparent, rgb(var(--c-line) / 0.08), transparent); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
@@ -102,14 +106,14 @@ input, textarea, select, button { font-family: inherit; }
     overflow: hidden;
   }
   #root {
-    width: 430px; height: 100dvh; margin: 0 auto; position: relative;
-    overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
-    transform: translateZ(0); /* fixed children (nav, FAB, sheets, toasts) stay inside the frame */
+    width: 430px; height: 100dvh; margin: 0 auto; position: relative; overflow: hidden;
+    transform: translateZ(0); /* fixed children (nav, FAB, sheets, toasts) are positioned against the frame, not the window */
     background: rgb(var(--c-bg));
     box-shadow: 0 40px 120px -30px #000c, 0 0 0 1px #ffffff22;
-    scrollbar-width: none;
   }
-  #root::-webkit-scrollbar { display: none; }
+  /* the page content scrolls inside the frame; fixed elements stay put because their containing block is #root */
+  #scroll { height: 100%; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; }
+  #scroll::-webkit-scrollbar { display: none; }
   #aside {
     position: fixed; top: 0; bottom: 0; right: calc(50% + 215px + 24px);
     width: min(380px, calc(50% - 215px - 32px)); align-items: center; padding: 24px; overflow: hidden;
@@ -117,6 +121,5 @@ input, textarea, select, button { font-family: inherit; }
   #boot { width: 430px; margin: 0 auto; }
 }
 @media (min-width: 1100px) {
-  #root { height: min(100dvh, 940px); top: 50%; transform: translateY(-50%) translateZ(0); border-radius: 36px; }
   #aside { right: calc(50% + 215px + 64px); }
 }
