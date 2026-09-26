@@ -91,3 +91,32 @@ input, textarea, select, button { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- Desktop / large screens: phone-sized app frame + side panel (web only) ---------- */
+@media (min-width: 768px) {
+  body {
+    background:
+      radial-gradient(120% 80% at 85% 0%, #0891b2cc 0%, transparent 55%),
+      radial-gradient(90% 70% at 0% 100%, #0fb88a99 0%, transparent 60%),
+      linear-gradient(160deg, #042e2c, #0a5446 60%, #0e6b58 130%);
+    overflow: hidden;
+  }
+  #root {
+    width: 430px; height: 100dvh; margin: 0 auto; position: relative;
+    overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+    transform: translateZ(0); /* fixed children (nav, FAB, sheets, toasts) stay inside the frame */
+    background: rgb(var(--c-bg));
+    box-shadow: 0 40px 120px -30px #000c, 0 0 0 1px #ffffff22;
+    scrollbar-width: none;
+  }
+  #root::-webkit-scrollbar { display: none; }
+  #aside {
+    position: fixed; top: 0; bottom: 0; right: calc(50% + 215px + 24px);
+    width: min(380px, calc(50% - 215px - 32px)); align-items: center; padding: 24px; overflow: hidden;
+  }
+  #boot { width: 430px; margin: 0 auto; }
+}
+@media (min-width: 1100px) {
+  #root { height: min(100dvh, 940px); top: 50%; transform: translateY(-50%) translateZ(0); border-radius: 36px; }
+  #aside { right: calc(50% + 215px + 64px); }
+}

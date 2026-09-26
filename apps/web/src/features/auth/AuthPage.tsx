@@ -6,6 +6,7 @@ import { useStore } from '@/app/store';
 import { Field, Segmented } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import { errTone, haptic } from '@/lib/native';
+import { GetAppCard } from '@/features/install/GetApp';
 
 type Mode = 'login' | 'register' | 'reset';
 
@@ -96,6 +97,7 @@ export function AuthPage() {
           {mode === 'login' && <button onClick={() => { setMode('reset'); setErr(null); }} className="block mx-auto mt-4 text-sm text-ink-2 font-semibold">رمز رو فراموش کردی؟</button>}
           {mode === 'reset' && <button onClick={() => { setMode('login'); setQuestion(null); setErr(null); }} className="block mx-auto mt-4 text-sm text-ink-2 font-semibold">بازگشت به ورود</button>}
         </div>
+        <GetAppCard />
         <p className="text-center text-xs text-ink-2 mt-6 leading-6 px-4">داده‌های شما روی همین دستگاه ذخیره می‌شود. هیچ تراکنش بانکی داخل دُنگ انجام نمی‌شود.</p>
       </div>
     </div>
