@@ -1,4 +1,3 @@
-import { formatCardNumber } from '@dong/core';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion';
 import { Check, Copy, X, ChevronRight } from 'lucide-react';
@@ -59,31 +58,15 @@ export function BalanceChip({ value }: { value: number }) {
 }
 
 /* ---------- Copy button ---------- */
-/** Whole-pill copy control for card numbers: tap anywhere on it to copy. High contrast in light & dark. */
-export function CopyCardNumber({ number, bankName, bankColor, className = '' }: { number: string; bankName?: string | null; bankColor?: string | null; className?: string }) {
-  const [ok, setOk] = useState(false);
-  const toast = useStore((s) => s.toast);
-  return (
-    <button type="button" aria-label="کپی شماره کارت"
-      onClick={async (e) => { e.stopPropagation(); await copyText(number); haptic('light'); setOk(true); toast('شماره کارت کپی شد ✅', 'ok'); setTimeout(() => setOk(false), 1600); }}
-      className={`group inline-flex items-center gap-2 rounded-full pr-3 pl-1.5 py-1.5 border transition active:scale-[0.98] ${ok ? 'bg-pos text-white border-pos' : 'bg-surface text-ink border-line/40 hover:border-brand/60 shadow-sm'} ${className}`}>
-      {bankColor && !ok && <span className="h-2.5 w-2.5 rounded-full shrink-0 ring-2 ring-white/60" style={{ background: bankColor }} title={bankName ?? ''} />}
-      <span className="mono text-[13px] font-bold tracking-wider" dir="ltr">{formatCardNumber(number)}</span>
-      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-black ${ok ? 'bg-white/20 text-white' : 'text-white'}`} style={ok ? undefined : { background: 'var(--grad-brand)' }}>
-        {ok ? <Check size={13} /> : <Copy size={13} />} {ok ? 'کپی شد' : 'کپی'}
-      </span>
-    </button>
-  );
-}
-
-export function CopyButton({ text, label = 'کپی', small = false }: { text: string; label?: string; small?: boolean }) {
+export function CopyButton({ text, label = 'کپی', small = false, onLight = false }: { text: string; label?: string; small?: boolean; onLight?: boolean }) {
   const [ok, setOk] = useState(false);
   const toast = useStore((s) => s.toast);
   return (
     <button
       type="button"
       onClick={async (e) => { e.stopPropagation(); await copyText(text); haptic('light'); setOk(true); toast('کپی شد ✅', 'ok'); setTimeout(() => setOk(false), 1500); }}
-      className={`inline-flex items-center gap-1.5 rounded-full font-bold transition ${small ? 'px-2.5 py-1 text-xs' : 'px-3.5 py-2 text-sm'} ${ok ? 'bg-pos/20 text-pos' : 'bg-brand/15 text-brand hover:bg-brand/25'}`}
+      className={`inline-flex items-center gap-1.5 rounded-full font-bold transition ${small ? 'px-2.5 py-1 text-xs' : 'px-3.5 py-2 text-sm'} ${ok ? 'bg-pos text-white' : onLight ? 'bg-white text-brand-2 shadow' : 'text-white shadow-sm'}`}
+      style={ok || onLight ? undefined : { background: 'var(--grad-brand)' }}
       aria-label={label}
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -91,7 +74,7 @@ export function CopyButton({ text, label = 'کپی', small = false }: { text: st
           {ok ? <Check size={small ? 14 : 16} /> : <Copy size={small ? 14 : 16} />}
         </motion.span>
       </AnimatePresence>
-      {label}
+      {ok ? 'کپی شد' : label}
     </button>
   );
 }

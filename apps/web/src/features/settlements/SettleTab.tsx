@@ -4,7 +4,7 @@ import { ArrowLeft, BellRing, Camera, Check, RotateCw, X, Clock, HandCoins } fro
 import type { Balance, Settlement, Transfer } from '@dong/core';
 import { formatAmount, formatCardNumber, parseAmount, detectBank } from '@dong/core';
 import { useStore } from '@/app/store';
-import { Avatar, CopyCardNumber, Empty, Sheet, DrawCheck } from '@/design-system/ui';
+import { Avatar, CopyButton, Empty, Sheet, DrawCheck } from '@/design-system/ui';
 import type { GroupDetail } from '@/data/adapter';
 import { ding, compressImage, haptic, notify, rotateDataUrl } from '@/lib/native';
 import { fmtDateTime } from '@/lib/date';
@@ -91,7 +91,11 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
                   </div>
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {cred?.cardNumber ? (
-                      <CopyCardNumber number={cred.cardNumber} bankName={bank?.name} bankColor={bank?.color} />
+                      <div className="flex items-center gap-2 bg-surface-2 rounded-full pr-3 pl-1 py-1">
+                        {bank && <span className="h-2.5 w-2.5 rounded-full" style={{ background: bank.color }} title={bank.name} />}
+                        <span className="mono text-xs font-bold">{formatCardNumber(cred.cardNumber)}</span>
+                        <CopyButton text={cred.cardNumber} label="کپی شماره کارت" small />
+                      </div>
                     ) : <span className="text-[11px] text-ink-2">شماره کارت ثبت نشده — از طریق پیام هماهنگ کنید</span>}
                     <span className="flex-1" />
                     {(iOwe || member(t.from)?.username.startsWith('local_') || member(t.from)?.username.startsWith('demo_')) && (

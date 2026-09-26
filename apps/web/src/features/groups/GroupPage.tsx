@@ -5,12 +5,12 @@ import { ChevronRight, Plus, UserPlus, MoreVertical, Receipt, Trash2, Pencil, Lo
 import type { Activity, Expense } from '@dong/core';
 import { computeNetBalances, simplifyDebts, userBalance, formatAmount } from '@dong/core';
 import { useStore } from '@/app/store';
-import { Avatar, AvatarStack, BalanceChip, Empty, Sheet, CopyCardNumber } from '@/design-system/ui';
+import { Avatar, AvatarStack, BalanceChip, Empty, Sheet, CopyButton } from '@/design-system/ui';
 import { ActivityList } from './ActivityList';
 import { SettleTab } from '@/features/settlements/SettleTab';
 import { fmtDate } from '@/lib/date';
 import { shareText, compressImage, haptic } from '@/lib/native';
-import { detectBank } from '@dong/core';
+import { formatCardNumber } from '@dong/core';
 import { Tour } from '@/design-system/Tour';
 import { Wifi, WifiOff, Loader2 } from 'lucide-react';
 
@@ -142,10 +142,11 @@ export function GroupPage() {
                   <Avatar name={m.user.fullName} src={m.user.avatarUrl} size={44} />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold truncate">{m.user.fullName} {m.userId === me.id && <span className="text-xs text-ink-2">(من)</span>} {m.role === 'owner' && <span className="chip bg-amber2/15 text-amber2 mr-1">مالک</span>}</p>
-                    {m.user.cardNumber ? <div className="mt-1.5"><CopyCardNumber number={m.user.cardNumber} bankName={detectBank(m.user.cardNumber)?.name} bankColor={detectBank(m.user.cardNumber)?.color} /></div> : <p className="text-[11px] text-ink-2 mt-0.5">شماره کارت ثبت نشده</p>}
+                    {m.user.cardNumber ? <p className="mono text-[11px] text-ink-2 mt-0.5 whitespace-nowrap" dir="ltr" style={{ letterSpacing: "0.05em" }}>{formatCardNumber(m.user.cardNumber)}</p> : <p className="text-[11px] text-ink-2 mt-0.5">شماره کارت ثبت نشده</p>}
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
                     <BalanceChip value={b} />
+                    {m.user.cardNumber && <CopyButton text={m.user.cardNumber} label="کپی شماره کارت" small />}
                   </div>
                   {isOwner && m.userId !== me.id && (
                     <button onClick={async () => { if (!confirm(`«${m.user.fullName}» از گروه حذف شود؟`)) return; try { await adapter.removeMember(g.group.id, m.userId); toast('حذف شد'); } catch (e) { toast((e as Error).message, 'err'); } }} className="p-2 text-ink-2" aria-label="حذف"><Trash2 size={16} /></button>
