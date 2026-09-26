@@ -82,14 +82,22 @@ input, textarea, select, button { font-family: inherit; }
   .label { @apply block text-sm font-semibold text-ink-2 mb-2; }
   .chip { @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold; }
   .curve-bottom { border-bottom-left-radius: 36px; border-bottom-right-radius: 36px; }
-  .hero { background: var(--grad-hero); border-bottom-left-radius: 32px; border-bottom-right-radius: 32px; }
+  .hero { background: var(--grad-hero); border-radius: 26px; }
+  @property --ring-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+  .hero-ring { position: relative; padding: 2px; border-radius: 28px;
+    background: conic-gradient(from var(--ring-a), #0FB88A, #38bdf8, #a78bfa, #fbbf24, #34d399, #0FB88A);
+    animation: ring-spin 7s linear infinite; box-shadow: 0 14px 40px -18px rgb(var(--c-brand) / 0.7); }
+  .hero-ring::before { content: ''; position: absolute; inset: -6px; border-radius: 34px; z-index: -1; opacity: .35; filter: blur(14px);
+    background: conic-gradient(from var(--ring-a), #0FB88A, #38bdf8, #a78bfa, #fbbf24, #34d399, #0FB88A); animation: ring-spin 7s linear infinite; }
+  @keyframes ring-spin { to { --ring-a: 360deg; } }
+  @media (prefers-reduced-motion: reduce) { .hero-ring, .hero-ring::before { animation: none; } }
   .hero-blob { position: absolute; border-radius: 9999px; pointer-events: none; filter: blur(2px); }
   .hero-blob-a { width: 220px; height: 220px; right: -70px; top: -110px; background: radial-gradient(circle, #ffffff33, transparent 70%); }
   .hero-blob-b { width: 260px; height: 260px; left: -90px; bottom: -160px; background: radial-gradient(circle, #ffffff22, transparent 70%); }
   .skeleton { @apply rounded-xl bg-surface-2; background-image: linear-gradient(90deg, transparent, rgb(var(--c-line) / 0.08), transparent); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
-  .safe-b { padding-bottom: calc(var(--safe-bottom) + 96px); }
+  .safe-b { padding-bottom: calc(var(--safe-bottom) + 132px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

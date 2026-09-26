@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone, Bell } from 'lucide-react';
+import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone, Bell, BookOpen } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { formatCardNumber, isValidCardNumber, detectBank } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
@@ -8,6 +8,7 @@ import { Avatar, CopyButton, Field, PageHeader, Sheet } from '@/design-system/ui
 import { Mascot } from '@/design-system/Mascot';
 import { compressImage, haptic } from '@/lib/native';
 import { Tour } from '@/design-system/Tour';
+import { HelpSheet } from '@/features/profile/HelpSheet';
 
 export function ProfilePage() {
   const { user, adapter, refresh, toast, settings, setSettings } = useStore();
@@ -18,6 +19,9 @@ export function ProfilePage() {
   const [pwOpen, setPwOpen] = useState(false); const [pw, setPw] = useState({ old: '', new: '' });
   const [apiOpen, setApiOpen] = useState(false); const [api, setApi] = useState(settings.apiUrl);
   const bank = me.cardNumber ? detectBank(me.cardNumber) : null;
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [dev, setDev] = useState(localStorage.getItem('dong.dev') === '1');
+  const tapRef = useRef(0);
 
   const saveCard = async () => {
     if (card && !isValidCardNumber(card)) return toast('شماره کارت باید ۱۶ رقم باشد', 'err');
@@ -30,7 +34,8 @@ export function ProfilePage() {
       <PageHeader title="پروفایل" back={false} />
       <Tour id="profile" delay={600} steps={[
         { target: 'card', title: 'شماره کارتت رو ثبت کن', text: 'وقتی کسی به تو بدهکار باشه، شماره کارتت با یک ضربه براش کپی می‌شه. بانک هم خودکار تشخیص داده می‌شه.' },
-        { target: 'sync', title: 'همگام‌سازی', text: 'به‌صورت پیش‌فرض همه‌چیز رمزنگاری‌شده و خودکار بین اعضا همگام می‌شه. اگر سرور اختصاصی داری، آدرسش رو همین‌جا وارد کن تا نوتیفیکیشن هم بگیری.', mood: 'happy' },
+        { target: 'theme', title: 'ظاهر دلخواه', text: 'روشن، تاریک یا هماهنگ با گوشی. صدای «دینگ» تأیید پرداخت رو هم می‌تونی خاموش کنی.' },
+        { target: 'help', title: 'راهنمای کامل', text: 'هر وقت سؤالی داشتی، «راهنمای استفاده» رو باز کن؛ قدم‌به‌قدم همه بخش‌ها توضیح داده شده. راهنماهای کوتاه هم از همین‌جا دوباره فعال می‌شن.', mood: 'happy' },
       ]} />
       <div className="px-5 flex flex-col gap-4">
         <div className="card p-5 flex items-center gap-4">
@@ -67,7 +72,7 @@ export function ProfilePage() {
         {/* Settings */}
         <div className="card divide-y divide-line/10">
           <div className="p-4">
-            <p className="text-sm font-bold mb-2">ظاهر</p>
+            <p data-tour="theme" className="text-sm font-bold mb-2">ظاهر</p>
             <div className="grid grid-cols-3 gap-2">
               {themes.map(({ v, I, l }) => <button key={v} onClick={() => setSettings({ theme: v })} className={`rounded-2xl py-2.5 text-sm font-bold flex items-center justify-center gap-1.5 ${settings.theme === v ? 'text-white' : 'bg-surface-2 text-ink-2'}`} style={settings.theme === v ? { background: 'var(--grad-brand)' } : undefined}><I size={16} /> {l}</button>)}
             </div>
@@ -75,10 +80,11 @@ export function ProfilePage() {
           {adapter.kind === 'api' && <Row icon={<Bell size={18} />} label="نوتیفیکیشن (هزینه، پرداخت، یادآوری)" right={<Toggle on={settings.notifications} onChange={(v) => setSettings({ notifications: v })} />} />}
           <Row icon={settings.sound ? <Volume2 size={18} /> : <VolumeX size={18} />} label="صدای «دینگ» تأیید" right={<Toggle on={settings.sound} onChange={(v) => setSettings({ sound: v })} />} />
           <Row icon={<KeyRound size={18} />} label="تغییر رمز عبور" onClick={() => setPwOpen(true)} />
-          <Row data-tour="sync" icon={<Server size={18} />} label="همگام‌سازی" sub={settings.apiUrl ? `سرور اختصاصی: ${settings.apiUrl}` : 'خودکار و رمزنگاری‌شده (بدون نیاز به سرور)'} onClick={() => setApiOpen(true)} />
-          <Row icon={<Info size={18} />} label="نمایش دوباره راهنماها" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
+          <Row data-tour="help" icon={<BookOpen size={18} />} label="راهنمای استفاده" sub="قدم‌به‌قدم، همه بخش‌ها" onClick={() => setHelpOpen(true)} />
+          <Row icon={<Info size={18} />} label="نمایش دوباره راهنماهای کوتاه" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
+          {dev && <Row icon={<Server size={18} />} label="حالت توسعه‌دهنده: سرور" sub={settings.apiUrl ? `سرور: ${settings.apiUrl}` : 'بدون سرور (همگام‌سازی رمزنگاری‌شده)'} onClick={() => setApiOpen(true)} />}
           {!Capacitor.isNativePlatform() && <Row icon={<Smartphone size={18} />} label="دانلود اپ اندروید (APK)" sub="نصب مستقیم — سریع‌تر و با اعلان" onClick={() => window.open('https://github.com/soheilxcoder/dong/releases/tag/apk-latest', '_blank')} />}
-          <Row icon={<Info size={18} />} label="درباره دُنگ" sub={`نسخه ${import.meta.env.VITE_APP_VERSION ?? "1.0.0"} — حساب‌کتاب دنگی، بدون دعوا`} />
+          <Row icon={<Info size={18} />} label="درباره دُنگ" sub={`نسخه ${import.meta.env.VITE_APP_VERSION ?? "1.0.0"} — حساب‌کتاب دنگی، بدون دعوا`} onClick={() => { const n = (tapRef.current += 1); if (n >= 7) { tapRef.current = 0; const on = localStorage.getItem('dong.dev') !== '1'; localStorage.setItem('dong.dev', on ? '1' : '0'); setDev(on); toast(on ? 'حالت توسعه‌دهنده فعال شد' : 'حالت توسعه‌دهنده خاموش شد', 'info'); } }} />
         </div>
 
         <button onClick={async () => { await adapter.logout(); nav('/auth', { replace: true }); }} className="btn-ghost text-neg w-full"><LogOut size={18} /> خروج از حساب</button>
@@ -101,8 +107,9 @@ export function ProfilePage() {
         <Field label="رمز جدید"><input className="input" type="password" dir="ltr" value={pw.new} onChange={(e) => setPw({ ...pw, new: e.target.value })} /></Field>
         <button className="btn-primary w-full" onClick={async () => { try { if (pw.new.length < 4) throw new Error('رمز جدید حداقل ۴ کاراکتر'); await adapter.changePassword(pw.old, pw.new); setPwOpen(false); setPw({ old: '', new: '' }); toast('رمز تغییر کرد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } }}>تغییر رمز</button>
       </Sheet>
+      <HelpSheet open={helpOpen} onClose={() => setHelpOpen(false)} />
       <Sheet open={apiOpen} onClose={() => setApiOpen(false)} title="اتصال به سرور">
-        <p className="text-xs text-ink-2 leading-6 mb-4">اگر سرور دُنگ (پوشه <span dir="ltr">apps/api</span>) را راه‌اندازی کرده‌اید، آدرس آن را وارد کنید تا گروه‌ها بین چند دستگاه همگام شوند. خالی بگذارید تا حالت محلی (بدون سرور) فعال بماند.</p>
+        <p className="text-xs text-ink-2 leading-6 mb-4">فقط برای توسعه‌دهنده: آدرس سرور API دُنگ. خالی = حالت عادی.</p>
         <Field label="آدرس سرور"><input className="input" dir="ltr" value={api} onChange={(e) => setApi(e.target.value)} placeholder="https://api.example.com" /></Field>
         <button className="btn-primary w-full" onClick={() => { setSettings({ apiUrl: api.trim() }); setApiOpen(false); toast(api.trim() ? 'به سرور متصل شد — وارد حساب سرور شوید' : 'حالت محلی فعال شد', 'ok'); }}>ذخیره</button>
       </Sheet>

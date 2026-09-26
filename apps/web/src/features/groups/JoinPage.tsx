@@ -50,7 +50,7 @@ export function JoinPage() {
             <button onClick={usePasted} className="btn-primary w-full">بررسی لینک</button>
             <button onClick={() => nav('/')} className="text-sm text-ink-2 font-semibold">بازگشت</button></>
         ) : (
-          <><h2 className="text-xl font-extrabold">می‌خوای به «{info.group.name}» بپیوندی؟</h2><p className="text-sm text-ink-2">{formatAmount(info.memberCount)} نفر عضو هستند</p>
+          <><h2 className="text-xl font-extrabold">می‌خوای به «{info.group.name}» بپیوندی؟</h2><p className="text-sm text-ink-2">{formatAmount(info.memberCount)} نفر عضو هستند</p><p className="text-xs text-ink-2 leading-6">بعد از عضویت، هزینه‌های گروه را می‌بینی، خرج ثبت می‌کنی و سهمت خودکار حساب می‌شود.</p>
             <button onClick={join} disabled={busy} className="btn-primary w-full mt-2">{busy ? 'در حال افزودن…' : 'بله، عضو می‌شم'}</button><button onClick={() => nav('/')} className="text-sm text-ink-2 font-semibold">نه، بعداً</button></>
         )}
       </div>

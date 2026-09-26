@@ -1,3 +1,4 @@
+import { Tour } from '@/design-system/Tour';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
@@ -20,6 +21,9 @@ export function NewGroupPage() {
   return (
     <div className="min-h-dvh mx-auto max-w-lg">
       <PageHeader title="گروه جدید" />
+      <Tour id="new-group" delay={500} steps={[
+        { title: 'یک گروه برای هر ماجرا', text: 'اسم گروه رو بنویس (مثلاً «سفر شمال»). بعد از ساختن، مستقیم می‌ری به صفحه دعوت تا دوستات رو با QR یا لینک اضافه کنی.', mood: 'happy' },
+      ]} />
       <form onSubmit={submit} className="px-5 pt-4 pb-10">
         <label className="block relative h-40 rounded-card overflow-hidden mb-6 cursor-pointer grain" style={{ background: cover ? undefined : 'var(--grad-brand)' }}>
           {cover && <img src={cover} className="absolute inset-0 w-full h-full object-cover" alt="" />}

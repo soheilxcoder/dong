@@ -1,3 +1,4 @@
+import { Tour } from '@/design-system/Tour';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Activity } from '@dong/core';
@@ -18,6 +19,10 @@ export function ActivityAllPage() {
   return (
     <div className="safe-b">
       <PageHeader title="فعالیت‌ها" back={false} />
+      <Tour id="activity" delay={600} steps={[
+        { title: 'همه اتفاقات، یک‌جا', text: 'هزینه جدید، ویرایش، پرداخت، تأیید یا رد — از همه گروه‌هات اینجا به ترتیب زمان می‌آد. روی نام گروه بزن تا مستقیم بری داخلش.', mood: 'happy' },
+        { title: 'کارهای منتظر تو', text: 'اگر کسی به تو پول واریز کرده و «ثبت پرداخت» زده، بالای همین صفحه می‌بینی تا تأیید یا رد کنی. تا تأیید نکنی، بدهی‌اش پاک نمی‌شه.' },
+      ]} />
       <div className="px-5 pt-2">
         <PendingForMe />
         {items.length === 0 ? <Empty mood="waiting" title="هنوز خبری نیست" text="وقتی هزینه‌ای ثبت یا پرداختی انجام بشه، اینجا می‌بینی." /> : (

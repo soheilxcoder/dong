@@ -36,8 +36,10 @@ export function Tour({ id, steps, delay = 500 }: { id: string; steps: TourStep[]
   const finish = () => { setSettings({ tours: { ...settings.tours, [id]: true } }); setI(-1); };
   const next = () => (i < steps.length - 1 ? setI(i + 1) : finish());
   const pad = 8;
-  const r = rect ? { x: rect.left - pad, y: rect.top - pad, w: rect.width + pad * 2, h: rect.height + pad * 2 } : null;
-  const below = r ? r.y + r.h + 240 < window.innerHeight : true;
+  const base = document.getElementById('root')?.getBoundingClientRect() ?? { left: 0, top: 0, height: window.innerHeight };
+  const vh = base.height || window.innerHeight;
+  const r = rect ? { x: rect.left - base.left - pad, y: rect.top - base.top - pad, w: rect.width + pad * 2, h: rect.height + pad * 2 } : null;
+  const below = r ? r.y + r.h + 240 < vh : true;
 
   return (
     <AnimatePresence>
@@ -56,7 +58,7 @@ export function Tour({ id, steps, delay = 500 }: { id: string; steps: TourStep[]
           key={i}
           initial={{ opacity: 0, y: below ? 16 : -16, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
           className="absolute inset-x-4 mx-auto max-w-md"
-          style={r ? (below ? { top: r.y + r.h + 14 } : { bottom: window.innerHeight - r.y + 14 }) : { top: '50%', transform: 'translateY(-50%)' }}
+          style={r ? (below ? { top: r.y + r.h + 14 } : { bottom: vh - r.y + 14 }) : { top: '50%', transform: 'translateY(-50%)' }}
         >
           <div className="card p-4 relative overflow-visible" style={{ borderColor: 'rgb(var(--c-brand) / 0.35)' }}>
             <div className="flex gap-3">
