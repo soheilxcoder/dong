@@ -53,6 +53,9 @@ Plesk → همان دامنه → **Apache & nginx Settings** → تیک **«Ser
 4. Deployment mode: **Automatic**
 5. Server path: `/products.arounidea.com/dong/apk`  (پوشهٔ apk را اگر نبود بساز یا با «Browse» انتخاب کن)
 6. Branch: **`apk-release`**  → OK
-7. تست: `https://products.arounidea.com/dong/apk/` باید صفحهٔ «دانلود اپ اندروید» را نشان دهد و `https://products.arounidea.com/dong/apk/latest.json` نسخه را.
+7. **Webhook (برای به‌روزرسانی خودکار):** بعد از ساخت مخزن، روی آن کلیک کن → «Repository settings» → آدرس **Webhook URL** را کپی کن. سپس در GitHub: `github.com/soheilxcoder/dong` → Settings → Webhooks → Add webhook → Payload URL همان آدرس، Content type: `application/json`، Just the push event → Add. (مخزن اول همین‌طور اضافه شده؛ هر مخزن Plesk آدرس webhook مخصوص خودش را دارد.)
+8. تست: `https://products.arounidea.com/dong/apk/` باید صفحهٔ «دانلود اپ اندروید» را نشان دهد و `https://products.arounidea.com/dong/apk/latest.json` نسخه را. اگر نسخه قدیمی ماند: Plesk → Git → dong-apk → **Pull now**.
+
+انتشار APK روی سایت فقط برای نسخه‌های واقعی انجام می‌شود: هر کامیتی که در پیامش `[apk]` باشد، یا اجرای دستی workflow «Android APK» (Actions → Run workflow). بقیهٔ push‌ها فقط نسخهٔ وب را به‌روز می‌کنند.
 
 نکته: اگر Plesk گفت این ریموت قبلاً اضافه شده، همان مخزن اول را باز کن → **Repository settings** نمی‌گذارد دو برنچ داشته باشی؛ پس حتماً به‌صورت مخزن جدید با نام `dong-apk` اضافه کن (Plesk اجازهٔ چند مخزن با یک URL ولی مسیر متفاوت را می‌دهد).

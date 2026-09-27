@@ -19,8 +19,17 @@ export async function latestApk(): Promise<{ version: string; url: string } | nu
   } catch { cached = null; }
   return cached;
 }
-/** Start downloading the newest APK (direct file when resolvable, otherwise the download page on the site). */
-export async function downloadApk() { const a = await latestApk(); window.open(a?.url ?? APK_BASE, '_blank'); }
+/** Start downloading the newest APK. Navigates synchronously (no popup → never blocked by mobile browsers):
+ *  uses the cached latest.json if already resolved, otherwise the /apk/ download page on the site (which links the file). */
+export function downloadApk() {
+  const href = cached?.url ?? APK_BASE;
+  const a = document.createElement('a'); a.href = href; a.rel = 'noopener';
+  if (cached?.url) a.download = cached.url.split('/').pop() || 'Dong.apk';
+  document.body.appendChild(a); a.click(); a.remove();
+  if (!cached) void latestApk(); // warm the cache for the next tap
+}
+/** Kick off resolution early (call on app start) so downloadApk() has the direct file URL. */
+export function prefetchApk() { void latestApk(); }
 const num = (v: string) => v.split('.').map((x) => parseInt(x, 10) || 0);
 export const isNewer = (a: string, b: string) => { const x = num(a), y = num(b); for (let i = 0; i < 3; i++) { if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) > (y[i] ?? 0); } return false; };
 type BIP = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> };

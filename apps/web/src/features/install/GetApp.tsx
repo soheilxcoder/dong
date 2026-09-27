@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Smartphone, Share, PlusSquare, Download, X, MonitorSmartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { downloadApk, canPromptInstall, isAndroid, isIOS, isNative, isStandalone, onInstallChange, promptInstall } from '@/lib/install';
+import { prefetchApk, downloadApk, canPromptInstall, isAndroid, isIOS, isNative, isStandalone, onInstallChange, promptInstall } from '@/lib/install';
 
 /** iOS "Add to Home Screen" instructions */
 export function IosSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -30,7 +30,7 @@ export function IosSheet({ open, onClose }: { open: boolean; onClose: () => void
 export function GetAppCard() {
   const [, force] = useState(0);
   const [ios, setIos] = useState(false);
-  useEffect(() => onInstallChange(() => force((n) => n + 1)), []);
+  useEffect(() => { prefetchApk(); return onInstallChange(() => force((n) => n + 1)); }, []);
   if (isNative() || isStandalone()) return null;
   const pwa = canPromptInstall();
   return (
@@ -38,7 +38,7 @@ export function GetAppCard() {
       <div className="flex items-center gap-2 mb-3"><MonitorSmartphone size={18} className="text-brand" /><h3 className="font-black text-sm">دُنگ را روی گوشی‌ات داشته باش</h3></div>
       <div className="grid gap-2">
         {!isIOS() && (
-          <button onClick={() => void downloadApk()} className="btn-primary w-full !min-h-11 text-sm"><Download size={16} /> دانلود اپ اندروید</button>
+          <button onClick={downloadApk} className="btn-primary w-full !min-h-11 text-sm"><Download size={16} /> دانلود اپ اندروید</button>
         )}
         {pwa && <button onClick={() => promptInstall()} className="btn-ghost w-full !min-h-11 text-sm"><Smartphone size={16} /> نصب نسخهٔ وب روی {isAndroid() ? 'گوشی' : 'کامپیوتر'}</button>}
         {(isIOS() || !isAndroid()) && (
@@ -63,7 +63,7 @@ export function DesktopAside() {
         <div className="bg-white rounded-3xl p-4 self-start shadow-2xl"><QRCodeSVG value={url} size={150} level="M" fgColor="#0e3b52" /></div>
         <p className="text-white/70 text-sm -mt-2">با گوشی اسکن کن تا همین‌جا روی موبایل باز شود.</p>
         <div className="flex flex-col gap-2">
-          <button onClick={() => void downloadApk()} className="btn-primary !min-h-11 text-sm justify-center"><Download size={16} /> دانلود اپ اندروید</button>
+          <button onClick={downloadApk} className="btn-primary !min-h-11 text-sm justify-center"><Download size={16} /> دانلود اپ اندروید</button>
           <button onClick={() => setIos(true)} className="btn-ghost !min-h-11 text-sm justify-center bg-white/10 text-white border-white/20"><PlusSquare size={16} /> نصب روی آیفون (وب‌اپ)</button>
         </div>
       </div>

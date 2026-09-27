@@ -97,11 +97,17 @@ jobs:
 
       # ---- publish to the owner's own host: orphan branch `apk-release` → Plesk deploys it to /dong/apk ----
       - name: Publish APK to apk-release branch (served from products.arounidea.com/dong/apk/)
+        # Only for real releases: manual run, or a commit message containing [apk] — keeps the branch small
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[apk]')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          rm -rf /tmp/apk && mkdir -p /tmp/apk && cd /tmp/apk
+          rm -rf /tmp/apk
+          # linear history (Plesk auto-deploy needs fast-forward pulls); only the newest APK is kept in the tree
+          git clone -q --depth 1 --branch apk-release "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/apk 2>/dev/null \
+            || { mkdir -p /tmp/apk && git -C /tmp/apk init -q -b apk-release; }
+          cd /tmp/apk && rm -f Dong-*.apk
           cp "$GITHUB_WORKSPACE/Dong-${VERSION_NAME}.apk" .
           cat > latest.json <<EOF
           {"name":"دُنگ","version":"${VERSION_NAME}","versionCode":${VERSION_CODE},"file":"Dong-${VERSION_NAME}.apk","url":"https://products.arounidea.com/dong/apk/Dong-${VERSION_NAME}.apk","date":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","commit":"${GITHUB_SHA::7}","signing":"$([ -n "${{ secrets.ANDROID_KEYSTORE_B64 }}" ] && echo upload-key || echo temporary)"}
@@ -124,10 +130,9 @@ jobs:
           <!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>دانلود دُنگ ${VERSION_NAME}</title>
           <body style="font-family:system-ui;margin:0;min-height:100dvh;display:grid;place-items:center;background:#f7f9fa;color:#1e1b18"><div style="text-align:center;padding:32px"><h1 style="margin:0 0 8px">دُنگ</h1><p style="color:#6b6560;margin:0 0 24px">نسخه ${VERSION_NAME}</p><a href="Dong-${VERSION_NAME}.apk" style="display:inline-block;background:linear-gradient(135deg,#0fb88a,#0891b2);color:#fff;text-decoration:none;font-weight:800;padding:14px 28px;border-radius:16px">دانلود اپ اندروید</a></div></body></html>
           EOF
-          git init -q -b apk-release
           git config user.name "dong-bot" && git config user.email "bot@dong.local"
           git add -A && git commit -qm "Dong ${VERSION_NAME} (${GITHUB_SHA::7})"
-          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" apk-release
+          git push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:apk-release
 
       - name: Clean previous release assets
         env:
