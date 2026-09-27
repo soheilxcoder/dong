@@ -1,0 +1,1 @@
+{ "name": "dong-rt-node", "private": true, "version": "1.0.0", "description": "Dong realtime hub (zero-dependency Node.js WebSocket server)", "main": "server.js", "scripts": { "start": "node server.js", "test": "node ../rt/test.mjs" }, "engines": { "node": ">=18" } }
