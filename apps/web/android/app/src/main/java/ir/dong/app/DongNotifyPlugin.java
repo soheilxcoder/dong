@@ -55,6 +55,19 @@ public class DongNotifyPlugin extends Plugin {
         JSObject r = new JSObject(); r.put("ok", true); call.resolve(r);
     }
 
+    /** true only when this build carries google-services.json and Firebase initialised — otherwise
+     *  PushNotifications.register() would throw "Default FirebaseApp is not initialized" on the main thread and crash the app. */
+    @PluginMethod
+    public void pushAvailable(PluginCall call) {
+        boolean ok = false;
+        try {
+            Class<?> fa = Class.forName("com.google.firebase.FirebaseApp");
+            Object apps = fa.getMethod("getApps", Context.class).invoke(null, getContext());
+            ok = apps instanceof java.util.List && !((java.util.List<?>) apps).isEmpty();
+        } catch (Throwable ignored) { /* no Firebase classes / not initialised */ }
+        JSObject r = new JSObject(); r.put("available", ok); call.resolve(r);
+    }
+
     @PluginMethod
     public void checkNow(PluginCall call) {
         Constraints net = new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
