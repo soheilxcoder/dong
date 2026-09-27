@@ -3,7 +3,7 @@ name: Android APK
 on:
   push:
     branches: [main, 'arena/**']
-    paths: ['apps/**', 'packages/**', 'package*.json', '.github/workflows/android.yml']
+    paths: ["apps/**", "packages/**", "package*.json", ".github/workflows/android.yml", "RELEASE.md"]
   workflow_dispatch:
 
 permissions:
