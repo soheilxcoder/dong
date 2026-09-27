@@ -49,8 +49,8 @@ step('A: managed member added (toast)', (await waitText(A, /اضافه شد/)) >
 await shot(A, 'A-invite');
 // ---------- B opens invite link → auth → join ----------
 const B = await mk('B');
-await B.goto(inviteUrl.replace(/^https?:\/\/[^/]+\//, BASE), { waitUntil: 'networkidle0' }); await sleep(800);
-step('B: redirected to auth (not logged in)', /ثبت‌نام|ورود/.test(await text(B)));
+await B.goto(inviteUrl.startsWith(BASE) ? inviteUrl : inviteUrl.replace(/^https?:\/\/[^/]+\//, BASE), { waitUntil: 'networkidle0' }); await sleep(800);
+step('B: redirected to auth (not logged in)', /ثبت‌نام|ورود/.test(await text(B)), (await B.url()) + ' :: ' + (await text(B)).slice(0, 120).replace(/\n/g, ' '));
 await click(B, /^ثبت‌نام$/); await sleep(300);
 await type(B, 'مثلاً علی رضایی', 'رضا محمدی'); await type(B, 'ali_r', 'e2e_b_' + suffix); await B.type('input[type=password]', 'dong1234');
 await B.$$eval('button.btn-primary', (bs) => bs[0].click());
