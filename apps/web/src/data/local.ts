@@ -310,6 +310,15 @@ export class LocalAdapter implements DataAdapter {
     const u = await this.requireUser();
     if (!Number.isInteger(amount) || amount <= 0) throw new AppError('BAD_INPUT', 'مبلغ معتبر نیست');
     const from = fromUser ?? u.id;
+    { // guard: pending payments of this debtor may never exceed their debt (no double "ثبت پرداخت" while one is awaiting confirmation)
+      const d = await this.getGroup(groupId);
+      if (d) {
+        const debt = Math.max(0, -(computeNetBalances(d.members.map((m) => m.userId), d.expenses, d.settlements).find((x) => x.userId === from)?.balance ?? 0));
+        const pend = d.settlements.filter((x) => x.status === 'pending_confirmation' && x.fromUser === from).reduce((a, x) => a + x.amount, 0);
+        if (debt <= 0) throw new AppError('BAD_INPUT', 'این عضو بدهی‌ای ندارد');
+        if (pend + amount > debt) throw new AppError('BAD_INPUT', pend > 0 ? 'برای این بدهی یک پرداخت در انتظار تأیید داری؛ تا تأیید یا رد نشده نمی‌توانی دوباره ثبت کنی' : 'مبلغ از کل بدهی بیشتر است');
+      }
+    }
     const s: Settlement = { id: uid(), groupId, fromUser: from, toUser, amount, receiptImageUrl: receiptImageUrl ?? null, note: note ?? null, status: 'pending_confirmation', submittedAt: now(), updatedAt: now() };
     // local-only members / self-recorded: if creditor is me, or debtor is a local member, auto-confirm
     const toU = await db.users.get(toUser); const fromU = await db.users.get(from);

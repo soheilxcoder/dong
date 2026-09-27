@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, BellRing, Camera, Check, RotateCw, X, Clock, HandCoins } from 'lucide-react';
 import type { Balance, Settlement, Transfer } from '@dong/core';
-import { formatAmount, formatCardNumber, parseAmount, detectBank } from '@dong/core';
+import { formatAmount, formatCardNumber, parseAmount, detectBank, pendingBetween } from '@dong/core';
 import { useStore } from '@/app/store';
 import { Avatar, CopyButton, Empty, Sheet, DrawCheck, Busy } from '@/design-system/ui';
 import type { GroupDetail } from '@/data/adapter';
@@ -77,6 +77,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
               const cred = member(t.to);
               const iOwe = t.from === me.id; const iGet = t.to === me.id;
               const bank = cred?.cardNumber ? detectBank(cred.cardNumber) : null;
+              const pend = pendingBetween(g.settlements, t.from, t.to); const remaining = Math.max(0, t.amount - pend);
               return (
                 <motion.div key={`${t.from}-${t.to}`} data-tour={i === 0 ? 'transfer' : undefined} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.18 }}
                   className={`card p-4 ${iOwe ? 'ring-1 ring-neg/40' : iGet ? 'ring-1 ring-pos/40' : ''}`}>
@@ -101,7 +102,9 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
                     ) : <span className="text-[11px] text-ink-2">شماره کارت ثبت نشده — از طریق پیام هماهنگ کنید</span>}
                     <span className="flex-1" />
                     {(iOwe || member(t.from)?.username.startsWith('local_') || member(t.from)?.username.startsWith('demo_')) && (
-                      <button onClick={() => setPay(t)} className="btn-primary !min-h-10 text-sm px-4"><HandCoins size={16} /> ثبت پرداخت</button>
+                      remaining <= 0
+                        ? <span className="inline-flex items-center gap-1.5 rounded-full px-3 h-10 text-xs font-extrabold text-amber2" style={{ background: 'rgb(var(--c-amber) / 0.14)' }}><Clock size={14} /> در انتظار تأیید {name(t.to)}</span>
+                        : <button onClick={() => setPay({ ...t, amount: remaining })} className="btn-primary !min-h-10 text-sm px-4"><HandCoins size={16} /> {pend > 0 ? `ثبت باقی‌مانده (${formatAmount(remaining)})` : 'ثبت پرداخت'}</button>
                     )}
                     {iGet && <button onClick={() => remind(t)} className="btn-ghost !min-h-10 text-sm px-3"><BellRing size={16} /> یادآوری</button>}
                   </div>

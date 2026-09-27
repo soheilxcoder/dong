@@ -319,6 +319,11 @@ try {
     requireMember($gid, $me); requireMember($gid, $to);
     $from = (!empty($body['fromUser']) && $body['fromUser'] !== $me) ? (string)$body['fromUser'] : $me; if ($from !== $me) requireMember($gid, $from);
     if ($to === $from) throw badReq('نمی‌توانید به خودتان پرداخت کنید');
+    // one pending payment per pair at a time beyond the debt: if a pending payment already exists for this pair, only allow the remaining part of the debt
+    $pend = (int)(row('SELECT COALESCE(SUM(amount),0) AS s FROM settlements WHERE groupId = ? AND fromUser = ? AND toUser = ? AND status = ?', [$gid, $from, $to, 'pending_confirmation'])['s'] ?? 0);
+    [$bal, $pendAll] = balancesOf($gid); $debt = max(0, -($bal[$from] ?? 0)); $pendFrom = 0; foreach ($pendAll as $ps) if ($ps['fromUser'] === $from) $pendFrom += (int)$ps['amount'];
+    if ($debt <= 0) throw badReq('این عضو بدهی‌ای ندارد');
+    if ($pendFrom + $amount > $debt) throw badReq($pend > 0 ? 'برای این بدهی یک پرداخت در انتظار تأیید داری؛ تا تأیید یا رد نشده نمی‌توانی دوباره ثبت کنی' : 'مبلغ از کل بدهی بیشتر است');
     $id = newId(); $t = nowIso(); $auto = $to === $me;
     tx(function () use ($id, $gid, $from, $to, $amount, $body, $auto, $t, $me) {
       exec1('INSERT INTO settlements (id, groupId, fromUser, toUser, amount, receiptImageUrl, status, note, submittedAt, confirmedAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [$id, $gid, $from, $to, $amount, $body['receiptImageUrl'] ?? null, $auto ? 'confirmed' : 'pending_confirmation', $body['note'] ?? null, $t, $auto ? $t : null, $t]);
