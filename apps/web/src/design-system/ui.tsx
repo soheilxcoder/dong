@@ -183,11 +183,15 @@ export function PageHeader({ title, back = true, right }: { title: string; back?
 
 /* ---------- Field with shake on error ---------- */
 export function Field({ label, error, children }: { label?: string; error?: string | null; children: ReactNode }) {
+  // shake without remounting the child (a remount would blur the input, close the keyboard and make the page jump)
+  const [shaking, setShaking] = useState(false);
+  useEffect(() => { if (error) setShaking(true); }, [error]);
   return (
-    <div className="mb-4">
+    <div className="mb-3">
       {label && <label className="label">{label}</label>}
-      <div className={error ? 'animate-shake' : ''} key={error ?? 'ok'}>{children}</div>
-      {error && <p className="text-neg text-xs font-semibold mt-1.5">{error}</p>}
+      <div className={shaking ? 'animate-shake' : ''} onAnimationEnd={() => setShaking(false)}>{children}</div>
+      {/* the slot always exists, so an error appearing never shifts the layout under the user's finger */}
+      <p className="text-neg text-xs font-semibold mt-1 min-h-4 leading-4" aria-live="polite">{error ?? ''}</p>
     </div>
   );
 }

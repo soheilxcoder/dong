@@ -107,7 +107,7 @@ export function ProfilePage() {
       <Sheet open={cardOpen} onClose={() => setCardOpen(false)} title="شماره کارت بانکی">
         <p className="text-xs text-ink-2 leading-6 mb-4">فقط برای نمایش به اعضای گروه جهت واریز دستی. هیچ تراکنشی داخل اپ انجام نمی‌شود.</p>
         <form onSubmit={saveCard}>
-        <Field label="شماره کارت (۱۶ رقم)" error={cardError}><input className={`input mono text-lg ${cardError ? '!border-neg !ring-2 !ring-neg/30' : ''}`} inputMode="numeric" autoComplete="cc-number" dir="ltr" value={formatCardNumber(card)} onChange={(e) => { setCard(e.target.value); if (cardError) setCardError(normalizeCardNumber(e.target.value).length === 16 ? cardNumberError(e.target.value) : null); }} onBlur={() => setCardError(cardNumberError(card))} placeholder="6037 9917 0000 0000" /></Field>
+        <Field label="شماره کارت (۱۶ رقم)" error={cardError}><input className={`input mono text-lg ${cardError ? '!border-neg !ring-2 !ring-neg/30' : ''}`} inputMode="numeric" autoComplete="cc-number" dir="ltr" value={formatCardNumber(card)} maxLength={19} onChange={(e) => { const d = normalizeCardNumber(e.target.value).slice(0, 16); setCard(d); setCardError(d.length === 16 ? cardNumberError(d) : null); }} placeholder="6037 9917 0000 0000" /></Field>
         {card && detectBank(card) && <p className="text-xs font-bold mb-3" style={{ color: detectBank(card)!.color }}>● {detectBank(card)!.name}</p>}
         <Field label="نام صاحب کارت (اگر متفاوت است)"><input className="input" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder={me.fullName} /></Field>
         <button type="submit" disabled={saving} className="btn-primary w-full">{saving ? 'در حال ذخیره…' : 'ذخیره'}</button>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { formatCardNumber, cardNumberError } from '@dong/core';
+import { formatCardNumber, cardNumberError, normalizeCardNumber } from '@dong/core';
 import { useStore } from '@/app/store';
 import { Field, Segmented } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
@@ -79,7 +79,7 @@ export function AuthPage() {
               <>
                 <Field label="سؤال امنیتی (برای بازیابی رمز — اختیاری)"><input className="input" value={f.q} onChange={set('q')} placeholder="مثلاً: اسم اولین معلمم؟" /></Field>
                 {f.q && <Field label="پاسخ"><input className="input" value={f.a} onChange={set('a')} /></Field>}
-                <Field label="شماره کارت بانکی (اختیاری)"><input className="input mono" inputMode="numeric" value={formatCardNumber(f.card)} onChange={set('card')} placeholder="6037 9917 •••• ••••" /></Field>
+                <Field label="شماره کارت بانکی (اختیاری)"><input className="input mono" inputMode="numeric" maxLength={19} value={formatCardNumber(f.card)} onChange={(e) => setF({ ...f, card: normalizeCardNumber(e.target.value).slice(0, 16) })} placeholder="6037 9917 •••• ••••" /></Field>
               </>
             )}
             {mode === 'reset' && (
