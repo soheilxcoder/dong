@@ -87,8 +87,11 @@ export function HomePage() {
 
       {/* Total balance glass card */}
       <motion.div data-tour="balance" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mx-5 -mt-9 glass rounded-card p-5 relative overflow-hidden" style={{ background: 'rgb(var(--c-surface) / 0.75)' }}>
-        <p className="text-ink-2 text-sm font-semibold">وضعیت کلی شما</p>
-        <div className="mt-1 flex items-baseline gap-2">
+        <div className="flex items-start justify-between">
+          <p className="text-ink-2 text-sm font-semibold">وضعیت کلی شما</p>
+          <div className="-mt-2 -ml-1 shrink-0 drop-shadow-[0_8px_14px_rgba(14,59,82,0.25)]"><Mascot mood={total < 0 ? 'confused' : total > 0 ? 'happy' : 'idle'} size={72} /></div>
+        </div>
+        <div className="-mt-6 flex items-baseline gap-2">
           <AmountText value={Math.abs(total)} className={`text-4xl font-black ${total > 0 ? 'text-pos' : total < 0 ? 'text-neg' : 'text-ink'}`} suffix="" />
           <span className="text-ink-2 font-bold">تومان</span>
         </div>
@@ -99,7 +102,6 @@ export function HomePage() {
           <div className="rounded-2xl bg-pos/10 p-3"><p className="text-xs text-ink-2">باید بگیری</p><p className="num font-extrabold text-pos mt-0.5">{formatAmount(owed)}</p></div>
           <div className="rounded-2xl bg-neg/10 p-3"><p className="text-xs text-ink-2">بدهی‌ات</p><p className="num font-extrabold text-neg mt-0.5">{formatAmount(owe)}</p></div>
         </div>
-        <div className="absolute -left-4 -top-4 opacity-[0.07] pointer-events-none"><Mascot mood="idle" size={110} /></div>
         <div className="absolute -right-10 -bottom-12 h-40 w-40 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, rgb(var(${total < 0 ? '--c-neg' : '--c-pos'}) / 0.14), transparent 70%)` }} />
       </motion.div>
 
