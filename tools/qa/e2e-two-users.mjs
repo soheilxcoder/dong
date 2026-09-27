@@ -80,7 +80,7 @@ await A.click('[data-tour="tab-expenses"]');
 const tE = await waitText(A, /شام ساحلی/, 12000); step('A: sees B\'s expense within 12s', tE >= 0, tE + ' ms');
 // ---------- settle: A owes B 100,000 → A pays, B confirms ----------
 await A.click('[data-tour="tab-settle"]'); await sleep(600);
-step('A: settle shows transfer to رضا', /رضا محمدی/.test(await text(A)) && /۱۰۰,۰۰۰|100,000/.test(await text(A)));
+step('A: settle shows transfer to رضا with بابت', /رضا محمدی/.test(await text(A)) && /۱۰۰,۰۰۰|100,000/.test(await text(A)) && /بابت/.test(await text(A)));
 step('A: copy card button present', await A.$$eval('button', (bs) => bs.some((x) => /کپی شماره کارت/.test(x.textContent))) || true);
 step('A: my own debt card has «ثبت پرداخت»', await A.$$eval('.card', (cs) => { const c = cs.find((x) => x.className.includes('ring-neg')); const b = c && [...c.querySelectorAll('button')].find((x) => /^ثبت پرداخت$/.test((x.textContent || '').trim())); if (b) { b.click(); return true; } return false; })); await sleep(500); await shot(A, 'A-pay');
 await click(A, /ثبت و ارسال برای تأیید/);
@@ -96,7 +96,7 @@ await click(A, /سفر کیش/); await sleep(600); step('A: picker → expense f
 await A.goto(BASE + '#/', { waitUntil: 'networkidle0' }); await sleep(500); await click(A, /^دعوتلینک و QR$/); await sleep(600);
 step('A: «دعوت» opens the group picker', /لینک و QR کدوم گروه/.test(await text(A)), A.url());
 await A.goto(BASE + '#/', { waitUntil: 'networkidle0' }); await sleep(500); await click(A, /^تسویهبدهی‌ات رو صاف کن$/); await sleep(800);
-{ const tw = await waitText(A, /در انتظار تأیید/, 20000); const t = await text(A); step('A: «تسویه» page shows totals + my debt', /جمع کل/.test(t) && /بدهی‌های من/.test(t) && tw >= 0, A.url() + ' pending visible after ' + tw + ' ms'); await shot(A, 'A-settle-all'); }
+{ const tw = await waitText(A, /در انتظار تأیید/, 20000); const t = await text(A); step('A: «تسویه» page shows totals + my debt + بابت', /جمع کل/.test(t) && /بدهی‌های من/.test(t) && /بابت/.test(t) && /شام ساحلی/.test(t) && tw >= 0, A.url() + ' pending visible after ' + tw + ' ms'); await shot(A, 'A-settle-all'); }
 step('A: home join card mentions QR', /QR را اسکن کن/.test(await (await A.goto(BASE + '#/', { waitUntil: 'networkidle0' }), sleep(400), text(A))));
 await B.goto(BASE + `#/g/${gid}`, { waitUntil: 'networkidle0' }); await sleep(500); await B.click('[data-tour="tab-settle"]');
 const tP = await waitText(B, /تأیید/, 12000); step('B: sees pending payment within 12s', tP >= 0, tP + ' ms');

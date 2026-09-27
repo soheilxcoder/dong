@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BellRing, Camera, Check, RotateCw, X, Clock, HandCoins } from 'lucide-react';
+import { ArrowLeft, Camera, Check, RotateCw, X, Clock } from 'lucide-react';
 import type { Balance, Settlement, Transfer } from '@dong/core';
-import { formatAmount, formatCardNumber, parseAmount, detectBank, pendingBetween } from '@dong/core';
+import { formatAmount, parseAmount } from '@dong/core';
 import { useStore } from '@/app/store';
-import { Avatar, CopyButton, Empty, Sheet, DrawCheck, Busy } from '@/design-system/ui';
+import { Avatar, Empty, Sheet, DrawCheck, Busy } from '@/design-system/ui';
 import type { GroupDetail } from '@/data/adapter';
 import { ding, compressImage, haptic, notify, rotateDataUrl } from '@/lib/native';
 import { fmtDateTime } from '@/lib/date';
 import { Tour } from '@/design-system/Tour';
+import { TransferCard } from './TransferCard';
 
 export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances: Balance[]; transfers: Transfer[] }) {
   const { user, adapter, toast, fireCelebration, settings } = useStore();
@@ -73,44 +74,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
           <Empty mood="happy" title="حساب همه صافه" text="هیچ‌کس به کسی بدهکار نیست." />
         ) : (
           <div className="flex flex-col gap-2">
-            {transfers.map((t, i) => {
-              const cred = member(t.to);
-              const iOwe = t.from === me.id; const iGet = t.to === me.id;
-              const bank = cred?.cardNumber ? detectBank(cred.cardNumber) : null;
-              const pend = pendingBetween(g.settlements, t.from, t.to); const remaining = Math.max(0, t.amount - pend);
-              return (
-                <motion.div key={`${t.from}-${t.to}`} data-tour={i === 0 ? 'transfer' : undefined} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.18 }}
-                  className={`card p-4 ${iOwe ? 'ring-1 ring-neg/40' : iGet ? 'ring-1 ring-pos/40' : ''}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex flex-col items-center gap-1 w-[84px]"><Avatar name={name(t.from)} size={44} /><span className="text-xs font-bold w-full text-center leading-tight name-2l">{name(t.from)}</span></div>
-                    <div className="flex-1 flex flex-col items-center">
-                      <p className="num text-xl font-black">{formatAmount(t.amount)}</p>
-                      <div className="flex items-center gap-0.5 text-brand mt-0.5">
-                        {[0, 1, 2].map((k) => <ArrowLeft key={k} size={16} className="animate-pulseArrow" style={{ animationDelay: `${k * 0.2}s` }} />)}
-                      </div>
-                      <p className="text-[11px] text-ink-2">تومان</p>
-                    </div>
-                    <div className="flex flex-col items-center gap-1 w-[84px]"><Avatar name={name(t.to)} size={44} /><span className="text-xs font-bold w-full text-center leading-tight name-2l">{name(t.to)}</span></div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 flex-wrap">
-                    {cred?.cardNumber ? (
-                      <div className="flex items-center gap-2 bg-surface-2 rounded-full pr-3 pl-1 py-1">
-                        {bank && <span className="h-2.5 w-2.5 rounded-full" style={{ background: bank.color }} title={bank.name} />}
-                        <span className="mono text-xs font-bold">{formatCardNumber(cred.cardNumber)}</span>
-                        <CopyButton text={cred.cardNumber} label="کپی شماره کارت" small />
-                      </div>
-                    ) : <span className="text-[11px] text-ink-2">شماره کارت ثبت نشده — از طریق پیام هماهنگ کنید</span>}
-                    <span className="flex-1" />
-                    {(iOwe || member(t.from)?.username.startsWith('local_') || member(t.from)?.username.startsWith('demo_')) && (
-                      remaining <= 0
-                        ? <span className="inline-flex items-center gap-1.5 rounded-full px-3 h-10 text-xs font-extrabold text-amber2" style={{ background: 'rgb(var(--c-amber) / 0.14)' }}><Clock size={14} /> در انتظار تأیید {name(t.to)}</span>
-                        : <button onClick={() => setPay({ ...t, amount: remaining })} className="btn-primary !min-h-10 text-sm px-4"><HandCoins size={16} /> {pend > 0 ? `ثبت باقی‌مانده (${formatAmount(remaining)})` : 'ثبت پرداخت'}</button>
-                    )}
-                    {iGet && <button onClick={() => remind(t)} className="btn-ghost !min-h-10 text-sm px-3"><BellRing size={16} /> یادآوری</button>}
-                  </div>
-                </motion.div>
-              );
-            })}
+            {transfers.map((t, i) => <TransferCard key={`${t.from}-${t.to}`} g={g} t={t} me={me.id} index={i} onPay={setPay} onRemind={remind} />)}
           </div>
         )}
       </section>
@@ -171,7 +135,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
   );
 }
 
-function PaySheet({ t, onClose, g }: { t: Transfer | null; onClose: () => void; g: GroupDetail }) {
+export function PaySheet({ t, onClose, g }: { t: Transfer | null; onClose: () => void; g: GroupDetail }) {
   const { adapter, toast } = useStore();
   const [amount, setAmount] = useState('');
   const [img, setImg] = useState<string | null>(null);
