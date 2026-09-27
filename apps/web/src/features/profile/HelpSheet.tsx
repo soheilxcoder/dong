@@ -61,17 +61,17 @@ export function HelpSheet({ open, onClose }: { open: boolean; onClose: () => voi
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   return (
     <Sheet open={open} onClose={onClose} title="راهنمای استفاده از دُنگ">
-      <div className="flex flex-col gap-2 max-h-[70dvh] overflow-y-auto -mx-1 px-1 pb-2">
+      <div className="flex flex-col gap-2 pb-2">
         {sections.map(({ icon: I, title, steps }, k) => (
-          <div key={title} className="rounded-2xl bg-surface-2 overflow-hidden">
-            <button onClick={() => setOpenIdx(openIdx === k ? null : k)} className="w-full flex items-center gap-3 p-3.5 text-right">
+          <div key={title} className="rounded-2xl bg-surface-2 relative" style={{ zIndex: openIdx === k ? 1 : 0 }}>
+            <button type="button" onClick={(e) => { const next = openIdx === k ? null : k; setOpenIdx(next); if (next !== null) setTimeout(() => (e.currentTarget as HTMLElement | null)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' }), 60); }} className="w-full flex items-center gap-3 p-3.5 text-right relative z-10">
               <span className="h-9 w-9 rounded-xl grid place-items-center text-white shrink-0" style={{ background: 'var(--grad-brand)' }}><I size={18} /></span>
               <span className="flex-1 font-extrabold text-sm">{title}</span>
               <ChevronDown size={18} className={`text-ink-2 transition-transform ${openIdx === k ? 'rotate-180' : ''}`} />
             </button>
-            <AnimatePresence initial={false}>
+            <AnimatePresence initial={false} mode="wait">
               {openIdx === k && (
-                <motion.ol initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-4 pb-4 space-y-2 overflow-hidden">
+                <motion.ol key="body" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, transition: { duration: 0.08 } }} transition={{ duration: 0.18 }} className="px-4 pb-4 space-y-2">
                   {steps.map((t, i) => (
                     <li key={i} className="flex gap-2.5 text-[13px] leading-6 text-ink">
                       <span className="h-5 w-5 mt-0.5 rounded-full bg-brand/15 text-brand text-[11px] font-black grid place-items-center shrink-0 num">{i + 1}</span>

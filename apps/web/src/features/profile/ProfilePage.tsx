@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { latestApk, downloadApk, isNewer, APP_VERSION } from '@/lib/install';
 import { useNavigate } from 'react-router-dom';
 import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone, Bell, BookOpen } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
@@ -25,6 +26,8 @@ export function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [dev, setDev] = useState(localStorage.getItem('dong.dev') === '1');
   const tapRef = useRef(0);
+  const [latest, setLatest] = useState<{ version: string; url: string } | null>(null);
+  useEffect(() => { void latestApk().then(setLatest); }, []);
   const [cardError, setCardError] = useState<string | null>(null);
   useEffect(() => { if (!cardOpen) setCardError(null); }, [cardOpen]);
   useEffect(() => { if (!cardOpen) { setCard(me.cardNumber ?? ''); setHolder(me.cardHolderName ?? ''); } }, [me.cardNumber, me.cardHolderName, cardOpen]);
@@ -96,7 +99,9 @@ export function ProfilePage() {
           <Row data-tour="help" icon={<BookOpen size={18} />} label="راهنمای استفاده" sub="قدم‌به‌قدم، همه بخش‌ها" onClick={() => setHelpOpen(true)} />
           <Row icon={<Info size={18} />} label="نمایش دوباره راهنماهای کوتاه" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
           {dev && <Row icon={<Server size={18} />} label="حالت توسعه‌دهنده: سرور" sub={settings.apiUrl ? `سرور: ${settings.apiUrl}` : 'بدون سرور (همگام‌سازی رمزنگاری‌شده)'} onClick={() => setApiOpen(true)} />}
-          {!Capacitor.isNativePlatform() && <Row icon={<Smartphone size={18} />} label="دانلود اپ اندروید (APK)" sub="نصب مستقیم — سریع‌تر و با اعلان" onClick={() => window.open('https://github.com/soheilxcoder/dong/releases/tag/apk-latest', '_blank')} />}
+          {!Capacitor.isNativePlatform()
+            ? <Row icon={<Smartphone size={18} />} label="دانلود اپ اندروید" sub={latest ? `نسخه ${latest.version} — نصب مستقیم` : 'نصب مستقیم — سریع‌تر و با اعلان'} onClick={() => void downloadApk()} />
+            : <Row icon={<Smartphone size={18} />} label={latest && isNewer(latest.version, APP_VERSION) ? `نسخه جدید ${latest.version} آماده است` : 'بررسی نسخه جدید'} sub={latest ? (isNewer(latest.version, APP_VERSION) ? 'برای دانلود بزن' : `نسخه ${APP_VERSION} — آخرین نسخه را داری`) : 'اتصال به مخزن…'} onClick={() => { if (latest && isNewer(latest.version, APP_VERSION)) void downloadApk(); else toast(latest ? 'آخرین نسخه را داری' : 'در دسترس نیست — بعداً امتحان کن', 'info'); }} />}
           <Row icon={<Info size={18} />} label="درباره دُنگ" sub={`نسخه ${import.meta.env.VITE_APP_VERSION ?? "1.0.0"} · build ${typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev"}`} onClick={() => { const n = (tapRef.current += 1); if (n >= 7) { tapRef.current = 0; const on = localStorage.getItem('dong.dev') !== '1'; localStorage.setItem('dong.dev', on ? '1' : '0'); setDev(on); toast(on ? 'حالت توسعه‌دهنده فعال شد' : 'حالت توسعه‌دهنده خاموش شد', 'info'); } }} />
         </div>
 
