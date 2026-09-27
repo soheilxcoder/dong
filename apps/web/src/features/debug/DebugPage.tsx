@@ -15,9 +15,9 @@ export function DebugPage() {
     try {
       add('شروع…');
       const before = await adapter.me(); add('کارت فعلی: ' + (before?.cardNumber ?? '—'));
-      const r = await adapter.updateMe({ cardNumber: '6037991712349876' }); add('updateMe برگشت: ' + (r?.cardNumber ?? '—'));
+      const r = await adapter.updateMe({ cardNumber: '6037997599999993' }); add('updateMe برگشت: ' + (r?.cardNumber ?? '—'));
       await refresh(); const after = await adapter.me(); add('بعد از refresh: ' + (after?.cardNumber ?? '—'));
-      add(after?.cardNumber === '6037991712349876' ? '✅ ذخیره درست کار می‌کند' : '❌ ذخیره نشد');
+      add(after?.cardNumber === '6037997599999993' ? '✅ ذخیره درست کار می‌کند' : '❌ ذخیره نشد');
     } catch (e) { add('❌ خطا: ' + ((e as Error).message || String(e)) + '\n' + ((e as Error).stack ?? '').slice(0, 300)); }
   };
   const info = {

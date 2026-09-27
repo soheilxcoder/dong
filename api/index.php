@@ -76,6 +76,8 @@ function signToken(string $uid): string { global $SECRET; $h = b64u(json_encode(
 function verifyToken(string $t): ?string { global $SECRET; $parts = explode('.', $t); if (count($parts) !== 3) return null; [$h, $p, $s] = $parts; if (!hash_equals(b64u(hash_hmac('sha256', "$h.$p", $SECRET, true)), $s)) return null; $pl = json_decode(b64ud($p), true); if (!$pl || ($pl['exp'] ?? 0) < time()) return null; return (string)$pl['sub']; }
 function toEnglishDigits(string $s): string { return strtr($s, ['۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9','٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9']); }
 function normCard(string $c): string { return preg_replace('/\D/', '', toEnglishDigits($c)); }
+/** 16 digits + Luhn checksum (Iranian bank cards) */
+function validCard(string $d): bool { if (!preg_match('/^\d{16}$/', $d) || preg_match('/^(\d)\1{15}$/', $d)) return false; $sum = 0; for ($i = 0; $i < 16; $i++) { $n = (int)$d[$i]; if ($i % 2 === 0) { $n *= 2; if ($n > 9) $n -= 9; } $sum += $n; } return $sum % 10 === 0; }
 function toman(int $n): string { $s = number_format($n); return toPersianDigits($s) . ' تومان'; }
 function toPersianDigits(string $s): string { return strtr($s, ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']); }
 function safeUser(array $u): array { return ['id'=>$u['id'],'fullName'=>$u['fullName'],'username'=>$u['username'],'avatarUrl'=>$u['avatarUrl'],'cardNumber'=>$u['cardNumber'],'cardHolderName'=>$u['cardHolderName'],'createdAt'=>$u['createdAt'],'updatedAt'=>$u['updatedAt']]; }
@@ -150,7 +152,7 @@ try {
     $password = sval($body['password'] ?? null, 'رمز عبور', 4);
     if (getUserByName($username)) throw badReq('این نام کاربری قبلاً گرفته شده', 'USERNAME_TAKEN');
     $card = !empty($body['cardNumber']) ? normCard((string)$body['cardNumber']) : null;
-    if ($card && !preg_match('/^\d{16}$/', $card)) throw badReq('شماره کارت باید ۱۶ رقم باشد');
+    if ($card && !validCard($card)) throw badReq(strlen($card) === 16 ? 'این شماره کارت اشتباه است' : 'شماره کارت باید ۱۶ رقم باشد', 'BAD_CARD');
     $id = newId(); $t = nowIso();
     exec1('INSERT INTO users (id, fullName, username, passwordHash, securityQuestion, securityAnswerHash, cardNumber, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?)',
       [$id, $fullName, $username, password_hash($password, PASSWORD_BCRYPT), !empty($body['securityQuestion']) ? trim((string)$body['securityQuestion']) : null, !empty($body['securityAnswer']) ? password_hash(trim((string)$body['securityAnswer']), PASSWORD_BCRYPT) : null, $card, $t, $t]);
@@ -174,7 +176,7 @@ try {
   route('PATCH', '/users/me', function () use ($body) {
     $u = getUser(requireAuth());
     $card = $u['cardNumber'];
-    if (array_key_exists('cardNumber', $body)) { $card = $body['cardNumber'] ? normCard((string)$body['cardNumber']) : null; if ($card && !preg_match('/^\d{16}$/', $card)) throw badReq('شماره کارت باید ۱۶ رقم باشد'); }
+    if (array_key_exists('cardNumber', $body)) { $card = $body['cardNumber'] ? normCard((string)$body['cardNumber']) : null; if ($card && !validCard($card)) throw badReq(strlen($card) === 16 ? 'این شماره کارت اشتباه است' : 'شماره کارت باید ۱۶ رقم باشد', 'BAD_CARD'); }
     $fullName = isset($body['fullName']) ? trim(sval($body['fullName'], 'نام', 2)) : $u['fullName'];
     $avatar = array_key_exists('avatarUrl', $body) ? $body['avatarUrl'] : $u['avatarUrl'];
     $holder = array_key_exists('cardHolderName', $body) ? $body['cardHolderName'] : $u['cardHolderName'];

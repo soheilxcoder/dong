@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone, Bell, BookOpen } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
-import { formatCardNumber, isValidCardNumber, detectBank, normalizeCardNumber, formatAmount } from '@dong/core';
+import { formatCardNumber, cardNumberError, detectBank, normalizeCardNumber } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
 import { Avatar, CopyButton, Field, PageHeader, Sheet } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
@@ -25,11 +25,14 @@ export function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [dev, setDev] = useState(localStorage.getItem('dong.dev') === '1');
   const tapRef = useRef(0);
+  const [cardError, setCardError] = useState<string | null>(null);
+  useEffect(() => { if (!cardOpen) setCardError(null); }, [cardOpen]);
   useEffect(() => { if (!cardOpen) { setCard(me.cardNumber ?? ''); setHolder(me.cardHolderName ?? ''); } }, [me.cardNumber, me.cardHolderName, cardOpen]);
 
   const saveCard = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (card && !isValidCardNumber(card)) return toast(`شماره کارت باید ۱۶ رقم باشد (الان ${formatAmount(normalizeCardNumber(card).length)} رقم)`, 'err');
+    const cardErr = cardNumberError(card);
+    if (cardErr) { setCardError(cardErr); haptic('error'); toast(cardErr, 'err'); return; }
     setSaving(true);
     try {
       await adapter.updateMe({ cardNumber: card ? normalizeCardNumber(card) : null, cardHolderName: holder.trim() || null });
@@ -104,7 +107,7 @@ export function ProfilePage() {
       <Sheet open={cardOpen} onClose={() => setCardOpen(false)} title="شماره کارت بانکی">
         <p className="text-xs text-ink-2 leading-6 mb-4">فقط برای نمایش به اعضای گروه جهت واریز دستی. هیچ تراکنشی داخل اپ انجام نمی‌شود.</p>
         <form onSubmit={saveCard}>
-        <Field label="شماره کارت (۱۶ رقم)"><input className="input mono text-lg" inputMode="numeric" autoComplete="cc-number" dir="ltr" value={formatCardNumber(card)} onChange={(e) => setCard(e.target.value)} placeholder="6037 9917 0000 0000" /></Field>
+        <Field label="شماره کارت (۱۶ رقم)" error={cardError}><input className={`input mono text-lg ${cardError ? '!border-neg !ring-2 !ring-neg/30' : ''}`} inputMode="numeric" autoComplete="cc-number" dir="ltr" value={formatCardNumber(card)} onChange={(e) => { setCard(e.target.value); if (cardError) setCardError(normalizeCardNumber(e.target.value).length === 16 ? cardNumberError(e.target.value) : null); }} onBlur={() => setCardError(cardNumberError(card))} placeholder="6037 9917 0000 0000" /></Field>
         {card && detectBank(card) && <p className="text-xs font-bold mb-3" style={{ color: detectBank(card)!.color }}>● {detectBank(card)!.name}</p>}
         <Field label="نام صاحب کارت (اگر متفاوت است)"><input className="input" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder={me.fullName} /></Field>
         <button type="submit" disabled={saving} className="btn-primary w-full">{saving ? 'در حال ذخیره…' : 'ذخیره'}</button>

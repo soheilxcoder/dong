@@ -31,8 +31,22 @@ export function normalizeCardNumber(card: string): string {
   return toEnglishDigits(card).replace(/\D/g, '');
 }
 
+/** Iranian bank cards: exactly 16 digits AND a valid Luhn checksum (catches typos / random numbers). */
 export function isValidCardNumber(card: string): boolean {
-  return /^\d{16}$/.test(normalizeCardNumber(card));
+  const d = normalizeCardNumber(card);
+  if (!/^\d{16}$/.test(d) || /^(\d)\1{15}$/.test(d)) return false;
+  let sum = 0;
+  for (let i = 0; i < 16; i++) { let n = Number(d[i]); if (i % 2 === 0) { n *= 2; if (n > 9) n -= 9; } sum += n; }
+  return sum % 10 === 0;
+}
+
+/** Human-readable reason why a card number is not acceptable (null = fine / empty). */
+export function cardNumberError(card: string): string | null {
+  const d = normalizeCardNumber(card);
+  if (!d) return null;
+  if (d.length !== 16) return `شماره کارت باید ۱۶ رقم باشد (الان ${d.length.toLocaleString('fa-IR')} رقم)`;
+  if (!isValidCardNumber(d)) return 'این شماره کارت اشتباه است — لطفاً دوباره از روی کارت بررسی کن';
+  return null;
 }
 
 /** Parse a user-typed amount ("۱۲,۰۰۰" / "12000") to integer toman. */

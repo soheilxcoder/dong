@@ -33,7 +33,7 @@ const type = async (ph, v) => { const el = await p.$(`input[placeholder="${ph}"]
 // switch to register mode if needed
 await p.$$eval('button', (bs) => bs.find((x) => (x.textContent || '').trim() === 'ثبت‌نام')?.click());
 await sleep(400);
-await type('مثلاً علی رضایی', 'علی رضایی'); await type('ali_r', 'ali_r'); await type('••••••', 'dong1234'); await type('6037 9917 •••• ••••', '6037991712349876');
+await type('مثلاً علی رضایی', 'علی رضایی'); await type('ali_r', 'ali_r'); await type('••••••', 'dong1234'); await type('6037 9917 •••• ••••', '6037997599999993');
 await p.$$eval('button.btn-primary', (bs) => bs[0].click());
 await p.waitForFunction(() => location.hash === '#/' || location.hash === '', { timeout: 15000 }); await sleep(1200);
 // demo group

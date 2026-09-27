@@ -30,7 +30,7 @@ console.log('hash:', await p.evaluate(() => location.hash));
 await p.$$eval('button', (bs) => bs.find((x) => /رد کردن/.test(x.textContent || ''))?.click()); await sleep(400);
 await p.screenshot({ path: "/tmp/profile.png" }); console.log("profile text:", (await p.evaluate(() => document.body.innerText)).slice(0, 400)); await p.click('[data-tour="card"]'); await sleep(700);
 const inp = await p.$('input[placeholder="6037 9917 0000 0000"]'); if (!inp) { console.log('NO CARD INPUT; sheet not open?'); await p.screenshot({ path: '/tmp/card-fail.png' }); }
-await inp.click(); await inp.type('6037991712349876'); await sleep(200);
+await inp.click(); await inp.type('6037997599999993'); await sleep(200);
 const btn = await p.$('button[type=submit]') ?? (await p.$$('button')).at(-1);
 const bb = await btn.boundingBox(); console.log('save btn', bb, await p.evaluate((b) => { const e = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2); return e && e.tagName + '.' + String(e.className).slice(0, 40); }, bb));
 await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); await sleep(1500);

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { formatCardNumber, isValidCardNumber } from '@dong/core';
+import { formatCardNumber, cardNumberError } from '@dong/core';
 import { useStore } from '@/app/store';
 import { Field, Segmented } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
@@ -31,7 +31,7 @@ export function AuthPage() {
       if (mode === 'login') { await adapter.login(f.username, f.password); await refresh(); go(); }
       else if (mode === 'register') {
         if (f.fullName.trim().length < 2) throw new Error('نام کامل را وارد کنید');
-        if (f.card && !isValidCardNumber(f.card)) throw new Error('شماره کارت باید ۱۶ رقم باشد');
+        { const ce = cardNumberError(f.card); if (ce) throw new Error(ce); }
         await adapter.register({ fullName: f.fullName, username: f.username, password: f.password, securityQuestion: f.q || undefined, securityAnswer: f.a || undefined, cardNumber: f.card || undefined });
         await refresh(); toast('حساب ساخته شد', 'ok'); go();
       } else {
