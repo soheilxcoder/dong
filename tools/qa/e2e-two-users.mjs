@@ -4,6 +4,10 @@ import { createRequire } from 'module'; import path from 'path'; import fs from 
 const require = createRequire(import.meta.url); const puppeteer = require('puppeteer-core');
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 const BASE = process.argv[2] || 'http://localhost:8096/'; const out = '/tmp/e2e'; fs.mkdirSync(out, { recursive: true });
+const LOG = []; { const o = console.log.bind(console); console.log = (...a) => { LOG.push(a.join(' ')); o(...a); }; }
+const report = () => { if (!process.env.GITHUB_ACTIONS) return; const esc = (t) => String(t).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A'); const all = LOG.join('\n'); for (let i = 0, n = 0; i < all.length && n < 9; i += 3000, n++) process.stdout.write(`::notice title=E2E log ${n + 1}::${esc(all.slice(i, i + 3000))}\n`); };
+process.on('uncaughtException', (e) => { console.log('CRASH ' + (e && e.stack || e)); report(); process.exit(2); });
+process.on('unhandledRejection', (e) => { console.log('CRASH ' + (e && e.stack || e)); report(); process.exit(2); });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = []; const step = (name, ok, extra = '') => { results.push([ok, name, extra]); console.log((ok ? '✅' : '❌') + ' ' + name + (extra ? ' — ' + extra : '')); };
 const b = await puppeteer.launch({ executablePath: process.env.CHROME || root + '/.cache/chromium/chromium', args: ['--no-sandbox', '--disable-gpu', '--no-zygote', '--font-render-hinting=none'] });
@@ -107,4 +111,4 @@ step('A: login again → sees group', (await waitText(A, /سفر کیش/, 8000))
 await shot(A, 'A-home-final');
 await b.close();
 const failed = results.filter((r) => !r[0]); console.log(`\n${results.length - failed.length}/${results.length} passed`);
-if (process.env.GITHUB_ACTIONS) { const esc = (t) => String(t).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A'); const timing = results.filter((r) => /ms$/.test(r[2])).map((r) => r[1] + ': ' + r[2]).join(' | '); console.log(`::notice title=E2E ${results.length - failed.length}/${results.length} passed::${esc(timing)}`); for (const f of failed.slice(0, 8)) console.log(`::error title=E2E FAIL::${esc(f[1] + ' — ' + f[2])}`); } process.exit(failed.length ? 1 : 0);
+report(); if (process.env.GITHUB_ACTIONS) { const esc = (t) => String(t).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A'); const timing = results.filter((r) => /ms$/.test(r[2])).map((r) => r[1] + ': ' + r[2]).join(' | '); console.log(`::notice title=E2E ${results.length - failed.length}/${results.length} passed::${esc(timing)}`); for (const f of failed.slice(0, 8)) console.log(`::error title=E2E FAIL::${esc(f[1] + ' — ' + f[2])}`); } process.exit(failed.length ? 1 : 0);
