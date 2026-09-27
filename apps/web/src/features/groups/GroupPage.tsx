@@ -112,7 +112,7 @@ export function GroupPage() {
             </div>
             <div className="flex items-center justify-between mt-2.5">
               <button data-tour="avatars" onClick={() => nav(`/g/${id}/invite`)}><AvatarStack names={g.members.map((m) => ({ name: m.user.fullName, src: m.user.avatarUrl }))} size={30} /></button>
-              <BalanceChip value={calc.mine} />
+              <BalanceChip value={calc.mine} onDark />
             </div>
           </div>
         </div>

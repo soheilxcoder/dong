@@ -50,7 +50,18 @@ export function AmountText({ value, className = '', suffix = ' تومان', dura
 }
 
 /* ---------- Balance chip ---------- */
-export function BalanceChip({ value }: { value: number }) {
+export function BalanceChip({ value, onDark = false }: { value: number; onDark?: boolean }) {
+  if (onDark) {
+    // Solid white pill with a colored status dot → readable on any header/photo background
+    const tone = value === 0 ? { dot: 'rgb(var(--c-neutral))', label: 'تسویه', amount: '' } : value > 0 ? { dot: 'rgb(var(--c-pos))', label: 'طلبکار', amount: formatAmount(value) } : { dot: 'rgb(var(--c-neg))', label: 'بدهکار', amount: formatAmount(-value) };
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-white pl-3 pr-2 py-1.5 text-[13px] font-extrabold text-[#1E1B18] shadow-[0_6px_18px_rgba(0,0,0,0.25)] ring-1 ring-black/5 whitespace-nowrap">
+        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: tone.dot, boxShadow: `0 0 0 3px color-mix(in srgb, ${tone.dot} 25%, transparent)` }} />
+        <span className="text-[#6B6560] font-bold">{tone.label}</span>
+        {tone.amount && <span className="tabular-nums" style={{ color: tone.dot }}>{tone.amount}</span>}
+      </span>
+    );
+  }
   if (value === 0) return <span className="chip bg-neutral2/15 text-neutral2">تسویه</span>;
   return value > 0
     ? <span className="chip bg-pos/15 text-pos">طلبکار {formatAmount(value)}</span>

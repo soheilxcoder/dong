@@ -1,3 +1,7 @@
+import f1 from '@/assets/friends/f1.webp';
+import f2 from '@/assets/friends/f2.webp';
+import f3 from '@/assets/friends/f3.webp';
+import f4 from '@/assets/friends/f4.webp';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -39,16 +43,15 @@ export function Onboarding() {
   );
 }
 
+const FRIENDS = [f1, f2, f3, f4];
 function GroupArt() {
-  const c = ['#F5B942', '#F97362', '#34D8A8', '#8B5CF6'];
   return (
     <div className="relative w-56 h-44">
-      {c.map((col, k) => (
-        <motion.div key={k} className="absolute rounded-full grid place-items-center text-white font-black text-xl shadow-xl"
-          style={{ width: 72, height: 72, background: col, left: 20 + k * 40, top: k % 2 ? 70 : 20 }}
-          animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 2.4, delay: k * 0.25 }}>
-          {['ع', 'ر', 'ح', 'م'][k]}
-        </motion.div>
+      {FRIENDS.map((src, k) => (
+        <motion.img key={k} src={src} alt="" draggable={false}
+          className="absolute rounded-full object-cover shadow-xl ring-[3px] ring-white/90"
+          style={{ width: 76, height: 76, left: 16 + k * 42, top: k % 2 ? 68 : 18, zIndex: k % 2 ? 2 : 1 }}
+          animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 2.4, delay: k * 0.25 }} />
       ))}
     </div>
   );
