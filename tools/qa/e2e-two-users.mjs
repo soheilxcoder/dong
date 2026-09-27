@@ -6,7 +6,7 @@ const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../.
 const BASE = process.argv[2] || 'http://localhost:8096/'; const out = '/tmp/e2e'; fs.mkdirSync(out, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = []; const step = (name, ok, extra = '') => { results.push([ok, name, extra]); console.log((ok ? '✅' : '❌') + ' ' + name + (extra ? ' — ' + extra : '')); };
-const b = await puppeteer.launch({ executablePath: root + '/.cache/chromium/chromium', args: ['--no-sandbox', '--disable-gpu', '--no-zygote', '--font-render-hinting=none'] });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME || root + '/.cache/chromium/chromium', args: ['--no-sandbox', '--disable-gpu', '--no-zygote', '--font-render-hinting=none'] });
 const mk = async (tag) => {
   const ctx = await b.createBrowserContext(); const p = await ctx.newPage();
   await p.setViewport({ width: 412, height: 892, deviceScaleFactor: 1.5, isMobile: true, hasTouch: true }); await p.emulateTimezone('Asia/Tehran');
@@ -27,7 +27,7 @@ const suffix = Date.now().toString(36).slice(-5);
 // ---------- A registers ----------
 const A = await mk('A');
 await click(A, /^ثبت‌نام$/); await sleep(300);
-await type(A, 'مثلاً علی رضایی', 'علی رضایی'); await type(A, 'ali_r', 'ali_' + suffix); await A.type('input[type=password]', 'dong1234'); await type(A, '6037 9917 •••• ••••', '6037997599999993');
+await type(A, 'مثلاً علی رضایی', 'علی رضایی'); await type(A, 'ali_r', 'e2e_a_' + suffix); await A.type('input[type=password]', 'dong1234'); await type(A, '6037 9917 •••• ••••', '6037997599999993');
 { const before = await A.$$eval('input[type=password]', (l) => l.length); await A.click('button[aria-label="نمایش رمز"]'); await sleep(150); const after = await A.$$eval('input[type=password]', (l) => l.length); await A.click('button[aria-label="پنهان کردن رمز"]'); await sleep(150); step('A: eye toggles password', before === 1 && after === 0); }
 await A.$$eval('button.btn-primary', (bs) => bs[0].click());
 step('A: register → home', (await waitText(A, /وضعیت کلی شما|هنوز گروهی نداری/)) >= 0);
@@ -48,7 +48,7 @@ const B = await mk('B');
 await B.goto(inviteUrl.replace(/^https?:\/\/[^/]+\//, BASE), { waitUntil: 'networkidle0' }); await sleep(800);
 step('B: redirected to auth (not logged in)', /ثبت‌نام|ورود/.test(await text(B)));
 await click(B, /^ثبت‌نام$/); await sleep(300);
-await type(B, 'مثلاً علی رضایی', 'رضا محمدی'); await type(B, 'ali_r', 'reza_' + suffix); await B.type('input[type=password]', 'dong1234');
+await type(B, 'مثلاً علی رضایی', 'رضا محمدی'); await type(B, 'ali_r', 'e2e_b_' + suffix); await B.type('input[type=password]', 'dong1234');
 await B.$$eval('button.btn-primary', (bs) => bs[0].click());
 step('B: after register lands on join page', (await waitText(B, /می‌خوای به «سفر کیش» بپیوندی/)) >= 0);
 await shot(B, 'B-join');
@@ -102,8 +102,9 @@ await click(A, /اسکن QR دعوت/); await sleep(800); step('A: scanner sheet
 // logout / login
 await A.goto(BASE + '#/profile', { waitUntil: 'networkidle0' }); await sleep(400); await click(A, /خروج از حساب/); await sleep(800); await click(A, /^خروج$|بله/); 
 step('A: logout → auth', (await waitText(A, /ورود/, 5000)) >= 0);
-await type(A, 'ali_r', 'ali_' + suffix); await A.type('input[type=password]', 'dong1234'); await A.$$eval('button.btn-primary', (bs) => bs[0].click());
+await type(A, 'ali_r', 'e2e_a_' + suffix); await A.type('input[type=password]', 'dong1234'); await A.$$eval('button.btn-primary', (bs) => bs[0].click());
 step('A: login again → sees group', (await waitText(A, /سفر کیش/, 8000)) >= 0);
 await shot(A, 'A-home-final');
 await b.close();
-const failed = results.filter((r) => !r[0]); console.log(`\n${results.length - failed.length}/${results.length} passed`); process.exit(failed.length ? 1 : 0);
+const failed = results.filter((r) => !r[0]); console.log(`\n${results.length - failed.length}/${results.length} passed`);
+if (process.env.GITHUB_ACTIONS) { const esc = (t) => String(t).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A'); const timing = results.filter((r) => /ms$/.test(r[2])).map((r) => r[1] + ': ' + r[2]).join(' | '); console.log(`::notice title=E2E ${results.length - failed.length}/${results.length} passed::${esc(timing)}`); for (const f of failed.slice(0, 8)) console.log(`::error title=E2E FAIL::${esc(f[1] + ' — ' + f[2])}`); } process.exit(failed.length ? 1 : 0);

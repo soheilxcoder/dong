@@ -1,0 +1,28 @@
+name: Live two-browser e2e (products.arounidea.com)
+
+# Runs the real two-user scenario against the LIVE site (creates throw-away accounts named e2e_*), reports timings as annotations.
+on:
+  push:
+    branches: ['arena/**']
+    paths: ['.github/workflows/live-e2e.yml', 'tools/qa/e2e-two-users.mjs', 'LIVE_E2E.md']
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm i --no-audit --no-fund puppeteer@23
+      - name: Run against live site
+        env:
+          RT_STATS: ${{ vars.RT_URL != '' && format('{0}/stats', vars.RT_URL) || '' }}
+        run: |
+          CHROME=$(node -e "console.log(require('puppeteer').executablePath())")
+          echo "chrome=$CHROME"
+          CHROME=$CHROME node tools/qa/e2e-two-users.mjs https://products.arounidea.com/dong/ || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: e2e-shots, path: /tmp/e2e, if-no-files-found: ignore }
