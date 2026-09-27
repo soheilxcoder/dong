@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { formatCardNumber, cardNumberError, normalizeCardNumber } from '@dong/core';
 import { useStore } from '@/app/store';
-import { Field, Segmented } from '@/design-system/ui';
+import { Field, Segmented, Busy } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import { errTone, haptic } from '@/lib/native';
 import { GetAppCard } from '@/features/install/GetApp';
@@ -94,7 +94,7 @@ export function AuthPage() {
               </>
             )}
             <button className="btn-primary w-full text-base mt-1" disabled={busy}>
-              {busy ? <span className="h-5 w-5 rounded-full border-2 border-white/40 border-t-white animate-spin" /> : mode === 'login' ? 'ورود' : mode === 'register' ? 'ساخت حساب' : question ? 'تغییر رمز' : 'ادامه'}
+              <Busy busy={busy} label={mode === 'login' ? 'در حال ورود…' : mode === 'register' ? 'در حال ساخت حساب…' : 'چند لحظه…'}>{mode === 'login' ? 'ورود' : mode === 'register' ? 'ساخت حساب' : question ? 'تغییر رمز' : 'ادامه'}</Busy>
             </button>
           </form>
           {mode === 'login' && <button onClick={() => { setMode('reset'); setErr(null); }} className="block mx-auto mt-4 text-sm text-ink-2 font-semibold">رمز رو فراموش کردی؟</button>}

@@ -5,7 +5,7 @@ import { ChevronLeft, Home, Plus, UserPlus, MoreVertical, Receipt, Trash2, Penci
 import type { Activity, Expense } from '@dong/core';
 import { computeNetBalances, simplifyDebts, userBalance, formatAmount } from '@dong/core';
 import { useStore } from '@/app/store';
-import { Avatar, AvatarStack, BalanceChip, Empty, Sheet, CopyButton } from '@/design-system/ui';
+import { Avatar, AvatarStack, BalanceChip, Empty, Sheet, CopyButton, Spinner } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import { ActivityList } from './ActivityList';
 import { SettleTab } from '@/features/settlements/SettleTab';
@@ -13,7 +13,7 @@ import { fmtDate } from '@/lib/date';
 import { shareText, compressImage, haptic } from '@/lib/native';
 import { formatCardNumber } from '@dong/core';
 import { Tour } from '@/design-system/Tour';
-import { Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { Wifi, WifiOff } from 'lucide-react';
 
 type Tab = 'expenses' | 'settle' | 'members' | 'activity';
 
@@ -98,7 +98,7 @@ export function GroupPage() {
             <div className="flex gap-2 items-center">
               {(g.group.syncKey || adapter.kind === 'api') && (
                 <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-white/15" title="همگام‌سازی">
-                  {syncStatus === 'online' ? <Wifi size={14} className="text-pos" /> : syncStatus === 'error' ? <WifiOff size={14} className="text-neg" /> : <Loader2 size={14} className="animate-spin" />}
+                  {syncStatus === 'online' ? <Wifi size={14} className="text-pos" /> : syncStatus === 'error' ? <WifiOff size={14} className="text-neg" /> : <Spinner size={14} />}
                   {syncStatus === 'online' ? ((adapter as { realtime?: boolean }).realtime ? 'زنده' : 'همگام') : syncStatus === 'error' ? 'آفلاین' : 'اتصال…'}
                 </span>
               )}

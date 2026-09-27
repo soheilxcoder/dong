@@ -7,7 +7,7 @@ import { faIR } from 'date-fns-jalali/locale';
 import type { SplitType } from '@dong/core';
 import { formatAmount, parseAmount, splitEqual, validateCustomSplit, toPersianDigits } from '@dong/core';
 import { useStore } from '@/app/store';
-import { Avatar, Field, PageHeader, Segmented } from '@/design-system/ui';
+import { Avatar, Field, PageHeader, Segmented, Busy } from '@/design-system/ui';
 import { compressImage, haptic } from '@/lib/native';
 import { Tour } from '@/design-system/Tour';
 
@@ -150,7 +150,7 @@ export function ExpenseFormPage() {
       ]} />}
       <div className="fixed bottom-0 inset-x-0 z-40 mx-auto max-w-lg px-5 pb-[calc(var(--safe-bottom)+16px)] pt-3" style={{ background: 'linear-gradient(to top, rgb(var(--c-bg)) 70%, transparent)' }}>
         {err && <motion.p key={err} initial={{ x: -6 }} animate={{ x: 0 }} className="animate-shake text-neg text-xs font-bold mb-2 text-center">{err}</motion.p>}
-        <button onClick={submit} disabled={busy} className="btn-primary w-full text-base">{editing ? 'ذخیره تغییرات' : 'ثبت هزینه'}{total > 0 && <span className="num opacity-80">· {formatAmount(total)}</span>}</button>
+        <button onClick={submit} disabled={busy} className="btn-primary w-full text-base"><Busy busy={busy} label={editing ? 'در حال ذخیره…' : 'در حال ثبت هزینه…'}>{editing ? 'ذخیره تغییرات' : 'ثبت هزینه'}{total > 0 && <span className="num opacity-80">· {formatAmount(total)}</span>}</Busy></button>
       </div>
     </div>
   );

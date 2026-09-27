@@ -4,7 +4,7 @@ import { ArrowLeft, BellRing, Camera, Check, RotateCw, X, Clock, HandCoins } fro
 import type { Balance, Settlement, Transfer } from '@dong/core';
 import { formatAmount, formatCardNumber, parseAmount, detectBank } from '@dong/core';
 import { useStore } from '@/app/store';
-import { Avatar, CopyButton, Empty, Sheet, DrawCheck } from '@/design-system/ui';
+import { Avatar, CopyButton, Empty, Sheet, DrawCheck, Busy } from '@/design-system/ui';
 import type { GroupDetail } from '@/data/adapter';
 import { ding, compressImage, haptic, notify, rotateDataUrl } from '@/lib/native';
 import { fmtDateTime } from '@/lib/date';
@@ -23,9 +23,11 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
   const pending = g.settlements.filter((s) => s.status === 'pending_confirmation');
   const history = g.settlements.filter((s) => s.status !== 'pending_confirmation').slice(0, 20);
 
+  const [acting, setActing] = useState<string | null>(null);
   const confirm = async (s: Settlement) => {
+    if (acting) return; setActing(s.id);
     try { await adapter.confirmSettlement(s.id); haptic('success'); ding(settings.sound); fireCelebration(); setCelebrated(true); setTimeout(() => setCelebrated(false), 1600); }
-    catch (e) { toast((e as Error).message, 'err'); }
+    catch (e) { toast((e as Error).message, 'err'); } finally { setActing(null); }
   };
   const remind = async (t: Transfer) => {
     try { await adapter.sendReminder(g.group.id, t.from, t.amount); haptic('light'); toast(`یادآوری برای ${name(t.from)} ثبت شد`, 'ok'); notify('یادآوری دُنگ', `${name(t.from)}، ${formatAmount(t.amount)} تومان به ${name(t.to)} بدهکاری`); }
@@ -52,7 +54,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
                 {s.receiptImageUrl && <img src={s.receiptImageUrl} alt="رسید" className="mt-3 rounded-xl max-h-52 w-full object-contain bg-surface-2" />}
                 {s.toUser === me.id ? (
                   <div className="grid grid-cols-2 gap-2 mt-3">
-                    <button onClick={() => confirm(s)} className="btn text-white" style={{ background: 'var(--grad-celebrate)' }}><Check size={18} /> تأیید دریافت</button>
+                    <button onClick={() => confirm(s)} disabled={acting === s.id} className="btn text-white" style={{ background: 'var(--grad-celebrate)' }}><Busy busy={acting === s.id} label="در حال تأیید…"><Check size={18} /> تأیید دریافت</Busy></button>
                     <button onClick={() => { setReject(s); setReason(''); }} className="btn-ghost text-neg"><X size={18} /> رد</button>
                   </div>
                 ) : s.fromUser === me.id ? (
@@ -150,7 +152,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
       <Sheet open={!!reject} onClose={() => setReject(null)} title="رد پرداخت">
         <p className="text-sm text-ink-2 mb-3 leading-6">دلیل رد را کوتاه بنویس تا برای {reject && name(reject.fromUser)} نمایش داده شود.</p>
         <input className="input mb-4" placeholder="مثلاً: مبلغ اشتباهه" value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
-        <button className="btn-danger w-full" onClick={async () => { try { await adapter.rejectSettlement(reject!.id, reason); setReject(null); haptic('error'); toast('پرداخت رد شد'); } catch (e) { toast((e as Error).message, 'err'); } }}>رد کردن</button>
+        <button className="btn-danger w-full" disabled={acting === 'reject'} onClick={async () => { setActing('reject'); try { await adapter.rejectSettlement(reject!.id, reason); setReject(null); haptic('error'); toast('پرداخت رد شد'); } catch (e) { toast((e as Error).message, 'err'); } finally { setActing(null); } }}><Busy busy={acting === 'reject'} label="در حال رد…">رد کردن</Busy></button>
       </Sheet>
 
       <AnimatePresence>
@@ -203,7 +205,7 @@ function PaySheet({ t, onClose, g }: { t: Transfer | null; onClose: () => void; 
             <label className="btn-ghost w-full mb-4 cursor-pointer"><Camera size={18} /> انتخاب از دوربین / گالری<input type="file" accept="image/*" capture="environment" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setImg(await compressImage(f, 'receipt')); }} /></label>
           )}
           <input className="input mb-4" placeholder="یادداشت (اختیاری)" value={note} onChange={(e) => setNote(e.target.value)} />
-          <button className="btn-primary w-full text-base" disabled={busy} onClick={submit}>ثبت و ارسال برای تأیید</button>
+          <button className="btn-primary w-full text-base" disabled={busy} onClick={submit}><Busy busy={busy} label="در حال ثبت پرداخت…">ثبت و ارسال برای تأیید</Busy></button>
         </div>
       )}
     </Sheet>

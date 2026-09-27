@@ -4,7 +4,7 @@ import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditC
 import { Capacitor } from '@capacitor/core';
 import { formatCardNumber, cardNumberError, detectBank, normalizeCardNumber } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
-import { Avatar, CopyButton, Field, PageHeader, Sheet } from '@/design-system/ui';
+import { Avatar, CopyButton, Field, PageHeader, Sheet, Busy } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import { compressImage, haptic } from '@/lib/native';
 import { Tour } from '@/design-system/Tour';
@@ -110,17 +110,17 @@ export function ProfilePage() {
         <Field label="شماره کارت (۱۶ رقم)" error={cardError}><input className={`input mono text-lg ${cardError ? '!border-neg !ring-2 !ring-neg/30' : ''}`} inputMode="numeric" autoComplete="cc-number" dir="ltr" value={formatCardNumber(card)} maxLength={19} onChange={(e) => { const d = normalizeCardNumber(e.target.value).slice(0, 16); setCard(d); setCardError(d.length === 16 ? cardNumberError(d) : null); }} placeholder="6037 9917 0000 0000" /></Field>
         {card && detectBank(card) && <p className="text-xs font-bold mb-3" style={{ color: detectBank(card)!.color }}>● {detectBank(card)!.name}</p>}
         <Field label="نام صاحب کارت (اگر متفاوت است)"><input className="input" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder={me.fullName} /></Field>
-        <button type="submit" disabled={saving} className="btn-primary w-full">{saving ? 'در حال ذخیره…' : 'ذخیره'}</button>
+        <button type="submit" disabled={saving} className="btn-primary w-full"><Busy busy={saving} label="در حال ذخیره…">ذخیره</Busy></button>
         </form>
       </Sheet>
       <Sheet open={nameOpen} onClose={() => setNameOpen(false)} title="ویرایش نام">
         <input className="input mb-4" value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="btn-primary w-full" onClick={async () => { if (name.trim().length < 2) return; await adapter.updateMe({ fullName: name.trim() }); await refresh(); setNameOpen(false); toast('ذخیره شد', 'ok'); }}>ذخیره</button>
+        <button className="btn-primary w-full" disabled={saving} onClick={async () => { if (name.trim().length < 2) return; setSaving(true); try { await adapter.updateMe({ fullName: name.trim() }); await refresh(); setNameOpen(false); toast('ذخیره شد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } finally { setSaving(false); } }}><Busy busy={saving} label="در حال ذخیره…">ذخیره</Busy></button>
       </Sheet>
       <Sheet open={pwOpen} onClose={() => setPwOpen(false)} title="تغییر رمز عبور">
         <Field label="رمز فعلی"><input className="input" type="password" dir="ltr" value={pw.old} onChange={(e) => setPw({ ...pw, old: e.target.value })} /></Field>
         <Field label="رمز جدید"><input className="input" type="password" dir="ltr" value={pw.new} onChange={(e) => setPw({ ...pw, new: e.target.value })} /></Field>
-        <button className="btn-primary w-full" onClick={async () => { try { if (pw.new.length < 4) throw new Error('رمز جدید حداقل ۴ کاراکتر'); await adapter.changePassword(pw.old, pw.new); setPwOpen(false); setPw({ old: '', new: '' }); toast('رمز تغییر کرد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } }}>تغییر رمز</button>
+        <button className="btn-primary w-full" disabled={saving} onClick={async () => { setSaving(true); try { if (pw.new.length < 4) throw new Error('رمز جدید حداقل ۴ کاراکتر'); await adapter.changePassword(pw.old, pw.new); setPwOpen(false); setPw({ old: '', new: '' }); toast('رمز تغییر کرد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } finally { setSaving(false); } }}><Busy busy={saving} label="در حال تغییر رمز…">تغییر رمز</Busy></button>
       </Sheet>
       <HelpSheet open={helpOpen} onClose={() => setHelpOpen(false)} />
       <Sheet open={apiOpen} onClose={() => setApiOpen(false)} title="اتصال به سرور">

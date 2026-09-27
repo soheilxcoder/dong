@@ -186,6 +186,11 @@ export function Spinner({ size = 20, className = '' }: { size?: number; classNam
   return <span className={`spinner ${className}`} style={{ width: size, height: size }} role="status" aria-label="در حال انجام" />;
 }
 
+/** Button content while an action runs: spinner + label (keeps the button's size, so nothing jumps). */
+export function Busy({ busy, label, children }: { busy: boolean; label?: string; children: ReactNode }) {
+  return busy ? <><Spinner size={20} /> {label ?? 'چند لحظه…'}</> : <>{children}</>;
+}
+
 /* ---------- Field with shake on error ---------- */
 export function Field({ label, error, children }: { label?: string; error?: string | null; children: ReactNode }) {
   // shake without remounting the child (a remount would blur the input, close the keyboard and make the page jump)
