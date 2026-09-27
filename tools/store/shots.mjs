@@ -1,5 +1,5 @@
 // Store screenshots generator (Bazaar / Myket / Google Play).
-// 1) build web:  VITE_BASE=/ VITE_PUBLIC_URL=https://soheilxcoder.github.io/dong/ npm run build -w @dong/web
+// 1) build web:  VITE_BASE=/ VITE_PUBLIC_URL=https://products.arounidea.com/dong/ npm run build -w @dong/web
 // 2) run:        npm run shots
 // Output: store-assets/screenshots/0N-*.png (1080x1920) + raw/ (device captures)
 import { createRequire } from 'module'; import path from 'path'; import fs from 'fs'; 

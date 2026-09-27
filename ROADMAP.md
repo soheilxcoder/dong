@@ -1,6 +1,6 @@
 # 🗺️ نقشه راه کامل ساخت اپلیکیشن «دُنگ» (Dong)
 
-> این سند، برنامه اجرایی دقیق برای تبدیل دو سند «فنی» و «طراحی بصری» به یک محصول واقعی، قابل ارائه، قابل انتشار در **Google Play** و قابل مشاهده در **GitHub Pages** است.
+> این سند، برنامه اجرایی دقیق برای تبدیل دو سند «فنی» و «طراحی بصری» به یک محصول واقعی، قابل ارائه، قابل انتشار در **Google Play** و قابل مشاهده در **هاست خودتان (Plesk)** است.
 > نام صحیح برند: **دُنگ / Dong** (در اسناد قبلی به اشتباه «دُنگ/Dong» نوشته شده بود — همه‌جا اصلاح می‌شود).
 
 ---
@@ -9,10 +9,10 @@
 
 | چالش | تصمیم | دلیل |
 |---|---|---|
-| GitHub Pages فقط استاتیک است (سرور و دیتابیس ندارد) | اپ به‌صورت **Offline-First PWA** ساخته می‌شود: تمام منطق، موتور محاسبات و داده‌ها ابتدا روی دستگاه (IndexedDB) کار می‌کنند. | همین نسخه کاملاً کارا در Pages نمایش داده می‌شود و در Play Store بدون سرور هم قابل استفاده است (بدون هزینه هاست). |
+| هاست خودتان (Plesk) فقط استاتیک است (سرور و دیتابیس ندارد) | اپ به‌صورت **Offline-First PWA** ساخته می‌شود: تمام منطق، موتور محاسبات و داده‌ها ابتدا روی دستگاه (IndexedDB) کار می‌کنند. | همین نسخه کاملاً کارا در Pages نمایش داده می‌شود و در Play Store بدون سرور هم قابل استفاده است (بدون هزینه هاست). |
 | نیاز به گروه چندنفره واقعی (دعوت با لینک/QR، تأیید پرداخت توسط طلبکار) | یک **Backend مستقل** (Node.js + Express + Prisma + PostgreSQL) در همان ریپو (`apps/api`) طبق سند فنی ساخته می‌شود. فرانت با یک «Adapter» کار می‌کند: `LocalAdapter` (بدون سرور) و `ApiAdapter` (با سرور). | هر زمان سرور را روی Railway/Render/Liara/… بالا بیاورید، فقط یک آدرس در تنظیمات اپ وارد می‌شود و حالت گروهی آنلاین فعال می‌شود. تا آن زمان اپ در حالت «محلی» کامل کار می‌کند. |
 | انتشار در Play Store | **Capacitor (Android)** روی همان PWA | خروجی AAB امضاشده، دسترسی به Haptics، دوربین، Share Sheet و Splash بومی. یک کدبیس برای وب و اندروید. |
-| Path در GitHub Pages (`/dong/`) | `base: '/dong/'` در Vite + HashRouter یا fallback 404.html | لینک‌های دعوت و رفرش صفحات در Pages نمی‌شکند. |
+| Path در هاست خودتان (Plesk) (`/dong/`) | `base: '/dong/'` در Vite + HashRouter یا fallback 404.html | لینک‌های دعوت و رفرش صفحات در Pages نمی‌شکند. |
 | اعداد مالی | همه مبالغ `integer` (تومان بدون اعشار) — هرگز float | مطابق الزام سند فنی؛ باقیمانده تقسیم به نفر اول لیست. |
 
 ---
@@ -39,7 +39,7 @@ dong/
 ├── design/                 # منابع برند: لوگو (SVG/PNG)، آیکون‌های Play (512, adaptive)، فیچر گرافیک 1024×500، اسکرین‌شات‌ها
 ├── .github/workflows/
 │   ├── ci.yml              # lint + typecheck + test روی هر push
-│   ├── pages.yml           # build و deploy خودکار apps/web به GitHub Pages
+│   ├── pages.yml           # build و deploy خودکار apps/web به هاست خودتان (Plesk)
 │   └── android.yml         # build دیباگ APK روی هر تگ (اختیاری)
 ├── docs/                   # اسناد فعلی (منتقل‌شده) + راهنمای انتشار Play Store
 └── README.md               # فارسی + انگلیسی، با اسکرین‌شات و لینک دموی Pages
@@ -105,10 +105,10 @@ dong/
 - [ ] تست‌های API (Supertest) برای جریان‌های اصلی
 - [ ] `ApiAdapter` در فرانت + صفحه تنظیمات «اتصال به سرور»
 
-### فاز ۵ — GitHub Pages
+### فاز ۵ — هاست خودتان (Plesk)
 - [ ] `vite.config` با `base: '/dong/'` و `404.html` برای SPA fallback
 - [ ] Workflow `pages.yml`: روی push به `main` → build → deploy با `actions/deploy-pages`
-- [ ] آدرس نهایی: `https://soheilxcoder.github.io/dong/`
+- [ ] آدرس نهایی: `https://products.arounidea.com/dong/`
 - [ ] بررسی: نصب PWA از Pages، آفلاین، لینک دعوت با hash، Lighthouse ≥ 90 در PWA/Performance/Accessibility
 - [ ] **کار شما بعد از تحویل:** فقط Settings → Pages → Source: «GitHub Actions» را فعال کنید.
 

@@ -23,13 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep link: https://soheilxcoder.github.io/dong/#/join/TOKEN -->
+            <!-- Deep link: https://products.arounidea.com/dong/#/join/TOKEN -->
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="products.arounidea.com" android:pathPrefix="/dong" />
-                <data android:scheme="https" android:host="soheilxcoder.github.io" android:pathPrefix="/dong" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

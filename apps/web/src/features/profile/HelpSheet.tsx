@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronDown, Users, Receipt, HandCoins, Link2, Bell, CreditCard, Activity, ShieldCheck, Smartphone } from 'lucide-react';
+import { ChevronDown, Users, Receipt, HandCoins, Link2, Bell, CreditCard, Activity, ShieldCheck, Smartphone, BookOpen, ExternalLink } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sheet } from '@/design-system/ui';
+import { GUIDE_URL } from '@/lib/install';
 
 const sections: { icon: typeof Users; title: string; steps: string[] }[] = [
   { icon: Users, title: 'ساخت گروه', steps: [
@@ -62,6 +63,11 @@ export function HelpSheet({ open, onClose }: { open: boolean; onClose: () => voi
   return (
     <Sheet open={open} onClose={onClose} title="راهنمای استفاده از دُنگ">
       <div className="flex flex-col gap-2 pb-2">
+        <a href={GUIDE_URL} target="_blank" rel="noopener" className="flex items-center gap-3 p-3.5 rounded-2xl text-white" style={{ background: 'var(--grad-brand)' }}>
+          <span className="h-9 w-9 rounded-xl grid place-items-center bg-white/20 shrink-0"><BookOpen size={18} /></span>
+          <span className="flex-1 text-right"><span className="block font-extrabold text-sm">راهنمای کامل تصویری</span><span className="block text-xs opacity-90">همهٔ صفحه‌ها با عکس و توضیح، در سایت دُنگ</span></span>
+          <ExternalLink size={16} className="opacity-80" />
+        </a>
         {sections.map(({ icon: I, title, steps }, k) => (
           <div key={title} className="rounded-2xl bg-surface-2 relative" style={{ zIndex: openIdx === k ? 1 : 0 }}>
             <button type="button" onClick={(e) => { const next = openIdx === k ? null : k; setOpenIdx(next); if (next !== null) setTimeout(() => (e.currentTarget as HTMLElement | null)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' }), 60); }} className="w-full flex items-center gap-3 p-3.5 text-right relative z-10">

@@ -62,7 +62,7 @@
 1. https://pishkhan.cafebazaar.ir → ثبت‌نام توسعه‌دهنده (کد ملی + شماره موبایل) → تأیید.
 2. **برنامه‌ی جدید** → نام: `دُنگ — تقسیم هزینه گروهی` → دسته: **مالی / ابزارها** → «برنامه رایگان است».
 3. تب **بسته (APK)** → فایل `Dong-<نسخه>.apk` از Releases گیت‌هاب را آپلود کن (بازار APK می‌خواهد، نه AAB).
-4. تب **اطلاعات**: توضیح کوتاه/کامل از مرحله ۵ همین سند، آیکون `design/icon/playstore-icon-512.png`، اسکرین‌شات‌ها `design/store/*.png`، «تبلیغات دارد: بله»، آدرس سیاست حریم خصوصی: `https://soheilxcoder.github.io/dong/privacy.html`.
+4. تب **اطلاعات**: توضیح کوتاه/کامل از مرحله ۵ همین سند، آیکون `design/icon/playstore-icon-512.png`، اسکرین‌شات‌ها `design/store/*.png`، «تبلیغات دارد: بله»، آدرس سیاست حریم خصوصی: `https://products.arounidea.com/dong/privacy.html`.
 5. تب **دسترسی‌ها**: برای POST_NOTIFICATIONS بنویس «یادآوری بدهی‌ها».
 6. **ارسال برای بررسی**. بازبینی بازار معمولاً ۱ تا ۳ روز کاری است.
 7. **مایکت** (https://developer.myket.ir) هم دقیقاً همین APK را می‌پذیرد — می‌توانی همزمان آنجا هم بگذاری.
@@ -86,7 +86,7 @@
 سپس در **Dashboard** فهرست «Set up your app» را به ترتیب پر کن:
 
 ### 4.1 Privacy policy
-`https://soheilxcoder.github.io/dong/privacy.html`
+`https://products.arounidea.com/dong/privacy.html`
 
 ### 4.2 App access
 *All functionality is available without special access* (ثبت‌نام داخل اپ محلی است و نیاز به حساب خاصی ندارد).
@@ -141,7 +141,7 @@ No.
 | Category | **Finance** |
 | Tags | Expense tracker, Bill splitting |
 | Contact email | ایمیل خودت |
-| Website | `https://soheilxcoder.github.io/dong/` |
+| Website | `https://products.arounidea.com/dong/` |
 
 ### Full description
 ```

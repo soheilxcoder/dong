@@ -1,6 +1,9 @@
 // PWA install helpers: Android/desktop (beforeinstallprompt) + iOS (manual add-to-home-screen)
 export { isNative } from './native';
 /** The APK lives on the owner's own host (branch apk-release → Plesk → /dong/apk). latest.json is written by the Android workflow. */
+export const SITE_URL = ((import.meta.env.VITE_PUBLIC_URL as string | undefined) || 'https://products.arounidea.com/dong/').replace(/\/?$/, '/');
+/** Illustrated user guide (apps/web/public/guide, built by tools/docs/build-guide.mjs). */
+export const GUIDE_URL = SITE_URL + 'guide/';
 export const APK_BASE = ((import.meta.env.VITE_PUBLIC_URL as string | undefined) || 'https://products.arounidea.com/dong/').replace(/\/?$/, '/') + 'apk/';
 export const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? '1.0.0';
 let cached: { version: string; url: string } | null | undefined;

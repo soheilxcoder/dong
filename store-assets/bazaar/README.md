@@ -2,7 +2,7 @@
 
 همه‌چیز به ترتیب ۷ مرحلهٔ پیشخان بازار (pishkhan.cafebazaar.ir) آماده شده. فقط کپی/آپلود کن.
 
-> **ترتیب درست کارها:** ۱) این بسته را در بازار ثبت کن (نیاز به هاست ندارد — اپ آفلاین کار می‌کند و نسخهٔ وب روی GitHub Pages است) → ۲) بعد از تأیید بازار، اپ را در پنل تپسل ثبت کن و کلیدها را در GitHub بگذار → ۳) بعداً هر وقت خواستی، سرور اختصاصی (هاست) را با `scripts/install.sh` بالا بیاور. هاست پیش‌نیاز بازار یا تپسل نیست.
+> **ترتیب درست کارها:** ۱) این بسته را در بازار ثبت کن (نیاز به هاست ندارد — اپ آفلاین کار می‌کند و نسخهٔ وب روی هاست خودتان (Plesk) است) → ۲) بعد از تأیید بازار، اپ را در پنل تپسل ثبت کن و کلیدها را در GitHub بگذار → ۳) بعداً هر وقت خواستی، سرور اختصاصی (هاست) را با `scripts/install.sh` بالا بیاور. هاست پیش‌نیاز بازار یا تپسل نیست.
 
 ---
 
@@ -63,7 +63,7 @@
 
 دُنگ را برای سفر بعدی نصب کن تا دیگر هیچ‌کس نگوید «من که سهمم رو دادم!» 😄
 
-سیاست حفظ حریم خصوصی: https://soheilxcoder.github.io/dong/privacy.html
+سیاست حفظ حریم خصوصی: https://products.arounidea.com/dong/privacy.html
 ```
 
 **توضیح کامل انگلیسی (اختیاری):**
@@ -79,7 +79,7 @@ Dong makes group expenses painless. Whoever pays, logs it in two taps; everyone'
 • Full activity history for total transparency
 • Persian-first UI, Jalali calendar, full dark mode, works offline
 
-Privacy policy: https://soheilxcoder.github.io/dong/privacy.html
+Privacy policy: https://products.arounidea.com/dong/privacy.html
 ```
 
 **تغییرات این نسخه (What's new):**
@@ -96,9 +96,9 @@ Privacy policy: https://soheilxcoder.github.io/dong/privacy.html
 | فیلد | مقدار |
 |---|---|
 | ایمیل (اجباری) | ایمیل خودت — همان ایمیل ثبت‌نام بازار کافی است |
-| وب‌سایت | `https://soheilxcoder.github.io/dong/` |
+| وب‌سایت | `https://products.arounidea.com/dong/` |
 | تلفن | اختیاری — خالی بگذار |
-| آدرس سیاست حریم خصوصی | `https://soheilxcoder.github.io/dong/privacy.html` |
+| آدرس سیاست حریم خصوصی | `https://products.arounidea.com/dong/privacy.html` |
 
 ## مرحله ۶ — آپلود تصاویر و آیکون
 | فایل در این پوشه | کاربرد | مشخصات |
@@ -130,6 +130,6 @@ Privacy policy: https://soheilxcoder.github.io/dong/privacy.html
 
 ## بازتولید اسکرین‌شات‌ها (برای من)
 ```
-VITE_BASE=/ VITE_PUBLIC_URL=https://soheilxcoder.github.io/dong/ npm run build -w @dong/web
+VITE_BASE=/ VITE_PUBLIC_URL=https://products.arounidea.com/dong/ npm run build -w @dong/web
 npm run shots        # → store-assets/screenshots/*.png (Play) ; JPG برای بازار در این پوشه
 ```
