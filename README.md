@@ -1,7 +1,7 @@
 <div align="center">
   <img src="store-assets/icon-512.png" width="120" alt="دُنگ" />
   <h1>دُنگ — Dong</h1>
-  <p><b>حساب‌کتاب دنگی، بدون دعوا.</b><br/>اپلیکیشن تقسیم هزینهٔ گروهی برای سفر، خانهٔ مشترک و دورهمی‌ها.</p>
+  <p><b>حساب‌کتاب مشترک، ساده و شفاف.</b><br/>اپلیکیشن تقسیم هزینهٔ گروهی برای سفر، خانهٔ مشترک و دورهمی‌ها.</p>
   <p>
     🌐 <a href="https://products.arounidea.com/dong/">نسخهٔ وب</a> ·
     📲 <a href="https://products.arounidea.com/dong/apk/">دانلود اپ اندروید</a> ·

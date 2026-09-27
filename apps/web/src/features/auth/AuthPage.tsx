@@ -53,7 +53,7 @@ export function AuthPage() {
         <div className="hero-blob hero-blob-a" /><div className="hero-blob hero-blob-b" />
         <div className="relative flex items-center gap-3">
           <Mascot mood={err ? 'confused' : 'idle'} size={64} />
-          <div><h1 className="text-3xl font-black text-white leading-none">دُنگ</h1><p className="text-white/70 text-xs mt-1.5">حساب‌کتاب دنگی، بدون دعوا</p></div>
+          <div><h1 className="text-3xl font-black text-white leading-none">دُنگ</h1><p className="text-white/70 text-xs mt-1.5">حساب‌کتاب مشترک، ساده و شفاف</p></div>
         </div>
       </div>
       <div className="px-5 -mt-6">
