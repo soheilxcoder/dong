@@ -82,9 +82,9 @@ export function GroupPage() {
   };
 
   return (
-    <div className="min-h-dvh pb-32">
-      {/* Parallax header */}
-      <motion.div layoutId={`g-${g.group.id}`} className="relative h-52 overflow-hidden curve-bottom">
+    <motion.div className="min-h-dvh pb-32" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
+      {/* Header — moves together with the rest of the page (no shared-layout morph) */}
+      <div className="relative h-52 overflow-hidden curve-bottom">
         <div className="absolute inset-0" style={{ background: g.group.coverImageUrl ? `url(${g.group.coverImageUrl}) center/cover` : 'var(--grad-hero)' }} />
         {g.group.coverImageUrl && <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(4,20,24,0.78) 0%, rgba(4,20,24,0.35) 45%, rgba(4,20,24,0.18) 100%)' }} />}
         {!g.group.coverImageUrl && <><div className="hero-blob hero-blob-a" /><div className="hero-blob hero-blob-b" /></>}
@@ -116,7 +116,7 @@ export function GroupPage() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Tabs */}
       <div className="sticky top-0 z-20 px-4 pt-2 pb-1" style={{ background: 'rgb(var(--c-bg) / 0.85)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', paddingTop: 'calc(var(--safe-top) + 8px)' }}>
@@ -247,6 +247,6 @@ export function GroupPage() {
           </div>
         )}
       </Sheet>
-    </div>
+    </motion.div>
   );
 }

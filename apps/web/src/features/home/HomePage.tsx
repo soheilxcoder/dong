@@ -149,7 +149,7 @@ export function HomePage() {
       ) : (
         <div className="px-5 mt-3 flex flex-col gap-2.5">
           {summaries.map(({ g, mine, pendingForMe, last, spent, settledPct }, i) => (
-            <motion.button key={g.group.id} layoutId={`g-${g.group.id}`} onClick={() => nav(`/g/${g.group.id}`)}
+            <motion.button key={g.group.id} onClick={() => nav(`/g/${g.group.id}`)}
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
               className="card text-right p-3 flex items-center gap-3 relative overflow-hidden">
               <span className="absolute inset-y-0 right-0 w-1" style={{ background: mine > 0 ? 'rgb(var(--c-pos))' : mine < 0 ? 'rgb(var(--c-neg))' : 'var(--grad-brand)' }} />
