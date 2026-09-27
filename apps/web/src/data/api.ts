@@ -15,7 +15,7 @@ export class ApiAdapter implements DataAdapter {
   constructor(private base: string) {
     // accept "/api", "api", "https://host/api" — always resolve against the page origin
     this.base = new URL(base, location.href).toString().replace(/\/$/, '');
-    const rtUrl = Realtime.resolve(import.meta.env.VITE_RT_URL as string | undefined);
+    const rtUrl = Realtime.resolve((import.meta.env.VITE_RT_URL as string | undefined) || (import.meta.env.DEV ? undefined : 'wss://dong-rt.arounidea.com'));
     if (rtUrl) this.rt = new Realtime(rtUrl, (g) => { if (this.known.has(g)) this.listeners.forEach((l) => l()); }, (st) => { this.rtOpen = st === 'open'; this.statusCb?.(this.status); });
   }
   /** realtime hub (rt): instant "group changed" signals; null when the build has no VITE_RT_URL */
