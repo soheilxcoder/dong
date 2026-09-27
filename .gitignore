@@ -23,4 +23,4 @@ apps/api/data/
 apps/web/android/app/google-services.json
 .cache/
 store-assets/screenshots/raw/
-docs/
+/docs/
