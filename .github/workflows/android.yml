@@ -109,14 +109,16 @@ jobs:
           cat > .htaccess <<'EOF'
           Options -Indexes
           AddType application/vnd.android.package-archive .apk
-          <FilesMatch "\.apk$">
-            Header set Content-Disposition "attachment"
-            Header set Cache-Control "public, max-age=3600"
-          </FilesMatch>
-          <FilesMatch "^latest\.json$">
-            Header set Cache-Control "no-cache, must-revalidate"
-            Header set Access-Control-Allow-Origin "*"
-          </FilesMatch>
+          <IfModule mod_headers.c>
+            <FilesMatch "\.apk$">
+              Header set Content-Disposition "attachment"
+              Header set Cache-Control "public, max-age=3600"
+            </FilesMatch>
+            <FilesMatch "^latest\.json$">
+              Header set Cache-Control "no-cache, must-revalidate"
+              Header set Access-Control-Allow-Origin "*"
+            </FilesMatch>
+          </IfModule>
           EOF
           cat > index.html <<EOF
           <!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>دانلود دُنگ ${VERSION_NAME}</title>
