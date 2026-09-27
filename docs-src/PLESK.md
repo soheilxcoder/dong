@@ -40,3 +40,19 @@ Plesk → همان دامنه → **Apache & nginx Settings** → تیک **«Ser
 - خطای 500 با پیام «SQLite در دسترس نیست» → افزونهٔ pdo_sqlite خاموش است (مرحلهٔ ۲).
 - 404 برای `/dong/api/users/me` → `.htaccess` اعمال نمی‌شود (مرحلهٔ ۳) یا نسخهٔ PHP قدیمی است.
 - اپ می‌گوید «ابتدا وارد شوید» بعد از ورود → هدر Authorization به PHP نمی‌رسد؛ در PHP Settings حالت را روی «FPM application served by Apache» بگذار.
+
+## دانلود اپ اندروید از خودِ سایت (بدون GitHub برای کاربر)
+
+هر بیلد اندروید، فایل `Dong-<نسخه>.apk` + `latest.json` + یک صفحهٔ دانلود ساده را روی برنچ `apk-release` می‌گذارد (فقط آخرین نسخه؛ تاریخچه نگه داشته نمی‌شود تا مخزن سنگین نشود).
+اپ و وب همیشه از `https://products.arounidea.com/dong/apk/latest.json` می‌فهمند آخرین نسخه چیست و از همان‌جا دانلود می‌کنند.
+
+### یک‌بار در Plesk: مخزن Git دوم
+1. Websites & Domains → products.arounidea.com → **Git** → **Add Repository**
+2. Remote Git hosting → Repository URL: `https://github.com/soheilxcoder/dong.git`
+3. Repository name: `dong-apk`
+4. Deployment mode: **Automatic**
+5. Server path: `/products.arounidea.com/dong/apk`  (پوشهٔ apk را اگر نبود بساز یا با «Browse» انتخاب کن)
+6. Branch: **`apk-release`**  → OK
+7. تست: `https://products.arounidea.com/dong/apk/` باید صفحهٔ «دانلود اپ اندروید» را نشان دهد و `https://products.arounidea.com/dong/apk/latest.json` نسخه را.
+
+نکته: اگر Plesk گفت این ریموت قبلاً اضافه شده، همان مخزن اول را باز کن → **Repository settings** نمی‌گذارد دو برنچ داشته باشی؛ پس حتماً به‌صورت مخزن جدید با نام `dong-apk` اضافه کن (Plesk اجازهٔ چند مخزن با یک URL ولی مسیر متفاوت را می‌دهد).

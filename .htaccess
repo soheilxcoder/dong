@@ -7,8 +7,9 @@ RewriteBase /dong/
 # Block source folders and dotfiles
 RewriteRule ^(\.git|\.github|apps|packages|scripts|tools|docs-src|store-assets|release-keys|node_modules|package(-lock)?\.json|tsconfig.*|\.htaccess)(/|$) - [R=404,L]
 
-# /dong/api/* is the PHP API (api/index.php) — leave it alone
+# /dong/api/* is the PHP API (api/index.php) and /dong/apk/* the Android build (branch apk-release) — leave them alone
 RewriteCond %{REQUEST_URI} !^/dong/api(/|$)
+RewriteCond %{REQUEST_URI} !^/dong/apk(/|$)
 # Everything else under /dong/* is served from /dong/deploy/dong/*
 RewriteCond %{REQUEST_URI} !^/dong/deploy/dong/
 RewriteRule ^(.*)$ deploy/dong/$1 [L]
@@ -18,6 +19,7 @@ RewriteRule ^(.*)$ deploy/dong/$1 [L]
   AddType application/manifest+json .webmanifest
   AddType font/woff2 .woff2
   AddType image/webp .webp
+  AddType application/vnd.android.package-archive .apk
 </IfModule>
 <IfModule mod_headers.c>
   <FilesMatch "\.(css|js|woff2|png|webp|svg)$">
