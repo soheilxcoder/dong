@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Check, X, CalendarDays } from 'lucide-react';
-import { format, parseISO } from 'date-fns-jalali';
-import { faIR } from 'date-fns-jalali/locale';
+import { Camera, Check, X, CalendarDays, ChevronDown } from 'lucide-react';
+import { DatePickerSheet, PersonPickerSheet, fmtJalali } from '@/design-system/pickers';
 import type { SplitType } from '@dong/core';
-import { formatAmount, parseAmount, splitEqual, validateCustomSplit, toPersianDigits } from '@dong/core';
+import { formatAmount, parseAmount, splitEqual, validateCustomSplit } from '@dong/core';
 import { useStore } from '@/app/store';
 import { Avatar, Field, PageHeader, Segmented, Busy } from '@/design-system/ui';
 import { compressImage, haptic } from '@/lib/native';
@@ -21,6 +20,8 @@ export function ExpenseFormPage() {
   const [title, setTitle] = useState('');
   const [amountStr, setAmountStr] = useState('');
   const [paidBy, setPaidBy] = useState(user!.id);
+  const [dateOpen, setDateOpen] = useState(false); const [payerOpen, setPayerOpen] = useState(false);
+  const payer = g?.members.find((m) => m.userId === paidBy);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [selected, setSelected] = useState<string[]>([]);
   const [split, setSplit] = useState<SplitType>('equal');
@@ -75,15 +76,14 @@ export function ExpenseFormPage() {
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="تاریخ">
-            <label className="input flex items-center gap-2 cursor-pointer relative">
-              <CalendarDays size={18} className="text-ink-2" /><span className="text-sm font-bold">{toPersianDigits(format(parseISO(date), 'd MMMM yyyy', { locale: faIR }))}</span>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="absolute inset-0 opacity-0 w-full" />
-            </label>
+            <button type="button" onClick={() => setDateOpen(true)} className="input flex items-center gap-2 text-right w-full">
+              <CalendarDays size={18} className="text-brand shrink-0" /><span className="text-sm font-bold truncate">{fmtJalali(date)}</span>
+            </button>
           </Field>
           <Field label="کی حساب کرد؟">
-            <select className="input" value={paidBy} onChange={(e) => setPaidBy(e.target.value)}>
-              {g.members.map((m) => <option key={m.userId} value={m.userId}>{m.user.fullName}{m.userId === user!.id ? ' (من)' : ''}</option>)}
-            </select>
+            <button type="button" onClick={() => setPayerOpen(true)} className="input flex items-center gap-2 text-right w-full">
+              <Avatar name={payer?.user.fullName ?? ''} src={payer?.user.avatarUrl} size={24} /><span className="text-sm font-bold truncate flex-1">{payer?.user.fullName}{paidBy === user!.id && <span className="text-[11px] text-ink-2 font-semibold mr-1">(من)</span>}</span><ChevronDown size={16} className="text-ink-2 shrink-0" />
+            </button>
           </Field>
         </div>
 
@@ -152,6 +152,8 @@ export function ExpenseFormPage() {
         {err && <motion.p key={err} initial={{ x: -6 }} animate={{ x: 0 }} className="animate-shake text-neg text-xs font-bold mb-2 text-center">{err}</motion.p>}
         <button onClick={submit} disabled={busy} className="btn-primary w-full text-base"><Busy busy={busy} label={editing ? 'در حال ذخیره…' : 'در حال ثبت هزینه…'}>{editing ? 'ذخیره تغییرات' : 'ثبت هزینه'}{total > 0 && <span className="num opacity-80">· {formatAmount(total)}</span>}</Busy></button>
       </div>
+      <DatePickerSheet open={dateOpen} onClose={() => setDateOpen(false)} value={date} onChange={setDate} />
+      <PersonPickerSheet open={payerOpen} onClose={() => setPayerOpen(false)} title="کی حساب کرد؟" value={paidBy} onChange={setPaidBy} meId={user!.id} people={g.members.map((m) => ({ id: m.userId, name: m.user.fullName, avatarUrl: m.user.avatarUrl }))} />
     </div>
   );
 }
