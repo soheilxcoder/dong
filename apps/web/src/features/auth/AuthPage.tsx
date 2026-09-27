@@ -80,6 +80,7 @@ export function AuthPage() {
                 <Field label="سؤال امنیتی (برای بازیابی رمز — اختیاری)"><input className="input" value={f.q} onChange={set('q')} placeholder="مثلاً: اسم اولین معلمم؟" /></Field>
                 {f.q && <Field label="پاسخ"><input className="input" value={f.a} onChange={set('a')} /></Field>}
                 <Field label="شماره کارت بانکی (اختیاری)"><input className="input mono" inputMode="numeric" maxLength={19} value={formatCardNumber(f.card)} onChange={(e) => setF({ ...f, card: normalizeCardNumber(e.target.value).slice(0, 16) })} placeholder="6037 9917 •••• ••••" /></Field>
+                <p className="text-[11px] text-ink-2 leading-5 -mt-2 mb-1 flex gap-1.5"><span>🔒</span><span>امن است: فقط به هم‌گروهی‌ها نشان داده می‌شود تا به تو واریز کنند؛ دُنگ هیچ پرداختی انجام نمی‌دهد.</span></p>
               </>
             )}
             {mode === 'reset' && (

@@ -110,7 +110,7 @@ export function ProfilePage() {
       </div>
 
       <Sheet open={cardOpen} onClose={() => setCardOpen(false)} title="شماره کارت بانکی">
-        <p className="text-xs text-ink-2 leading-6 mb-4">فقط برای نمایش به اعضای گروه جهت واریز دستی. هیچ تراکنشی داخل اپ انجام نمی‌شود.</p>
+        <p className="text-xs leading-6 mb-4 rounded-2xl px-3 py-2.5 flex gap-2 items-start" style={{ background: 'rgb(var(--c-pos) / 0.10)' }}><span className="shrink-0 mt-0.5">🔒</span><span><span className="font-extrabold text-ink">کاملاً امن:</span> <span className="text-ink-2">شماره کارت فقط برای هم‌گروهی‌هایت نمایش داده می‌شود تا راحت‌تر به تو واریز کنند. دُنگ هیچ پرداختی انجام نمی‌دهد و رمز یا CVV2 نمی‌خواهد — شماره کارت به‌تنهایی فقط برای واریز به توست.</span></span></p>
         <form onSubmit={saveCard}>
         <Field label="شماره کارت (۱۶ رقم)" error={cardError}><input className={`input mono text-lg ${cardError ? '!border-neg !ring-2 !ring-neg/30' : ''}`} inputMode="numeric" autoComplete="cc-number" dir="ltr" value={formatCardNumber(card)} maxLength={19} onChange={(e) => { const d = normalizeCardNumber(e.target.value).slice(0, 16); setCard(d); setCardError(d.length === 16 ? cardNumberError(d) : null); }} placeholder="6037 9917 0000 0000" /></Field>
         {card && detectBank(card) && <p className="text-xs font-bold mb-3" style={{ color: detectBank(card)!.color }}>● {detectBank(card)!.name}</p>}

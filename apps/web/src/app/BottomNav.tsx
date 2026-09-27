@@ -13,7 +13,8 @@ export function BottomNav() {
   if (pathname.startsWith('/g/')) return null;
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 flex justify-center pointer-events-none" style={{ paddingBottom: 'calc(var(--safe-bottom) + 14px)' }}>
-      <div className="glass pointer-events-auto flex items-center gap-1 rounded-full px-2.5 py-2 shadow-2xl" style={{ background: 'rgb(var(--c-surface) / 0.7)' }}>
+      <div className="pointer-events-auto rounded-full p-[1.5px]" style={{ background: 'linear-gradient(135deg, rgba(15,184,138,0.95), rgba(255,255,255,0.35) 45%, rgba(8,145,178,0.95))', boxShadow: '0 18px 40px -16px rgba(8,60,70,0.45), 0 0 0 1px rgb(var(--c-brand) / 0.10)' }}>
+      <div className="glass flex items-center gap-1 rounded-full px-2.5 py-2" style={{ background: 'rgb(var(--c-surface) / 0.82)', border: 'none' }}>
         {items.map(({ to, label, Icon }) => (
           <NavLink key={to} to={to} end className="relative flex items-center gap-2 px-5 py-3 rounded-full text-[15px] font-bold">
             {({ isActive }) => (
@@ -25,6 +26,7 @@ export function BottomNav() {
             )}
           </NavLink>
         ))}
+      </div>
       </div>
     </nav>
   );
