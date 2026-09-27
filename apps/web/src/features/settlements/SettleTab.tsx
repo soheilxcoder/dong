@@ -81,7 +81,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
                 <motion.div key={`${t.from}-${t.to}`} data-tour={i === 0 ? 'transfer' : undefined} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                   className={`card p-4 ${iOwe ? 'ring-1 ring-neg/40' : iGet ? 'ring-1 ring-pos/40' : ''}`}>
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex flex-col items-center gap-1 w-16"><Avatar name={name(t.from)} size={44} /><span className="text-xs font-bold truncate w-full text-center">{name(t.from)}</span></div>
+                    <div className="flex flex-col items-center gap-1 w-[84px]"><Avatar name={name(t.from)} size={44} /><span className="text-xs font-bold w-full text-center leading-tight name-2l">{name(t.from)}</span></div>
                     <div className="flex-1 flex flex-col items-center">
                       <p className="num text-xl font-black">{formatAmount(t.amount)}</p>
                       <div className="flex items-center gap-0.5 text-brand mt-0.5">
@@ -89,7 +89,7 @@ export function SettleTab({ g, balances, transfers }: { g: GroupDetail; balances
                       </div>
                       <p className="text-[11px] text-ink-2">تومان</p>
                     </div>
-                    <div className="flex flex-col items-center gap-1 w-16"><Avatar name={name(t.to)} size={44} /><span className="text-xs font-bold truncate w-full text-center">{name(t.to)}</span></div>
+                    <div className="flex flex-col items-center gap-1 w-[84px]"><Avatar name={name(t.to)} size={44} /><span className="text-xs font-bold w-full text-center leading-tight name-2l">{name(t.to)}</span></div>
                   </div>
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {cred?.cardNumber ? (

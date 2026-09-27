@@ -74,15 +74,15 @@ export function ExpenseFormPage() {
         <Field label="مبلغ کل (تومان)">
           <input className="input num text-3xl font-black text-center tracking-wide" inputMode="numeric" value={total ? formatAmount(total) : ''} onChange={(e) => setAmountStr(e.target.value)} placeholder="۰" />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-3">
           <Field label="تاریخ">
             <button type="button" onClick={() => setDateOpen(true)} className="input flex items-center gap-2 text-right w-full">
               <CalendarDays size={18} className="text-brand shrink-0" /><span className="text-sm font-bold truncate">{fmtJalali(date)}</span>
             </button>
           </Field>
           <Field label="کی حساب کرد؟">
-            <button type="button" onClick={() => setPayerOpen(true)} className="input flex items-center gap-2 text-right w-full">
-              <Avatar name={payer?.user.fullName ?? ''} src={payer?.user.avatarUrl} size={24} /><span className="text-sm font-bold truncate flex-1">{payer?.user.fullName}{paidBy === user!.id && <span className="text-[11px] text-ink-2 font-semibold mr-1">(من)</span>}</span><ChevronDown size={16} className="text-ink-2 shrink-0" />
+            <button type="button" onClick={() => setPayerOpen(true)} className="input flex items-center gap-2 text-right w-full !py-2 min-h-[52px]">
+              <Avatar name={payer?.user.fullName ?? ''} src={payer?.user.avatarUrl} size={24} /><span className="text-sm font-bold flex-1 min-w-0 leading-tight name-2l">{payer?.user.fullName}{paidBy === user!.id && <span className="text-[11px] text-ink-2 font-semibold mr-1">(من)</span>}</span><ChevronDown size={16} className="text-ink-2 shrink-0" />
             </button>
           </Field>
         </div>
@@ -92,13 +92,13 @@ export function ExpenseFormPage() {
             {g.members.map((m) => {
               const on = selected.includes(m.userId);
               return (
-                <button key={m.userId} type="button" onClick={() => toggle(m.userId)} className="flex flex-col items-center gap-1.5 shrink-0 w-[68px]">
+                <button key={m.userId} type="button" onClick={() => toggle(m.userId)} className="flex flex-col items-center gap-1.5 shrink-0 w-[76px]">
                   <span className="relative">
                     <motion.span animate={{ scale: on ? 1 : 0, opacity: on ? 1 : 0 }} className="absolute -inset-1 rounded-full" style={{ background: 'var(--grad-brand)' }} />
                     <span className={`relative block rounded-full transition ${on ? '' : 'opacity-50 grayscale'}`}><Avatar name={m.user.fullName} src={m.user.avatarUrl} size={56} /></span>
                     {on && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -bottom-0.5 -left-0.5 h-5 w-5 rounded-full bg-pos text-white grid place-items-center ring-2 ring-bg"><Check size={12} strokeWidth={3} /></motion.span>}
                   </span>
-                  <span className={`text-[11px] font-bold truncate w-full text-center ${on ? '' : 'text-ink-2'}`}>{m.user.fullName.split(' ')[0]}</span>
+                  <span className={`text-[11px] font-bold w-full text-center leading-tight name-2l ${on ? '' : 'text-ink-2'}`}>{m.user.fullName}</span>
                 </button>
               );
             })}

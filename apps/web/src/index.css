@@ -141,3 +141,6 @@ input, textarea, select, button { font-family: inherit; }
 @media (min-width: 1100px) {
   #aside { right: calc(50% + 215px + 64px); }
 }
+
+/* names: never cut to one word — wrap onto at most two lines, then ellipsis */
+.name-2l{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
