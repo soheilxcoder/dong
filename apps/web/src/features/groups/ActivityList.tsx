@@ -24,7 +24,7 @@ export function ActivityList({ items, renderGroup }: { items: Activity[]; render
       {items.map((a, i) => {
         const { I, c } = icons[a.type] ?? icons.group_created;
         return (
-          <motion.li key={a.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.03 }} className="card p-3.5 flex gap-3">
+          <motion.li key={a.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.18 }} className="card p-3.5 flex gap-3">
             <span className={`h-10 w-10 shrink-0 rounded-2xl grid place-items-center ${c}`}><I size={18} /></span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold leading-6">{a.description}</p>

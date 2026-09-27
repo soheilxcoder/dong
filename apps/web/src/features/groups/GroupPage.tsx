@@ -82,7 +82,7 @@ export function GroupPage() {
   };
 
   return (
-    <motion.div className="min-h-dvh pb-32" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
+    <motion.div className="min-h-dvh pb-32" initial={{ opacity: 0, scale: 0.985 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2, ease: "easeOut" }} style={{ transformOrigin: "50% 30%" }}>
       {/* Header — moves together with the rest of the page (no shared-layout morph) */}
       <div className="relative h-52 overflow-hidden curve-bottom">
         <div className="absolute inset-0" style={{ background: g.group.coverImageUrl ? `url(${g.group.coverImageUrl}) center/cover` : 'var(--grad-hero)' }} />
@@ -145,7 +145,7 @@ export function GroupPage() {
                   const myShare = e.participants.find((p) => p.userId === me.id)?.amountOwed ?? 0;
                   const iPaid = e.paidBy === me.id;
                   return (
-                    <motion.li key={e.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.03 }}>
+                    <motion.li key={e.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.18 }}>
                       <button onClick={() => setViewExpense(e)} className="card w-full p-3.5 flex items-center gap-3 text-right">
                         <Avatar name={name(e.paidBy)} size={42} />
                         <div className="min-w-0 flex-1">
