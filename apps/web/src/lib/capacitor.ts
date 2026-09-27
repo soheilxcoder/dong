@@ -26,12 +26,15 @@ export function initNative(navigate: (path: string) => void) {
   StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
   syncSystemBars(document.documentElement.classList.contains('dark'));
   SplashScreen.hide().catch(() => {});
-  App.addListener('appUrlOpen', ({ url }) => {
+  const openUrl = (url: string) => {
     // https://products.arounidea.com/dong/#/join/TOKEN?s=SNAPSHOT  or  dong://join/TOKEN?s=...
     const i = url.indexOf('#/');
     if (i >= 0) { navigate(url.slice(i + 1)); return; }
     const m = url.match(/join\/([A-Za-z0-9_-]+)(\?[^#]*)?/);
     if (m) navigate(`/join/${m[1]}${m[2] ?? ''}`);
-  });
+  };
+  App.addListener('appUrlOpen', ({ url }) => openUrl(url));
+  // cold start from a link: appUrlOpen does not fire, the launch URL does
+  App.getLaunchUrl().then((r) => { if (r?.url) openUrl(r.url); }).catch(() => {});
   App.addListener('backButton', ({ canGoBack }) => { if (canGoBack) history.back(); else App.exitApp(); });
 }

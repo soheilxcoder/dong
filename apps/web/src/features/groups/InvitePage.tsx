@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { Share2, RefreshCw, Link as LinkIcon, UserPlus } from 'lucide-react';
+import { Share2, RefreshCw, Link as LinkIcon, UserPlus, ScanLine } from 'lucide-react';
+import { QrScanSheet } from './QrScanSheet';
 import { useEffect, useState } from 'react';
 import { useStore } from '@/app/store';
 import { CopyButton, PageHeader, Sheet } from '@/design-system/ui';
@@ -19,6 +20,7 @@ export function InvitePage() {
   const g = groups.find((x) => x.group.id === id);
   const [addOpen, setAddOpen] = useState(false); const [name, setName] = useState('');
   const [snap, setSnap] = useState<string>('');
+  const [scan, setScan] = useState(false);
   useEffect(() => { if (g && adapter.kind === 'local') adapter.exportSnapshot?.(g.group.id).then(setSnap); }, [g, adapter, g?.expenses.length, g?.settlements.length, g?.members.length]);
   if (!g) return null;
   const url = inviteUrl(g.group.inviteToken, adapter.kind === 'local' ? snap : undefined);
@@ -42,6 +44,11 @@ export function InvitePage() {
           <button onClick={async () => { await adapter.regenerateInvite(g.group.id); toast('لینک جدید ساخته شد', 'ok'); }} className="btn-ghost"><RefreshCw size={18} /> لینک جدید</button>
         </div>
         <div className="card w-full p-4">
+          <p className="font-bold text-sm mb-1">دوستت QR داره؟</p>
+          <p className="text-xs text-ink-2 leading-6 mb-3">اگر خودت می‌خوای عضو گروه دوستت بشی، QR دعوتش رو همین‌جا اسکن کن — بدون خروج از اپ.</p>
+          <button onClick={() => setScan(true)} className="btn-ghost w-full"><ScanLine size={18} /> اسکن QR دعوت</button>
+        </div>
+        <div className="card w-full p-4">
           <p className="font-bold text-sm mb-1">دوستت اپ نداره؟</p>
           <p className="text-xs text-ink-2 leading-6 mb-3">می‌تونی خودت اسمش رو اضافه کنی و به‌جای او هزینه‌ها و پرداخت‌هاش رو ثبت کنی.</p>
           <button onClick={() => setAddOpen(true)} className="btn-ghost w-full"><UserPlus size={18} /> افزودن عضو بدون حساب</button>
@@ -51,6 +58,7 @@ export function InvitePage() {
         <input className="input mb-4" placeholder="نام (مثلاً حسین)" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
         <button className="btn-primary w-full" onClick={async () => { try { if (!adapter.addLocalMember) throw new Error('در این حالت پشتیبانی نمی‌شود'); await adapter.addLocalMember(g.group.id, name); setName(''); setAddOpen(false); toast('اضافه شد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } }}>افزودن</button>
       </Sheet>
+      <QrScanSheet open={scan} onClose={() => setScan(false)} onResult={(route) => { setScan(false); nav(route); }} />
     </div>
   );
 }
