@@ -15,6 +15,7 @@ import { JoinPage } from '@/features/groups/JoinPage';
 import { ExpenseFormPage } from '@/features/expenses/ExpenseFormPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
 import { ActivityAllPage } from '@/features/home/ActivityAllPage';
+import { PickGroupPage, SettleAllPage } from '@/features/home/QuickPages';
 import { initNative } from '@/lib/capacitor';
 import { enablePush, disablePush } from '@/lib/push';
 import { ApiAdapter } from '@/data/api';
@@ -76,6 +77,8 @@ export function App() {
               <Route element={<Shell />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/activity" element={<ActivityAllPage />} />
+                <Route path="/settle" element={<SettleAllPage />} />
+                <Route path="/pick/:action" element={<PickGroupPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/g/:id" element={<GroupPage />} />
               </Route>

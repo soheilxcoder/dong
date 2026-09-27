@@ -55,7 +55,6 @@ export function HomePage() {
   const owed = summaries.filter((x) => x.mine > 0).reduce((s, x) => s + x.mine, 0);
   const owe = summaries.filter((x) => x.mine < 0).reduce((s, x) => s - x.mine, 0);
   const pending = summaries.reduce((s, x) => s + x.pendingForMe, 0);
-  const recent = [...summaries].sort((a, b) => b.last.localeCompare(a.last))[0]?.g;
 
   const loadDemo = async () => { setBusyDemo(true); try { await adapter.loadDemo?.(); toast('گروه نمونه «سفر کیش» اضافه شد', 'ok'); } finally { setBusyDemo(false); } };
 
@@ -108,9 +107,9 @@ export function HomePage() {
       {/* Quick actions */}
       <div className="px-5 mt-4 grid grid-cols-3 gap-2.5">
         {[
-          { icon: <Receipt size={18} />, label: 'ثبت هزینه', sub: recent ? recent.group.name : 'اول گروه بساز', to: recent ? `/g/${recent.group.id}/expense/new` : '/new-group', tone: 'brand' },
-          { icon: <HandCoins size={18} />, label: 'تسویه', sub: owe > 0 ? 'بدهی‌ات رو صاف کن' : owed > 0 ? 'طلبت رو بگیر' : 'همه‌چیز صافه', to: recent ? `/g/${recent.group.id}?tab=settle` : '/new-group', tone: 'amber' },
-          { icon: <UserPlus size={18} />, label: 'دعوت', sub: recent ? 'لینک و QR' : 'دوستات رو بیار', to: recent ? `/g/${recent.group.id}/invite` : '/new-group', tone: 'sky' },
+          { icon: <Receipt size={18} />, label: 'ثبت هزینه', sub: groups.length ? 'انتخاب گروه' : 'اول گروه بساز', to: groups.length ? '/pick/expense' : '/new-group', tone: 'brand' },
+          { icon: <HandCoins size={18} />, label: 'تسویه', sub: owe > 0 ? 'بدهی‌ات رو صاف کن' : owed > 0 ? 'طلبت رو بگیر' : 'همه‌چیز صافه', to: groups.length ? '/settle' : '/new-group', tone: 'amber' },
+          { icon: <UserPlus size={18} />, label: 'دعوت', sub: groups.length ? 'لینک و QR' : 'دوستات رو بیار', to: groups.length ? '/pick/invite' : '/new-group', tone: 'sky' },
         ].map((a, i) => (
           <motion.button key={a.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 + i * 0.05 }} whileTap={{ scale: 0.96 }} onClick={() => nav(a.to)}
             className="card p-3 text-right flex flex-col gap-2 min-w-0">
@@ -140,7 +139,7 @@ export function HomePage() {
       <div className="px-5 mt-3">
         <button data-tour="join" onClick={() => nav('/join/paste')} className="w-full card p-3.5 flex items-center gap-3 text-right">
           <span className="h-10 w-10 rounded-2xl bg-brand/15 text-brand grid place-items-center"><Link2 size={18} /></span>
-          <div className="flex-1"><p className="text-sm font-bold">لینک دعوت داری؟</p><p className="text-xs text-ink-2">لینک یا کد گروه را بچسبان و عضو شو</p></div>
+          <div className="flex-1"><p className="text-sm font-bold">لینک دعوت داری؟</p><p className="text-xs text-ink-2">QR را اسکن کن یا لینک/کد گروه را بچسبان و عضو شو</p></div>
         </button>
       </div>
       {groups.length === 0 ? (

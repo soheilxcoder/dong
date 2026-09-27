@@ -82,9 +82,22 @@ const tE = await waitText(A, /شام ساحلی/, 12000); step('A: sees B\'s exp
 await A.click('[data-tour="tab-settle"]'); await sleep(600);
 step('A: settle shows transfer to رضا', /رضا محمدی/.test(await text(A)) && /۱۰۰,۰۰۰|100,000/.test(await text(A)));
 step('A: copy card button present', await A.$$eval('button', (bs) => bs.some((x) => /کپی شماره کارت/.test(x.textContent))) || true);
-await click(A, /^ثبت پرداخت$/); await sleep(500); await shot(A, 'A-pay');
+step('A: my own debt card has «ثبت پرداخت»', await A.$$eval('.card', (cs) => { const c = cs.find((x) => x.className.includes('ring-neg')); const b = c && [...c.querySelectorAll('button')].find((x) => /^ثبت پرداخت$/.test((x.textContent || '').trim())); if (b) { b.click(); return true; } return false; })); await sleep(500); await shot(A, 'A-pay');
 await click(A, /ثبت و ارسال برای تأیید/);
 step('A: payment submitted (pending)', (await waitText(A, /در انتظار تأیید|ثبت شد/, 6000)) >= 0);
+await sleep(800);
+step('A: no second «ثبت پرداخت» while pending', /در انتظار تأیید رضا محمدی/.test(await text(A)) && (await A.$$eval('button', (bs) => bs.filter((x) => /^ثبت پرداخت$/.test((x.textContent || '').trim())).length)) === 1 /* only حسین's (managed member) */);
+await shot(A, 'A-pending-locked');
+// home quick actions → picker / settle overview
+await A.goto(BASE + '#/', { waitUntil: 'networkidle0' }); await sleep(500);
+await click(A, /^ثبت هزینهانتخاب گروه$/); await sleep(600);
+step('A: «ثبت هزینه» opens the group picker', /هزینه رو برای کدوم گروه/.test(await text(A)) && /سفر کیش/.test(await text(A)), A.url()); await shot(A, 'A-pick-expense');
+await click(A, /سفر کیش/); await sleep(600); step('A: picker → expense form of that group', /expense\/new/.test(A.url()));
+await A.goto(BASE + '#/', { waitUntil: 'networkidle0' }); await sleep(500); await click(A, /^دعوتلینک و QR$/); await sleep(600);
+step('A: «دعوت» opens the group picker', /لینک و QR کدوم گروه/.test(await text(A)), A.url());
+await A.goto(BASE + '#/', { waitUntil: 'networkidle0' }); await sleep(500); await click(A, /^تسویهبدهی‌ات رو صاف کن$/); await sleep(800);
+{ const tw = await waitText(A, /در انتظار تأیید/, 20000); const t = await text(A); step('A: «تسویه» page shows totals + my debt', /جمع کل/.test(t) && /بدهی‌های من/.test(t) && tw >= 0, A.url() + ' pending visible after ' + tw + ' ms'); await shot(A, 'A-settle-all'); }
+step('A: home join card mentions QR', /QR را اسکن کن/.test(await (await A.goto(BASE + '#/', { waitUntil: 'networkidle0' }), sleep(400), text(A))));
 await B.goto(BASE + `#/g/${gid}`, { waitUntil: 'networkidle0' }); await sleep(500); await B.click('[data-tour="tab-settle"]');
 const tP = await waitText(B, /تأیید/, 12000); step('B: sees pending payment within 12s', tP >= 0, tP + ' ms');
 await shot(B, 'B-pending');
