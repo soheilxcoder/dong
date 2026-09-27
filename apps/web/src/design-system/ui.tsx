@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion';
-import { Check, Copy, X, ChevronRight } from 'lucide-react';
+import { Check, Copy, X, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatAmount } from '@dong/core';
 import { avatarColor, initials } from '@/lib/avatar';
@@ -66,6 +66,20 @@ export function BalanceChip({ value, onDark = false }: { value: number; onDark?:
   return value > 0
     ? <span className="chip bg-pos/15 text-pos">طلبکار {formatAmount(value)}</span>
     : <span className="chip bg-neg/15 text-neg">بدهکار {formatAmount(-value)}</span>;
+}
+
+/* ---------- Password input with show/hide eye ---------- */
+export function PasswordInput({ value, onChange, placeholder = '••••••', autoComplete, className = '' }: { value: string; onChange: (e: ChangeEvent<HTMLInputElement>) => void; placeholder?: string; autoComplete?: string; className?: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input className={`input pl-12 ${className}`} dir="ltr" type={show ? 'text' : 'password'} value={value} onChange={onChange} placeholder={placeholder} autoComplete={autoComplete} />
+      <button type="button" tabIndex={-1} onMouseDown={(e) => e.preventDefault()} onClick={() => setShow((v) => !v)} aria-label={show ? 'پنهان کردن رمز' : 'نمایش رمز'} aria-pressed={show}
+        className="absolute left-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-xl grid place-items-center text-ink-2 hover:text-brand active:scale-95 transition">
+        {show ? <EyeOff size={19} strokeWidth={2} /> : <Eye size={19} strokeWidth={2} />}
+      </button>
+    </div>
+  );
 }
 
 /* ---------- Copy button ---------- */

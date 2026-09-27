@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { formatCardNumber, cardNumberError, normalizeCardNumber } from '@dong/core';
 import { useStore } from '@/app/store';
-import { Field, Segmented, Busy } from '@/design-system/ui';
+import { Field, Segmented, Busy, PasswordInput } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import { errTone, haptic } from '@/lib/native';
 import { GetAppCard } from '@/features/install/GetApp';
@@ -72,7 +72,7 @@ export function AuthPage() {
             </Field>
             {mode !== 'reset' && (
               <Field label="رمز عبور" error={err && mode === 'register' ? err : null}>
-                <input className="input" dir="ltr" type="password" value={f.password} onChange={set('password')} placeholder="••••••" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+                <PasswordInput value={f.password} onChange={set('password')} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
               </Field>
             )}
             {mode === 'register' && (
@@ -87,7 +87,7 @@ export function AuthPage() {
                 {question && (
                   <>
                     <Field label={question}><input className="input" value={f.a} onChange={set('a')} /></Field>
-                    <Field label="رمز جدید"><input className="input" dir="ltr" type="password" value={f.newPw} onChange={set('newPw')} /></Field>
+                    <Field label="رمز جدید"><PasswordInput value={f.newPw} onChange={set('newPw')} autoComplete="new-password" /></Field>
                   </>
                 )}
                 {err && <p className="text-neg text-xs font-semibold mb-3">{err}</p>}

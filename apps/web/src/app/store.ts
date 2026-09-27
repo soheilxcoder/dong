@@ -12,7 +12,9 @@ export const DEFAULT_API_URL = (import.meta.env.VITE_API_URL as string | undefin
 const loadSettings = (): Settings => {
   const saved = JSON.parse(localStorage.getItem('dong.settings') ?? '{}') as Partial<Settings>;
   // apiUrl semantics: undefined/'' → use the built-in server; 'local' → explicit offline mode (dev only); anything else → custom server
-  const apiUrl = saved.apiUrl === 'local' ? '' : (saved.apiUrl || DEFAULT_API_URL);
+  // 'local' (offline mode) is honoured only for developers; early builds persisted it for everyone and left them unsynced
+  const dev = localStorage.getItem('dong.dev') === '1';
+  const apiUrl = saved.apiUrl === 'local' ? (dev ? '' : DEFAULT_API_URL) : (saved.apiUrl || DEFAULT_API_URL);
   return { theme: 'light', sound: true, notifications: true, onboarded: false, tours: {}, ...saved, apiUrl };
 };
 

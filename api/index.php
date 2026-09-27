@@ -15,6 +15,7 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS');
 header('Access-Control-Max-Age: 86400');
+header('Cache-Control: no-store, no-cache, must-revalidate'); header('Pragma: no-cache');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 class HttpError extends Exception { public string $code2; public function __construct(int $status, string $code, string $msg) { parent::__construct($msg, $status); $this->code2 = $code; } }
@@ -232,6 +233,18 @@ try {
       });
     }
     sendJson(getGroup($gid));
+  });
+  // Managed member: someone without the app; the adder logs expenses/payments on their behalf (same as local mode)
+  route('POST', '/groups/:id/members', function ($p) use ($body) {
+    $me = requireAuth(); requireMember($p['id'], $me);
+    $name = trim((string)($body['fullName'] ?? '')); if ($name === '') throw badReq('نام را وارد کنید');
+    $uid = newId(); $t = nowIso();
+    tx(function () use ($p, $me, $uid, $name, $t) {
+      exec1('INSERT INTO users (id, fullName, username, passwordHash, createdAt, updatedAt) VALUES (?,?,?,?,?,?)', [$uid, $name, 'local_' . substr($uid, 0, 8), '!', $t, $t]);
+      exec1('INSERT INTO memberships (id, groupId, userId, role, joinedAt, updatedAt) VALUES (?,?,?,?,?,?)', [newId(), $p['id'], $uid, 'member', $t, $t]);
+      logAct($p['id'], $me, 'member_joined', userName($me) . " «{$name}» را به گروه اضافه کرد"); touchGroup($p['id']);
+    });
+    sendJson(safeUser(getUser($uid)), 201);
   });
   route('GET', '/groups/:id', function ($p) { requireMember($p['id'], requireAuth()); $d = groupDetail($p['id']); if (!$d) throw notFound('گروه پیدا نشد'); sendJson($d); });
   route('PATCH', '/groups/:id', function ($p) use ($body) {

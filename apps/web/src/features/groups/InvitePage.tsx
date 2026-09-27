@@ -49,7 +49,7 @@ export function InvitePage() {
       </div>
       <Sheet open={addOpen} onClose={() => setAddOpen(false)} title="افزودن عضو">
         <input className="input mb-4" placeholder="نام (مثلاً حسین)" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-        <button className="btn-primary w-full" onClick={async () => { try { await adapter.addLocalMember?.(g.group.id, name); setName(''); setAddOpen(false); toast('اضافه شد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } }}>افزودن</button>
+        <button className="btn-primary w-full" onClick={async () => { try { if (!adapter.addLocalMember) throw new Error('در این حالت پشتیبانی نمی‌شود'); await adapter.addLocalMember(g.group.id, name); setName(''); setAddOpen(false); toast('اضافه شد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } }}>افزودن</button>
       </Sheet>
     </div>
   );

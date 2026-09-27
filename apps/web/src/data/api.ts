@@ -65,7 +65,7 @@ export class ApiAdapter implements DataAdapter {
   private async req<T>(method: string, path: string, body?: unknown): Promise<T> {
     let res: Response;
     try {
-      res = await fetch(this.base + path, { method, headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
+      res = await fetch(this.base + path, { method, cache: 'no-store', headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
     } catch { this.setStatus('error'); throw new AppError('NETWORK', 'ارتباط با سرور برقرار نشد'); }
     this.setStatus('online');
     const data = await res.json().catch(() => ({}));
@@ -108,6 +108,8 @@ export class ApiAdapter implements DataAdapter {
   async regenerateInvite(groupId: string) { const r = await this.req<{ inviteToken: string }>('POST', `/groups/${groupId}/invite/regenerate`); this.changed(); return r.inviteToken; }
   async removeMember(groupId: string, userId: string) { await this.req('DELETE', `/groups/${groupId}/members/${userId}`); this.changed(); }
   async leaveGroup(groupId: string) { const me = await this.me(); await this.req('DELETE', `/groups/${groupId}/members/${me!.id}`); this.changed(); }
+
+  async addLocalMember(groupId: string, fullName: string) { const u = await this.req<User>('POST', `/groups/${groupId}/members`, { fullName }); this.changed(); return u; }
 
   async addExpense(groupId: string, input: ExpenseInput) { const e = await this.req<Expense>('POST', `/groups/${groupId}/expenses`, { ...input, receiptImageUrl: await this.uploadIfDataUrl(input.receiptImageUrl) }); this.changed(); return e; }
   async updateExpense(id: string, input: ExpenseInput) { const e = await this.req<Expense>('PATCH', `/expenses/${id}`, { ...input, receiptImageUrl: await this.uploadIfDataUrl(input.receiptImageUrl) }); this.changed(); return e; }

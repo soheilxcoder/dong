@@ -5,7 +5,7 @@ import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditC
 import { Capacitor } from '@capacitor/core';
 import { formatCardNumber, cardNumberError, detectBank, normalizeCardNumber } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
-import { Avatar, CopyButton, Field, PageHeader, Sheet, Busy } from '@/design-system/ui';
+import { Avatar, CopyButton, Field, PageHeader, Sheet, Busy, PasswordInput } from '@/design-system/ui';
 import { Mascot } from '@/design-system/Mascot';
 import { compressImage, haptic } from '@/lib/native';
 import { Tour } from '@/design-system/Tour';
@@ -123,8 +123,8 @@ export function ProfilePage() {
         <button className="btn-primary w-full" disabled={saving} onClick={async () => { if (name.trim().length < 2) return; setSaving(true); try { await adapter.updateMe({ fullName: name.trim() }); await refresh(); setNameOpen(false); toast('ذخیره شد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } finally { setSaving(false); } }}><Busy busy={saving} label="در حال ذخیره…">ذخیره</Busy></button>
       </Sheet>
       <Sheet open={pwOpen} onClose={() => setPwOpen(false)} title="تغییر رمز عبور">
-        <Field label="رمز فعلی"><input className="input" type="password" dir="ltr" value={pw.old} onChange={(e) => setPw({ ...pw, old: e.target.value })} /></Field>
-        <Field label="رمز جدید"><input className="input" type="password" dir="ltr" value={pw.new} onChange={(e) => setPw({ ...pw, new: e.target.value })} /></Field>
+        <Field label="رمز فعلی"><PasswordInput value={pw.old} onChange={(e) => setPw({ ...pw, old: e.target.value })} autoComplete="current-password" /></Field>
+        <Field label="رمز جدید"><PasswordInput value={pw.new} onChange={(e) => setPw({ ...pw, new: e.target.value })} autoComplete="new-password" /></Field>
         <button className="btn-primary w-full" disabled={saving} onClick={async () => { setSaving(true); try { if (pw.new.length < 4) throw new Error('رمز جدید حداقل ۴ کاراکتر'); await adapter.changePassword(pw.old, pw.new); setPwOpen(false); setPw({ old: '', new: '' }); toast('رمز تغییر کرد', 'ok'); } catch (e) { toast((e as Error).message, 'err'); } finally { setSaving(false); } }}><Busy busy={saving} label="در حال تغییر رمز…">تغییر رمز</Busy></button>
       </Sheet>
       <HelpSheet open={helpOpen} onClose={() => setHelpOpen(false)} />
