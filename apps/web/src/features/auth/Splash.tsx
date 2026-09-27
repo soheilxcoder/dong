@@ -2,11 +2,12 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { WifiOff, RefreshCw } from 'lucide-react';
 import { useStore } from '@/app/store';
+import { hideBoot } from '@/lib/boot';
 
 /** In-app splash (same look as the native/HTML splash). Shows an offline notice + retry when the server can't be reached on first open. */
 export function Splash() {
   const { offline, init } = useStore();
-  useEffect(() => { document.getElementById('boot')?.classList.add('hide'); }, []);
+  useEffect(() => { hideBoot(); }, []);
   return (
     <div className="fixed inset-0 grid place-items-center" style={{ background: 'radial-gradient(90vmax 90vmax at 50% 38%, #0e6b58 0%, #0a5446 40%, #053a35 75%, #042e2c 100%)' }}>
       <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }} className="flex flex-col items-center -translate-y-[4vh]">

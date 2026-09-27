@@ -4,6 +4,7 @@ import { useStore } from './store';
 import { BottomNav } from './BottomNav';
 import { Confetti, Toasts } from '@/design-system/ui';
 import { Splash } from '@/features/auth/Splash';
+import { hideBoot } from '@/lib/boot';
 import { Onboarding } from '@/features/auth/Onboarding';
 import { AuthPage } from '@/features/auth/AuthPage';
 import { HomePage } from '@/features/home/HomePage';
@@ -49,7 +50,7 @@ export function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (adapter.kind === 'api' && user) refresh().catch(() => {}); }, [loc.pathname]);
   useEffect(() => { window.scrollTo(0, 0); document.getElementById('scroll')?.scrollTo(0, 0); }, [loc.pathname]);
-  useEffect(() => { if (user !== undefined) document.getElementById('boot')?.classList.add('hide'); }, [user]);
+  useEffect(() => { if (user !== undefined) hideBoot(); }, [user]);
   // Server mode: register this phone/browser for push (new expense, payment to confirm, confirmed/rejected, manual reminders).
   const toast = useStore((s) => s.toast);
   const notifOn = useStore((s) => s.settings.notifications);
