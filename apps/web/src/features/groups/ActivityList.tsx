@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Receipt, Pencil, Trash2, Send, CheckCircle2, XCircle, UserPlus, UserMinus, Sparkles, BellRing } from 'lucide-react';
+import { Receipt, Pencil, Trash2, Send, CheckCircle2, XCircle, UserPlus, UserMinus, Users, BellRing } from 'lucide-react';
 import type { Activity } from '@dong/core';
 import { fmtDateTime } from '@/lib/date';
 
@@ -14,7 +14,7 @@ const icons: Record<Activity['type'], { I: typeof Receipt; c: string }> = {
   member_joined: { I: UserPlus, c: 'text-brand-2 bg-brand-2/15' },
   member_left: { I: UserMinus, c: 'text-neutral2 bg-neutral2/15' },
   member_removed: { I: UserMinus, c: 'text-neg bg-neg/15' },
-  group_created: { I: Sparkles, c: 'text-brand bg-brand/15' },
+  group_created: { I: Users, c: 'text-brand bg-brand/15' },
   reminder_sent: { I: BellRing, c: 'text-amber2 bg-amber2/15' },
 };
 

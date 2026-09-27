@@ -181,6 +181,11 @@ export function PageHeader({ title, back = true, right }: { title: string; back?
   );
 }
 
+/* ---------- Spinner ---------- */
+export function Spinner({ size = 20, className = '' }: { size?: number; className?: string }) {
+  return <span className={`spinner ${className}`} style={{ width: size, height: size }} role="status" aria-label="در حال انجام" />;
+}
+
 /* ---------- Field with shake on error ---------- */
 export function Field({ label, error, children }: { label?: string; error?: string | null; children: ReactNode }) {
   // shake without remounting the child (a remount would blur the input, close the keyboard and make the page jump)

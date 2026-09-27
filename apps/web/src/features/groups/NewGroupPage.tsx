@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 import { useStore } from '@/app/store';
-import { Field, PageHeader } from '@/design-system/ui';
+import { Field, PageHeader, Spinner } from '@/design-system/ui';
+import { Mascot } from '@/design-system/Mascot';
+import { AnimatePresence, motion } from 'framer-motion';
 import { compressImage } from '@/lib/native';
 
 export function NewGroupPage() {
@@ -15,7 +17,7 @@ export function NewGroupPage() {
     e.preventDefault();
     if (name.trim().length < 2) { setErr('نام گروه را وارد کنید'); return; }
     setBusy(true);
-    try { const g = await adapter.createGroup(name, desc, cover); await refresh(); toast('گروه ساخته شد 🎉', 'ok'); nav(`/g/${g.id}/invite`, { replace: true }); }
+    try { const g = await adapter.createGroup(name, desc, cover); await refresh(); toast('گروه ساخته شد', 'ok'); nav(`/g/${g.id}/invite`, { replace: true }); }
     catch (ex) { setErr((ex as Error).message); } finally { setBusy(false); }
   };
   return (
@@ -32,8 +34,18 @@ export function NewGroupPage() {
         </label>
         <Field label="نام گروه" error={err}><input className="input text-lg font-bold" value={name} onChange={(e) => setName(e.target.value)} placeholder="مثلاً سفر شمال، خونه بچه‌ها، …" autoFocus /></Field>
         <Field label="توضیح (اختیاری)"><input className="input" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="یه توضیح کوتاه" /></Field>
-        <button className="btn-primary w-full text-base" disabled={busy}>ساخت گروه و دعوت دوستان</button>
+        <button className="btn-primary w-full text-base" disabled={busy}>{busy ? <><Spinner size={22} /> در حال ساخت گروه…</> : 'ساخت گروه و دعوت دوستان'}</button>
       </form>
+      <AnimatePresence>
+        {busy && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 grid place-items-center" style={{ background: 'rgb(var(--c-bg) / 0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+            <motion.div initial={{ scale: 0.9, y: 8 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }} className="card px-8 py-7 flex flex-col items-center gap-4 text-center">
+              <div className="relative grid place-items-center"><Spinner size={88} className="text-brand" /><div className="absolute"><Mascot mood="happy" size={54} /></div></div>
+              <div><p className="font-extrabold">در حال ساخت «{name.trim()}»</p><p className="text-xs text-ink-2 mt-1">چند لحظه…</p></div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -94,6 +94,12 @@ input, textarea, select, button { font-family: inherit; }
   .fab-ring { padding: 2.5px; background: conic-gradient(from var(--ring-a), #ffffff, #fbbf24, #ffffff, #38bdf8, #ffffff); animation: ring-spin 5s linear infinite;
     box-shadow: 0 12px 30px -10px rgb(var(--c-brand) / 0.8), 0 0 0 4px rgb(var(--c-bg) / 0.9); }
   .h-13 { height: 3.25rem; }
+  /* attractive spinner: spinning conic ring with a soft comet tail */
+  .spinner { position: relative; display: inline-block; border-radius: 9999px; animation: spin 0.9s linear infinite;
+    background: conic-gradient(from 0deg, transparent 0 30%, currentColor 100%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); }
+  .spinner::after { content: ''; position: absolute; top: 0; left: 50%; width: 3px; height: 3px; margin-left: -1.5px; border-radius: 9999px; background: currentColor; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .hero-ring, .hero-ring::before { animation: none; } }
   .hero-blob { position: absolute; border-radius: 9999px; pointer-events: none; filter: blur(2px); }
   .hero-blob-a { width: 220px; height: 220px; right: -70px; top: -110px; background: radial-gradient(circle, #ffffff33, transparent 70%); }
