@@ -14,7 +14,7 @@ const mk = async (tag) => {
   p.on('dialog', (d) => d.accept());
   await p.goto(BASE, { waitUntil: 'networkidle0' });
   await p.evaluate(() => { const tours = Object.fromEntries(['home', 'group', 'invite', 'settle', 'expense', 'profile'].map((k) => [k, true])); localStorage.setItem('dong.settings', JSON.stringify({ theme: 'light', sound: false, notifications: false, onboarded: true, tours })); });
-  await p.goto(BASE + '#/auth', { waitUntil: 'networkidle0' }); await p.reload({ waitUntil: 'networkidle0' }); await sleep(600);
+  await p.goto(BASE + '#/auth', { waitUntil: 'networkidle0' }); await p.reload({ waitUntil: 'networkidle0' }); await p.waitForSelector('#boot.hide', { timeout: 8000 }); await sleep(500);
   return p;
 };
 const shot = (p, n) => p.screenshot({ path: `${out}/${n}.png` });
@@ -60,6 +60,7 @@ console.log('B url', await B.url()); const gid = (await B.url()).match(/#\/g\/([
 await A.goto(BASE + '#/', { waitUntil: 'networkidle0' }); await sleep(600);
 step('A: home lists the group', /سفر کیش/.test(await text(A)));
 await A.goto(BASE + `#/g/${gid}`, { waitUntil: 'networkidle0' }); await sleep(1200); await shot(A, 'A-group-dbg'); console.log('A url', A.url(), (await text(A)).slice(0, 150).replace(/\n/g, ' ')); await A.click('[data-tour="tab-members"]');
+if (process.env.RT_STATS) { const st = await fetch(process.env.RT_STATS).then((r) => r.json()).catch(() => ({})); step('realtime hub: both browsers connected via WebSocket', (st.sockets ?? 0) >= 2, JSON.stringify(st)); }
 const tA = await waitText(A, /رضا محمدی/, 12000); step('A: sees new member B within 12s', tA >= 0, tA + ' ms');
 step('A: sees managed member حسین', /حسین/.test(await text(A)));
 await shot(A, 'A-members');
