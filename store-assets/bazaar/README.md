@@ -9,11 +9,11 @@
 ## مرحله ۱ — آپلود فایل
 | | |
 |---|---|
-| فایل | `app-release.apk` از https://github.com/soheilxcoder/dong/releases/tag/apk-latest |
+| فایل | آخرین `Dong-<نسخه>.apk` از https://products.arounidea.com/dong/apk/ (همان فایلی که کاربران دانلود می‌کنند) |
 | نام پکیج | `ir.dong.app` |
 | حداقل اندروید | 5.1 (API 22) |
 
-⚠️ **قبل از آپلود حتماً** secrets امضا (`ANDROID_KEYSTORE_B64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` از `release-keys/SECRETS.txt`) در GitHub ست شده باشد و در متن ریلیز بنویسد «امضا: کلید آپلود شما». بازار هر به‌روزرسانی را فقط با **همان کلید** اولین نسخه قبول می‌کند؛ اگر با کلید موقت آپلود کنی، دیگر نمی‌توانی آپدیت بدهی.
+⚠️ **قبل از آپلود حتماً** secrets امضا (`ANDROID_KEYSTORE_B64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` از `release-keys/SECRETS.txt`) در GitHub ست شده باشد و در `https://products.arounidea.com/dong/apk/latest.json` نوشته باشد `"signing":"upload-key"` (از نسخهٔ 1.0.52 به بعد ✅). بازار هر به‌روزرسانی را فقط با **همان کلید** اولین نسخه قبول می‌کند؛ اگر با کلید موقت آپلود کنی، دیگر نمی‌توانی آپدیت بدهی.
 
 ## مرحله ۲ — اطلاعات پایه
 | فیلد | مقدار |
