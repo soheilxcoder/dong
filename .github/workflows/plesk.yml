@@ -1,8 +1,8 @@
-name: Build static sites (deploy/dong for Plesk, docs/ for GitHub Pages)
+name: Build static site for Plesk (branch plesk-web)
 
-# Builds the web app for https://products.arounidea.com/dong/ and commits the
-# result into deploy/dong/ on the SAME branch, so a Plesk "Git" repository can
-# simply pull this branch and serve it — no Node.js needed on the host.
+# Builds the web app for https://products.arounidea.com/dong/ and force-pushes it as ONE commit to
+# the `plesk-web` branch (site files + api/ + .htaccess). The Plesk "Git" repository pulls that branch
+# into httpdocs/dong — tiny clone, no history growth, no Node.js needed on the host.
 
 on:
   push:
@@ -45,19 +45,19 @@ jobs:
           VITE_BASE: ${{ env.BASE_PATH }}
           VITE_PUBLIC_URL: ${{ env.SITE_URL }}
           VITE_RT_URL: ${{ vars.RT_URL }}
-      - name: Stage into deploy/dong
+      - name: Publish single-commit branch `plesk-web` (what the host pulls into /dong)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          rm -rf deploy/dong && mkdir -p deploy/dong
-          cp -r apps/web/dist/. deploy/dong/
-          cp apps/web/dist/index.html deploy/dong/404.html
-          echo "${{ github.sha }}" > deploy/dong/BUILD.txt
-          date -u +%Y-%m-%dT%H:%M:%SZ >> deploy/dong/BUILD.txt
-      - name: Commit & push
-        run: |
-          git config user.name  "dong-bot"
-          git config user.email "dong-bot@users.noreply.github.com"
-          git add -A deploy/dong
-          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
-          git commit -m "deploy(plesk): static build ${GITHUB_SHA::7} [skip plesk] [skip ci]"
-          git pull --rebase origin "${GITHUB_REF_NAME}" || true
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          set -e
+          rm -rf /tmp/site && mkdir -p /tmp/site && cd /tmp/site
+          git init -q -b plesk-web
+          cp -r "$GITHUB_WORKSPACE/apps/web/dist/." .
+          cp index.html 404.html
+          cp -r "$GITHUB_WORKSPACE/api" ./api && rm -rf ./api/data
+          cp "$GITHUB_WORKSPACE/deploy/plesk-web.htaccess" ./.htaccess
+          echo "${GITHUB_SHA}" > BUILD.txt && date -u +%Y-%m-%dT%H:%M:%SZ >> BUILD.txt
+          git config user.name "dong-bot" && git config user.email "dong-bot@users.noreply.github.com"
+          git add -A && git commit -qm "site build ${GITHUB_SHA::7}"
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:plesk-web
+          du -sh .git
