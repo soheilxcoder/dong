@@ -107,11 +107,11 @@ const fg = `<!doctype html><html dir="rtl"><head><meta charset="utf-8"><style>
 @font-face{font-family:V;src:url(data:font/woff2;base64,${font}) format('woff2');font-weight:100 900}
 html,body{margin:0;width:1024px;height:500px;overflow:hidden;font-family:V,sans-serif;color:#fff}
 body{background:radial-gradient(90% 90% at 100% 0%,#0FB88Acc 0%,transparent 60%),radial-gradient(70% 80% at 0% 100%,#0891B2aa 0%,transparent 60%),linear-gradient(160deg,#0a5c46,#0f766e 60%,#134e4a)}
-.txt{position:absolute;right:70px;top:0;height:500px;width:430px;display:flex;flex-direction:column;justify-content:center;gap:14px}
+.txt{position:absolute;right:60px;top:0;height:500px;width:440px;display:flex;flex-direction:column;justify-content:center;gap:14px}
 .brand{display:flex;align-items:center;gap:18px}
 .brand img{width:110px;height:110px;filter:drop-shadow(0 12px 24px #0006)}
 .brand b{font-size:96px;font-weight:900;line-height:1;letter-spacing:-1px}
-h2{font-size:34px;font-weight:800;margin:6px 0 0;line-height:1.4}
+h2{font-size:30px;font-weight:800;margin:6px 0 0;line-height:1.4;white-space:nowrap}
 p{font-size:21px;margin:0;opacity:.9;font-weight:500;line-height:1.7}
 .ph{position:absolute;width:250px;height:540px;border-radius:34px;background:#0b0f12;padding:7px;box-shadow:0 40px 80px -20px #000a,0 0 0 1px #ffffff22 inset}
 .sc{width:100%;height:100%;border-radius:28px;overflow:hidden;background:#fff}
@@ -122,8 +122,8 @@ p{font-size:21px;margin:0;opacity:.9;font-weight:500;line-height:1.7}
 <div class="ph a"><div class="sc"><img src="file://${out}/raw/01.png"></div></div>
 <div class="ph b"><div class="sc"><img src="file://${out}/raw/03.png"></div></div>
 <div class="txt"><div class="brand"><img src="data:image/png;base64,${icon}"><b>دُنگ</b></div>
-<h2>حساب‌کتاب دنگی، بدون دعوا</h2>
-<p>تقسیم هزینهٔ سفر و دورهمی · تسویه با کمترین تراکنش · کپی شماره کارت با یک ضربه</p></div>
+<h2>حساب‌کتاب مشترک، ساده و شفاف</h2>
+<p>کی به کی چقدر بدهکاره؟ تسویه با کمترین تراکنش، کپی شماره کارت با یک ضربه و همهٔ بدهی‌ها و طلب‌ها یک‌جا.</p></div>
 </body></html>`;
 fs.writeFileSync('/tmp/fg.html', fg);
 await q.setViewport({ width: 1024, height: 500, deviceScaleFactor: 1 });
