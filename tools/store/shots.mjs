@@ -55,6 +55,7 @@ const amt = await p.$('input[inputmode="numeric"]'); if (amt) { await amt.click(
 await p.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); document.querySelectorAll('main,[class*=overflow-y]').forEach((e) => (e.scrollTop = 0)); }); await sleep(600); await shot('04');
 await go(`/g/${gid}`, 1500); await hideToasts(); await clickTab('activity'); await shot('05');
 await go(`/g/${gid}/invite`, 2000); await hideToasts(); await shot('06');
+await go('/settle', 2200); await hideToasts(); await shot('08');
 await p.evaluate(() => { const s = JSON.parse(localStorage.getItem('dong.settings')); s.theme = 'dark'; localStorage.setItem('dong.settings', JSON.stringify(s)); });
 await go(`/g/${gid}`, 2200); await hideToasts(); await clickTab('settle'); await shot('07');
 await p.close();
@@ -67,6 +68,7 @@ const slides = [
   ['04', 'تقسیم مساوی، دلخواه یا حسابگر', 'فقط کسایی که بودن', 'پیش‌نمایش زندهٔ سهم هر نفر، قبل از ثبت. رسید هم ضمیمه کن.', '#0FB88A', '#F59E0B'],
   ['05', 'شفافیت کامل', 'همه‌چیز ثبت می‌شود', 'هر هزینه، ویرایش، پرداخت و تأیید در تاریخچهٔ گروه می‌ماند تا هیچ‌کس گیج نشود.', '#0891B2', '#0FB88A'],
   ['06', 'دعوت با QR یا لینک', 'بدون ثبت‌نام اضافه', 'دوستت اسکن می‌کند و عضو می‌شود؛ حتی اگر اپ نداشته باشد، نسخهٔ وب باز می‌شود.', '#059669', '#0891B2'],
+  ['08', 'همهٔ بدهی‌ها و طلب‌ها یک‌جا', 'یک صفحه، جمع کل', 'از صفحهٔ اصلی «تسویه» را بزن: بدهی‌ها، طلب‌ها و جمع کل همهٔ گروه‌ها با هم؛ بابت هر بدهی هم نوشته شده.', '#0891B2', '#0FB88A'],
   ['07', 'حالت تاریک', 'چشم‌نواز در شب', 'رابط کاملاً فارسی و راست‌چین با فونت وزیرمتن، روشن یا تاریک.', '#0F1416', '#134E4A'],
 ];
 const font = fs.readFileSync(path.join(root, 'apps/web/src/assets/Vazirmatn.woff2')).toString('base64');
@@ -86,7 +88,7 @@ p{font-size:34px;line-height:1.75;margin:0;opacity:.92;font-weight:500}
 </style></head><body><div class="glow"></div>
 <div class="hd"><span class="tag">${tag}</span><h1>${title}</h1><p>${sub}</p></div>
 <div class="ph"><div class="sc"><img src="file://${out}/raw/${n}.png"></div><div class="cam"></div></div></body></html>`;
-const names = { '01': 'home', '02': 'group', '03': 'settle', '04': 'expense', '05': 'activity', '06': 'invite', '07': 'dark' };
+const names = { '01': 'home', '02': 'group', '03': 'settle', '04': 'expense', '05': 'activity', '06': 'invite', '08': 'settle-all', '07': 'dark' };
 const q = await b.newPage(); await q.setViewport({ width: 1080, height: 1920, deviceScaleFactor: 1 });
 for (const [n, tag, title, sub, c1, c2] of slides) {
   const f = `/tmp/slide-${n}.html`; fs.writeFileSync(f, html(n, tag, title, sub, c1, c2));
