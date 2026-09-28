@@ -52,12 +52,14 @@
 • شماره کارت طلبکار همان‌جا، با یک ضربه کپی می‌شود
 • پرداخت جزئی، تأیید یا رد پرداخت با ذکر دلیل
 • یادآوری به بدهکار با یک ضربه
+• صفحهٔ «تسویه»: همهٔ بدهی‌ها و طلب‌های همهٔ گروه‌ها یک‌جا، با ذکر «بابت» هر بدهی
+• شماره کارت فقط برای نمایش به هم‌گروهی‌هاست؛ هیچ پرداختی داخل اپ انجام نمی‌شود
 • تاریخچهٔ کامل: هر هزینه، ویرایش، پرداخت و تأیید ثبت می‌شود تا هیچ‌کس گیج نشود
 
 ✦ چرا دُنگ؟
 • کاملاً فارسی و راست‌چین با فونت وزیرمتن، تاریخ شمسی و اعداد فارسی
 • حالت تاریک کامل
-• بدون نیاز به اینترنت کار می‌کند؛ همگام‌سازی رمزنگاری‌شده بین اعضا
+• همگام‌سازی لحظه‌ای بین اعضا؛ اگر اینترنت قطع شد، صبورانه منتظر می‌ماند و خودش وصل می‌شود
 • بدون تبلیغ مزاحم داخل صفحه‌ها؛ حریم خصوصی شما محفوظ است
 • سبک و سریع
 
@@ -77,7 +79,8 @@ Dong makes group expenses painless. Whoever pays, logs it in two taps; everyone'
 • Smart settlement with minimal transactions, card number copied in one tap
 • Partial payments, confirm/reject with a reason, reminders
 • Full activity history for total transparency
-• Persian-first UI, Jalali calendar, full dark mode, works offline
+• "Settle" page: all debts and credits across groups in one place
+• Persian-first UI, Jalali calendar, full dark mode, realtime sync
 
 Privacy policy: https://products.arounidea.com/dong/privacy.html
 ```
@@ -85,9 +88,11 @@ Privacy policy: https://products.arounidea.com/dong/privacy.html
 **تغییرات این نسخه (What's new):**
 ```
 نسخهٔ اول دُنگ 🎉
-• ثبت هزینه و تقسیم مساوی/دلخواه
+• ثبت هزینه و تقسیم مساوی/دلخواه/حسابگر
 • تسویه با کمترین تراکنش + کپی شماره کارت
-• دعوت با QR، حالت تاریک، کار آفلاین
+• صفحهٔ «تسویه»: همهٔ بدهی‌ها و طلب‌ها یک‌جا
+• دعوت با QR یا لینک، تاریخچهٔ کامل، حالت تاریک
+• کار آفلاین و همگام‌سازی لحظه‌ای بین اعضا
 ```
 
 **کلمات کلیدی (اگر پرسید):** دنگ، دونگ، تقسیم هزینه، حساب کتاب سفر، خرج گروهی، دنگی، شریکی، سهم، تسویه حساب، Splitwise، اسپلیت‌وایز
@@ -132,5 +137,5 @@ Privacy policy: https://products.arounidea.com/dong/privacy.html
 ## بازتولید اسکرین‌شات‌ها (برای من)
 ```
 VITE_BASE=/ VITE_PUBLIC_URL=https://products.arounidea.com/dong/ npm run build -w @dong/web
-npm run shots        # → store-assets/screenshots/*.png (Play) ; JPG برای بازار در این پوشه
+npm run shots        # → store-assets/screenshots/*.png (Play) + bazaar/screenshots/*.jpg + feature-graphic (خودکار)
 ```
