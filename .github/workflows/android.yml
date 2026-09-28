@@ -104,10 +104,9 @@ jobs:
         run: |
           set -e
           rm -rf /tmp/apk
-          # linear history (Plesk auto-deploy needs fast-forward pulls); only the newest APK is kept in the tree
-          git clone -q --depth 1 --branch apk-release "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/apk 2>/dev/null \
-            || { mkdir -p /tmp/apk && git -C /tmp/apk init -q -b apk-release; }
-          cd /tmp/apk && rm -f Dong-*.apk
+          # single-commit branch, force-pushed: the host's mirror never accumulates old APKs (Plesk mirrors accept forced updates)
+          mkdir -p /tmp/apk && git -C /tmp/apk init -q -b apk-release
+          cd /tmp/apk
           cp "$GITHUB_WORKSPACE/Dong-${VERSION_NAME}.apk" .
           cat > latest.json <<EOF
           {"name":"دُنگ","version":"${VERSION_NAME}","versionCode":${VERSION_CODE},"file":"Dong-${VERSION_NAME}.apk","url":"https://products.arounidea.com/dong/apk/Dong-${VERSION_NAME}.apk","date":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","commit":"${GITHUB_SHA::7}","signing":"$([ -n "${{ secrets.ANDROID_KEYSTORE_B64 }}" ] && echo upload-key || echo temporary)"}
@@ -132,7 +131,7 @@ jobs:
           EOF
           git config user.name "dong-bot" && git config user.email "bot@dong.local"
           git add -A && git commit -qm "Dong ${VERSION_NAME} (${GITHUB_SHA::7})"
-          git push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:apk-release
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:apk-release
 
       - name: Clean previous release assets
         env:
