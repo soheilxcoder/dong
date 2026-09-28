@@ -24,6 +24,3 @@ apps/web/android/app/google-services.json
 .cache/
 store-assets/screenshots/raw/
 /docs/
-
-# built site lives on branch plesk-web now
-/deploy/dong/
