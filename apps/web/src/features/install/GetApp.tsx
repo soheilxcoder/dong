@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Smartphone, Share, PlusSquare, Download, X, MonitorSmartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { StoreBadges } from './StoreBadges';
 import { prefetchApk, downloadApk, canPromptInstall, isAndroid, isIOS, isNative, isStandalone, onInstallChange, promptInstall } from '@/lib/install';
 
 /** iOS "Add to Home Screen" instructions */
@@ -38,7 +39,10 @@ export function GetAppCard() {
       <div className="flex items-center gap-2 mb-3"><MonitorSmartphone size={18} className="text-brand" /><h3 className="font-black text-sm">دُنگ را روی گوشی‌ات داشته باش</h3></div>
       <div className="grid gap-2">
         {!isIOS() && (
-          <button onClick={downloadApk} className="btn-primary w-full !min-h-11 text-sm"><Download size={16} /> دانلود اپ اندروید</button>
+          <>
+            <StoreBadges />
+            <button onClick={downloadApk} className="btn-ghost w-full !min-h-11 text-sm"><Download size={16} /> دانلود مستقیم (APK)</button>
+          </>
         )}
         {pwa && <button onClick={() => promptInstall()} className="btn-ghost w-full !min-h-11 text-sm"><Smartphone size={16} /> نصب نسخهٔ وب روی {isAndroid() ? 'گوشی' : 'کامپیوتر'}</button>}
         {(isIOS() || !isAndroid()) && (
@@ -59,11 +63,12 @@ export function DesktopAside() {
     <aside id="aside" dir="rtl" className="hidden lg:flex">
       <div className="flex flex-col gap-5 max-w-sm">
         <img src={`${import.meta.env.BASE_URL}icons/icon-192.png`} alt="" className="w-20 h-20 rounded-[22px] shadow-2xl" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />
-        <div><h2 className="text-4xl font-black text-white">دُنگ</h2><p className="text-white/75 mt-1">حساب‌کتاب دنگی سفر و دورهمی — کی به کی چقدر بدهکاره؟</p></div>
+        <div><h2 className="text-4xl font-black text-white">دُنگ</h2><p className="text-white/75 mt-1">حساب‌کتاب مشترک، ساده و شفاف — کی به کی چقدر بدهکاره؟</p></div>
         <div className="bg-white rounded-3xl p-4 self-start shadow-2xl"><QRCodeSVG value={url} size={150} level="M" fgColor="#0e3b52" /></div>
         <p className="text-white/70 text-sm -mt-2">با گوشی اسکن کن تا همین‌جا روی موبایل باز شود.</p>
         <div className="flex flex-col gap-2">
-          <button onClick={downloadApk} className="btn-primary !min-h-11 text-sm justify-center"><Download size={16} /> دانلود اپ اندروید</button>
+          <StoreBadges light />
+          <button onClick={downloadApk} className="btn-ghost !min-h-11 text-sm justify-center bg-white/10 text-white border-white/20"><Download size={16} /> دانلود مستقیم (APK)</button>
           <button onClick={() => setIos(true)} className="btn-ghost !min-h-11 text-sm justify-center bg-white/10 text-white border-white/20"><PlusSquare size={16} /> نصب روی آیفون (وب‌اپ)</button>
         </div>
       </div>

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { latestApk, downloadApk, isNewer, APP_VERSION } from '@/lib/install';
 import { useNavigate } from 'react-router-dom';
-import { Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone, Bell, BookOpen } from 'lucide-react';
+import { Download, Camera, LogOut, Moon, Sun, Monitor, Volume2, VolumeX, KeyRound, CreditCard, Info, Server, Smartphone, Bell, BookOpen } from 'lucide-react';
+import { StoreBadges } from '@/features/install/StoreBadges';
 import { Capacitor } from '@capacitor/core';
 import { formatCardNumber, cardNumberError, detectBank, normalizeCardNumber } from '@dong/core';
 import { useStore, type Theme } from '@/app/store';
@@ -100,7 +101,8 @@ export function ProfilePage() {
           <Row icon={<Info size={18} />} label="نمایش دوباره راهنماهای کوتاه" onClick={() => { setSettings({ tours: {} }); toast('راهنماها دوباره نمایش داده می‌شوند', 'ok'); }} />
           {dev && <Row icon={<Server size={18} />} label="حالت توسعه‌دهنده: سرور" sub={settings.apiUrl ? `سرور: ${settings.apiUrl}` : 'بدون سرور (همگام‌سازی رمزنگاری‌شده)'} onClick={() => setApiOpen(true)} />}
           {!Capacitor.isNativePlatform()
-            ? <Row icon={<Smartphone size={18} />} label="دانلود اپ اندروید" sub={latest ? `نسخه ${latest.version} — نصب مستقیم` : 'نصب مستقیم — سریع‌تر و با اعلان'} onClick={downloadApk} />
+            ? <><div className="px-3 py-3"><div className="text-sm font-bold mb-2 flex items-center gap-2"><Smartphone size={18} className="text-brand" /> اپ اندروید دُنگ</div><StoreBadges compact /></div>
+              <Row icon={<Download size={18} />} label="دانلود مستقیم (APK)" sub={latest ? `نسخه ${latest.version} — از سایت دُنگ` : 'از سایت دُنگ'} onClick={downloadApk} /></>
             : <Row icon={<Smartphone size={18} />} label={latest && isNewer(latest.version, APP_VERSION) ? `نسخه جدید ${latest.version} آماده است` : 'بررسی نسخه جدید'} sub={latest ? (isNewer(latest.version, APP_VERSION) ? 'برای دانلود بزن' : `نسخه ${APP_VERSION} — آخرین نسخه را داری`) : 'اتصال به مخزن…'} onClick={() => { if (latest && isNewer(latest.version, APP_VERSION)) void downloadApk(); else toast(latest ? 'آخرین نسخه را داری' : 'در دسترس نیست — بعداً امتحان کن', 'info'); }} />}
           <Row icon={<Info size={18} />} label="درباره دُنگ" sub={`نسخه ${import.meta.env.VITE_APP_VERSION ?? "1.0.0"} · build ${typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev"}`} onClick={() => { const n = (tapRef.current += 1); if (n >= 7) { tapRef.current = 0; const on = localStorage.getItem('dong.dev') !== '1'; localStorage.setItem('dong.dev', on ? '1' : '0'); setDev(on); toast(on ? 'حالت توسعه‌دهنده فعال شد' : 'حالت توسعه‌دهنده خاموش شد', 'info'); } }} />
         </div>
