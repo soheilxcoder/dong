@@ -4,7 +4,7 @@
 import fs from 'fs'; import path from 'path';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 const chapters = JSON.parse(fs.readFileSync(path.join(root, 'tools/docs/guide.json'), 'utf8'));
-const SITE = 'https://products.arounidea.com/dong/';
+const SITE = 'https://dong.arounidea.com/';
 const faq = [
   ['اپ پول جابه‌جا می‌کند؟', 'نه. دُنگ فقط حساب‌کتاب می‌کند و می‌گوید چه‌کسی به چه‌کسی چقدر بدهد. پرداخت را خودتان کارت‌به‌کارت می‌کنید و در اپ «ثبت پرداخت» می‌زنید.'],
   ['اگر اینترنت نداشته باشم؟', 'همه‌چیز آفلاین کار می‌کند و روی گوشی ذخیره می‌شود؛ به محض وصل شدن، با اعضای گروه همگام می‌شود.'],

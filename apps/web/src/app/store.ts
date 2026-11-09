@@ -8,7 +8,7 @@ export type Theme = 'dark' | 'light' | 'system';
 
 interface Settings { theme: Theme; sound: boolean; notifications: boolean; onboarded: boolean; apiUrl: string; tours: Record<string, boolean> }
 /** The dedicated Dong server (PHP + SQLite, see /api). Builds may override with VITE_API_URL; "local" = offline/relay mode. */
-export const DEFAULT_API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://products.arounidea.com/dong/api';
+export const DEFAULT_API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://dong.arounidea.com/api';
 const loadSettings = (): Settings => {
   const saved = JSON.parse(localStorage.getItem('dong.settings') ?? '{}') as Partial<Settings>;
   // apiUrl semantics: undefined/'' → use the built-in server; 'local' → explicit offline mode (dev only); anything else → custom server

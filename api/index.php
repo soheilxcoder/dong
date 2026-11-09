@@ -1,7 +1,7 @@
 <?php
 /**
  * دُنگ — Dong API (PHP edition, zero dependencies: PHP ≥ 7.4 + PDO SQLite).
- * Same contract as apps/api (Node). Deployed with the static site at <site>/dong/api/.
+ * Same contract as apps/api (Node). Deployed with the static site at <site>/api/.
  * Data (SQLite + uploads) lives OUTSIDE the web root when possible: <docroot>/../dong-data
  */
 declare(strict_types=1);

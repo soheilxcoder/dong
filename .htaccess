@@ -1,17 +1,17 @@
-# Plesk / Apache: this repository is deployed to <domain>/httpdocs/dong
+# Plesk / Apache: this repository is deployed to the document root of https://dong.arounidea.com/
 # Serve the pre-built static app from deploy/dong/ and hide everything else.
 Options -Indexes
 RewriteEngine On
-RewriteBase /dong/
+RewriteBase /
 
 # Block source folders and dotfiles
 RewriteRule ^(\.git|\.github|apps|packages|scripts|tools|docs-src|store-assets|release-keys|node_modules|package(-lock)?\.json|tsconfig.*|\.htaccess)(/|$) - [R=404,L]
 
-# /dong/api/* is the PHP API (api/index.php) and /dong/apk/* the Android build (branch apk-release) — leave them alone
-RewriteCond %{REQUEST_URI} !^/dong/api(/|$)
-RewriteCond %{REQUEST_URI} !^/dong/apk(/|$)
-# Everything else under /dong/* is served from /dong/deploy/dong/*
-RewriteCond %{REQUEST_URI} !^/dong/deploy/dong/
+# /api/* is the PHP API (api/index.php) and /apk/* the Android build (branch apk-release) — leave them alone
+RewriteCond %{REQUEST_URI} !^/api(/|$)
+RewriteCond %{REQUEST_URI} !^/apk(/|$)
+# Everything else is served from /deploy/dong/*
+RewriteCond %{REQUEST_URI} !^/deploy/dong/
 RewriteRule ^(.*)$ deploy/dong/$1 [L]
 
 # Correct MIME + no-cache for entry points, long cache for hashed assets

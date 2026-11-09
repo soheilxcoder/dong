@@ -1,5 +1,5 @@
 // Documentation screenshots — every screen of the app, saved small (JPEG) for the user guide.
-// 1) build web:  VITE_BASE=/ VITE_PUBLIC_URL=https://products.arounidea.com/dong/ npm run build -w @dong/web
+// 1) build web:  VITE_BASE=/ VITE_PUBLIC_URL=https://dong.arounidea.com/ npm run build -w @dong/web
 // 2) run:        npm run shots:docs
 // Output: apps/web/public/guide/img/*.jpg (also used by docs-src/USER_GUIDE.md)
 import { createRequire } from 'module'; import path from 'path'; import fs from 'fs'; import http from 'http';

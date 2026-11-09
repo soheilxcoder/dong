@@ -1,6 +1,6 @@
 name: Build static sites (deploy/dong for Plesk, docs/ for GitHub Pages)
 
-# Builds the web app for https://products.arounidea.com/dong/ and commits the
+# Builds the web app for https://dong.arounidea.com/ and commits the
 # result into deploy/dong/ on the SAME branch, so a Plesk "Git" repository can
 # simply pull this branch and serve it — no Node.js needed on the host.
 
@@ -23,8 +23,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SITE_URL: https://products.arounidea.com/dong/
-  BASE_PATH: /dong/
+  SITE_URL: https://dong.arounidea.com/
+  BASE_PATH: /
 
 jobs:
   build:

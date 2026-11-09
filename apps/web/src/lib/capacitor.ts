@@ -27,7 +27,7 @@ export function initNative(navigate: (path: string) => void) {
   syncSystemBars(document.documentElement.classList.contains('dark'));
   SplashScreen.hide().catch(() => {});
   const openUrl = (url: string) => {
-    // https://products.arounidea.com/dong/#/join/TOKEN?s=SNAPSHOT  or  dong://join/TOKEN?s=...
+    // https://dong.arounidea.com/#/join/TOKEN?s=SNAPSHOT  or  dong://join/TOKEN?s=...
     const i = url.indexOf('#/');
     if (i >= 0) { navigate(url.slice(i + 1)); return; }
     const m = url.match(/join\/([A-Za-z0-9_-]+)(\?[^#]*)?/);

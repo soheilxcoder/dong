@@ -1,7 +1,7 @@
-# Dong API — every request under /dong/api/ goes through index.php
+# Dong API — every request under /api/ goes through index.php
 Options -Indexes
 RewriteEngine On
-RewriteBase /dong/api/
+RewriteBase /api/
 # keep the Authorization header for PHP (CGI/FPM setups strip it otherwise)
 RewriteCond %{HTTP:Authorization} .
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

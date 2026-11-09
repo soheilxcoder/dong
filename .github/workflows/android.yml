@@ -32,7 +32,7 @@ jobs:
         run: npm run build
         env:
           VITE_BASE: /
-          VITE_PUBLIC_URL: https://products.arounidea.com/dong/
+          VITE_PUBLIC_URL: https://dong.arounidea.com/
           VITE_RT_URL: ${{ vars.RT_URL }}
           VITE_APP_VERSION: ${{ env.VERSION_NAME }}
           # Real Tapsell zone ids come from repo secrets; without them Tapsell TEST zones are used.
@@ -95,8 +95,8 @@ jobs:
             Dong-*.apk
             Dong-*.aab
 
-      # ---- publish to the owner's own host: orphan branch `apk-release` → Plesk deploys it to /dong/apk ----
-      - name: Publish APK to apk-release branch (served from products.arounidea.com/dong/apk/)
+      # ---- publish to the owner's own host: orphan branch `apk-release` → Plesk deploys it to /apk ----
+      - name: Publish APK to apk-release branch (served from dong.arounidea.com/apk/)
         # Only for real releases: manual run, or a commit message containing [apk] — keeps the branch small
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[apk]')
         env:
@@ -109,7 +109,7 @@ jobs:
           cd /tmp/apk
           cp "$GITHUB_WORKSPACE/Dong-${VERSION_NAME}.apk" .
           cat > latest.json <<EOF
-          {"name":"دُنگ","version":"${VERSION_NAME}","versionCode":${VERSION_CODE},"file":"Dong-${VERSION_NAME}.apk","url":"https://products.arounidea.com/dong/apk/Dong-${VERSION_NAME}.apk","date":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","commit":"${GITHUB_SHA::7}","signing":"$([ -n "${{ secrets.ANDROID_KEYSTORE_B64 }}" ] && echo upload-key || echo temporary)"}
+          {"name":"دُنگ","version":"${VERSION_NAME}","versionCode":${VERSION_CODE},"file":"Dong-${VERSION_NAME}.apk","url":"https://dong.arounidea.com/apk/Dong-${VERSION_NAME}.apk","date":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","commit":"${GITHUB_SHA::7}","signing":"$([ -n "${{ secrets.ANDROID_KEYSTORE_B64 }}" ] && echo upload-key || echo temporary)"}
           EOF
           cat > .htaccess <<'EOF'
           Options -Indexes
@@ -145,7 +145,7 @@ jobs:
           name: دُنگ ${{ env.VERSION_NAME }}
           body: |
             `Dong-${{ env.VERSION_NAME }}.apk` — نصب مستقیم روی اندروید (و برای کافه‌بازار/مایکت). `Dong-${{ env.VERSION_NAME }}.aab` — برای Google Play.
-            نسخه وب: https://products.arounidea.com/dong/
+            نسخه وب: https://dong.arounidea.com/
           prerelease: false
           files: |
             Dong-${{ env.VERSION_NAME }}.apk

@@ -9,11 +9,11 @@
 ## مرحله ۱ — آپلود فایل
 | | |
 |---|---|
-| فایل | آخرین `Dong-<نسخه>.apk` از https://products.arounidea.com/dong/apk/ (همان فایلی که کاربران دانلود می‌کنند) |
+| فایل | آخرین `Dong-<نسخه>.apk` از https://dong.arounidea.com/apk/ (همان فایلی که کاربران دانلود می‌کنند) |
 | نام پکیج | `ir.dong.app` |
 | حداقل اندروید | 5.1 (API 22) |
 
-⚠️ **قبل از آپلود حتماً** secrets امضا (`ANDROID_KEYSTORE_B64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` از `release-keys/SECRETS.txt`) در GitHub ست شده باشد و در `https://products.arounidea.com/dong/apk/latest.json` نوشته باشد `"signing":"upload-key"` (از نسخهٔ 1.0.52 به بعد ✅). بازار هر به‌روزرسانی را فقط با **همان کلید** اولین نسخه قبول می‌کند؛ اگر با کلید موقت آپلود کنی، دیگر نمی‌توانی آپدیت بدهی.
+⚠️ **قبل از آپلود حتماً** secrets امضا (`ANDROID_KEYSTORE_B64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` از `release-keys/SECRETS.txt`) در GitHub ست شده باشد و در `https://dong.arounidea.com/apk/latest.json` نوشته باشد `"signing":"upload-key"` (از نسخهٔ 1.0.52 به بعد ✅). بازار هر به‌روزرسانی را فقط با **همان کلید** اولین نسخه قبول می‌کند؛ اگر با کلید موقت آپلود کنی، دیگر نمی‌توانی آپدیت بدهی.
 
 ## مرحله ۲ — اطلاعات پایه
 | فیلد | مقدار |
@@ -65,7 +65,7 @@
 
 دُنگ را برای سفر بعدی نصب کن تا دیگر هیچ‌کس نگوید «من که سهمم رو دادم!» 😄
 
-سیاست حفظ حریم خصوصی: https://products.arounidea.com/dong/privacy.html
+سیاست حفظ حریم خصوصی: https://dong.arounidea.com/privacy.html
 ```
 
 **توضیح کامل انگلیسی (اختیاری):**
@@ -82,7 +82,7 @@ Dong makes group expenses painless. Whoever pays, logs it in two taps; everyone'
 • "Settle" page: all debts and credits across groups in one place
 • Persian-first UI, Jalali calendar, full dark mode, realtime sync
 
-Privacy policy: https://products.arounidea.com/dong/privacy.html
+Privacy policy: https://dong.arounidea.com/privacy.html
 ```
 
 **تغییرات این نسخه (What's new):**
@@ -101,9 +101,9 @@ Privacy policy: https://products.arounidea.com/dong/privacy.html
 | فیلد | مقدار |
 |---|---|
 | ایمیل (اجباری) | ایمیل خودت — همان ایمیل ثبت‌نام بازار کافی است |
-| وب‌سایت | `https://products.arounidea.com/dong/` |
+| وب‌سایت | `https://dong.arounidea.com/` |
 | تلفن | اختیاری — خالی بگذار |
-| آدرس سیاست حریم خصوصی | `https://products.arounidea.com/dong/privacy.html` |
+| آدرس سیاست حریم خصوصی | `https://dong.arounidea.com/privacy.html` |
 
 ## مرحله ۶ — آپلود تصاویر و آیکون
 | فایل در این پوشه | کاربرد | مشخصات |
@@ -136,6 +136,6 @@ Privacy policy: https://products.arounidea.com/dong/privacy.html
 
 ## بازتولید اسکرین‌شات‌ها (برای من)
 ```
-VITE_BASE=/ VITE_PUBLIC_URL=https://products.arounidea.com/dong/ npm run build -w @dong/web
+VITE_BASE=/ VITE_PUBLIC_URL=https://dong.arounidea.com/ npm run build -w @dong/web
 npm run shots        # → store-assets/screenshots/*.png (Play) + bazaar/screenshots/*.jpg + feature-graphic (خودکار)
 ```

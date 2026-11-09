@@ -3,9 +3,9 @@
   <h1>دُنگ — Dong</h1>
   <p><b>حساب‌کتاب مشترک، ساده و شفاف.</b><br/>اپلیکیشن تقسیم هزینهٔ گروهی برای سفر، خانهٔ مشترک و دورهمی‌ها.</p>
   <p>
-    🌐 <a href="https://products.arounidea.com/dong/">نسخهٔ وب</a> ·
-    📲 <a href="https://products.arounidea.com/dong/apk/">دانلود اپ اندروید</a> ·
-    📖 <a href="https://products.arounidea.com/dong/guide/">راهنمای تصویری کاربر</a>
+    🌐 <a href="https://dong.arounidea.com/">نسخهٔ وب</a> ·
+    📲 <a href="https://dong.arounidea.com/apk/">دانلود اپ اندروید</a> ·
+    📖 <a href="https://dong.arounidea.com/guide/">راهنمای تصویری کاربر</a>
   </p>
 </div>
 
@@ -45,7 +45,7 @@ tools/              اسکریپت‌های تولید اسکرین‌شات، �
 ```
 
 ## انتشار (خودکار)
-- هر push روی شاخهٔ کاری → `plesk.yml` بیلد وب را در `deploy/dong` می‌گذارد و Plesk آن را روی `products.arounidea.com/dong` می‌کشد.
+- هر push روی شاخهٔ کاری → `plesk.yml` بیلد وب را در `deploy/dong` می‌گذارد و Plesk آن را روی `dong.arounidea.com` می‌کشد.
 - `android.yml` فایل امضاشدهٔ `Dong-<نسخه>.apk` (+ `.aab` برای Play) را می‌سازد و روی برنچ `apk-release` می‌گذارد؛ Plesk آن را در `/dong/apk` منتشر می‌کند. اپ از `/apk/latest.json` نسخهٔ جدید را می‌فهمد.
 
 ## توسعه
@@ -53,7 +53,7 @@ tools/              اسکریپت‌های تولید اسکرین‌شات، �
 npm ci
 npm run dev -w @dong/web                       # وب
 npx vitest run --root packages/core            # تست‌های موتور بدهی
-VITE_BASE=/ VITE_PUBLIC_URL=https://products.arounidea.com/dong/ npm run build -w @dong/web
+VITE_BASE=/ VITE_PUBLIC_URL=https://dong.arounidea.com/ npm run build -w @dong/web
 npm run shots        # اسکرین‌شات‌های استور   → store-assets/screenshots
 npm run shots:docs   # اسکرین‌شات‌های راهنما   → apps/web/public/guide/img
 node tools/docs/build-guide.mjs   # ساخت guide/index.html و docs-src/USER_GUIDE.md

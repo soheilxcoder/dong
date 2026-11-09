@@ -1,4 +1,4 @@
-name: Live two-browser e2e (products.arounidea.com)
+name: Live two-browser e2e (dong.arounidea.com)
 
 # Runs the real two-user scenario against the LIVE site (creates throw-away accounts named e2e_*), reports timings as annotations.
 on:
@@ -22,7 +22,7 @@ jobs:
         run: |
           CHROME=$(node -e "console.log(require('puppeteer').executablePath())")
           echo "chrome=$CHROME"
-          CHROME=$CHROME node tools/qa/e2e-two-users.mjs https://products.arounidea.com/dong/ || true
+          CHROME=$CHROME node tools/qa/e2e-two-users.mjs https://dong.arounidea.com/ || true
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: e2e-shots, path: /tmp/e2e, if-no-files-found: ignore }
