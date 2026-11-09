@@ -1,0 +1,12 @@
+Options -Indexes
+AddType application/vnd.android.package-archive .apk
+<IfModule mod_headers.c>
+  <FilesMatch "\.apk$">
+    Header set Content-Disposition "attachment"
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+  <FilesMatch "^latest\.json$">
+    Header set Cache-Control "no-cache, must-revalidate"
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+</IfModule>
