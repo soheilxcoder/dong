@@ -1,7 +1,7 @@
-name: Build static sites (deploy/dong for Plesk, docs/ for GitHub Pages)
+name: Build static site for Plesk (repo root)
 
 # Builds the web app for https://dong.arounidea.com/ and commits the
-# result into deploy/dong/ on the SAME branch, so a Plesk "Git" repository can
+# result into the root of the SAME branch, so a Plesk "Git" repository can
 # simply pull this branch and serve it — no Node.js needed on the host.
 
 on:
@@ -45,18 +45,23 @@ jobs:
           VITE_BASE: ${{ env.BASE_PATH }}
           VITE_PUBLIC_URL: ${{ env.SITE_URL }}
           VITE_RT_URL: ${{ vars.RT_URL }}
-      - name: Stage into deploy/dong
+      # The built site lives at the REPO ROOT (Plesk deploys the repo straight into the document root and
+      # nginx serves static files without consulting .htaccess, so no rewrite tricks are possible).
+      # DEPLOYED_FILES.txt remembers what was copied last time so stale build files are removed first.
+      - name: Stage build into repo root
         run: |
-          rm -rf deploy/dong && mkdir -p deploy/dong
-          cp -r apps/web/dist/. deploy/dong/
-          cp apps/web/dist/index.html deploy/dong/404.html
-          echo "${{ github.sha }}" > deploy/dong/BUILD.txt
-          date -u +%Y-%m-%dT%H:%M:%SZ >> deploy/dong/BUILD.txt
+          rm -rf deploy
+          if [ -f DEPLOYED_FILES.txt ]; then while read -r f; do [ -n "$f" ] && rm -rf -- "$f"; done < DEPLOYED_FILES.txt; fi
+          cp apps/web/dist/index.html apps/web/dist/404.html
+          echo "${{ github.sha }}" > apps/web/dist/BUILD.txt
+          date -u +%Y-%m-%dT%H:%M:%SZ >> apps/web/dist/BUILD.txt
+          (cd apps/web/dist && ls -A) > DEPLOYED_FILES.txt
+          cp -r apps/web/dist/. ./
       - name: Commit & push
         run: |
           git config user.name  "dong-bot"
           git config user.email "dong-bot@users.noreply.github.com"
-          git add -A deploy/dong
+          git add -A -- . ':!apps' ':!node_modules'
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi
           git commit -m "deploy(plesk): static build ${GITHUB_SHA::7} [skip plesk] [skip ci]"
           git pull --rebase origin "${GITHUB_REF_NAME}" || true

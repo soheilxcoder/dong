@@ -1,8 +1,0 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "ir.dong.app",
-    "sha256_cert_fingerprints": ["FE:B2:30:5E:8A:26:33:14:EE:B4:AE:8C:85:A1:DB:33:AD:06:D3:37:C0:77:8A:4E:7C:E8:92:9F:C5:95:8D:4A"]
-  }
-}]
