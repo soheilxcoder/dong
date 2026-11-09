@@ -109,7 +109,7 @@ await B.click('[data-tour="tab-activity"]'); await sleep(500);
 step('B: activity log has join + expense + payment', /پیوست/.test(await text(B)) && /شام ساحلی/.test(await text(B)) && /پرداخت/.test(await text(B)));
 // ---------- profile buttons ----------
 await A.goto(BASE + '#/profile', { waitUntil: 'networkidle0' }); await sleep(600);
-step('A: profile has download row', /دانلود اپ اندروید/.test(await text(A)));
+step('A: profile has store badges + direct APK', /کافه‌بازار/.test(await text(A)) && /مایکت/.test(await text(A)) && /دانلود مستقیم/.test(await text(A)));
 await click(A, /راهنمای استفاده/); await sleep(500); step('A: help opens with full guide link', /راهنمای کامل تصویری/.test(await text(A))); await A.keyboard.press('Escape'); await sleep(300);
 await click(A, /تغییر رمز/); await sleep(500); step('A: change-password sheet has eye buttons', (await A.$$('button[aria-label="نمایش رمز"]')).length >= 2); await A.keyboard.press('Escape');
 // ---------- join/paste + scanner ----------
