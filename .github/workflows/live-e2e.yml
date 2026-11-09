@@ -19,8 +19,8 @@ jobs:
       - name: Probe live site
         run: |
           for u in https://dong.arounidea.com/ https://dong.arounidea.com/BUILD.txt https://dong.arounidea.com/api/ https://dong.arounidea.com/apk/latest.json https://dong.arounidea.com/.well-known/assetlinks.json https://dong.arounidea.com/guide/ http://dong.arounidea.com/; do
-            code=$(curl -sk -o /tmp/body -w '%{http_code}' --max-time 20 "$u" || echo ERR); echo "::notice title=$u::HTTP $code :: $(head -c 160 /tmp/body | tr '\n' ' ')"; done
-          echo "::notice title=dns::$(getent hosts dong.arounidea.com || echo no-dns)"
+            code=$(curl -sk --resolve dong.arounidea.com:443:185.192.112.49 --resolve dong.arounidea.com:80:185.192.112.49 -o /tmp/body -w '%{http_code}' --max-time 20 "$u" || echo ERR); echo "::notice title=$u::HTTP $code :: $(head -c 160 /tmp/body | tr '\n' ' ')"; done
+          echo "::notice title=dns::$(getent hosts dong.arounidea.com || echo no-dns) / 1.1.1.1 says: $(curl -s 'https://1.1.1.1/dns-query?name=dong.arounidea.com&type=A' -H 'accept: application/dns-json' | head -c 300) / 8.8.8.8 says: $(curl -s 'https://dns.google/resolve?name=dong.arounidea.com&type=A' | head -c 300)"
       - name: Run against live site
         env:
           RT_STATS: ${{ vars.RT_URL != '' && format('{0}/stats', vars.RT_URL) || '' }}
