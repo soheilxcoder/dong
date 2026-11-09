@@ -10,7 +10,7 @@ process.on('uncaughtException', (e) => { console.log('CRASH ' + (e && e.stack ||
 process.on('unhandledRejection', (e) => { console.log('CRASH ' + (e && e.stack || e)); report(); process.exit(2); });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = []; const step = (name, ok, extra = '') => { results.push([ok, name, extra]); console.log((ok ? '✅' : '❌') + ' ' + name + (extra ? ' — ' + extra : '')); };
-const b = await puppeteer.launch({ executablePath: process.env.CHROME || root + '/.cache/chromium/chromium', args: ['--no-sandbox', '--disable-gpu', '--no-zygote', '--font-render-hinting=none'] });
+const b = await puppeteer.launch({ executablePath: process.env.CHROME || root + '/.cache/chromium/chromium', args: ['--no-sandbox', '--disable-gpu', '--no-zygote', '--font-render-hinting=none', ...(process.env.HOST_RULES ? ['--host-resolver-rules=' + process.env.HOST_RULES] : [])] });
 const mk = async (tag) => {
   const ctx = await b.createBrowserContext(); const p = await ctx.newPage();
   await p.setViewport({ width: 412, height: 892, deviceScaleFactor: 1.5, isMobile: true, hasTouch: true }); await p.emulateTimezone('Asia/Tehran');

@@ -20,7 +20,7 @@ jobs:
         run: |
           for u in https://dong.arounidea.com/ https://dong.arounidea.com/BUILD.txt https://dong.arounidea.com/api/ https://dong.arounidea.com/apk/latest.json https://dong.arounidea.com/.well-known/assetlinks.json https://dong.arounidea.com/guide/ http://dong.arounidea.com/; do
             code=$(curl -sk --resolve dong.arounidea.com:443:185.192.112.49 --resolve dong.arounidea.com:80:185.192.112.49 -o /tmp/body -w '%{http_code}' --max-time 20 "$u" || echo ERR); echo "::notice title=$u::HTTP $code :: $(head -c 160 /tmp/body | tr '\n' ' ')"; done
-          for u in / /index.html /guide/ /guide/index.html /.well-known/assetlinks.json /icons/icon-192.png /404.html /nope; do
+          for u in /.well-known/assetlinks.json /apk/ /apk/latest.json /icons/icon-192.png /nope; do
             out=$(curl -sk --http1.1 --resolve dong.arounidea.com:443:185.192.112.49 -o /tmp/b2 -D - --max-time 25 -w 'CODE=%{http_code} T=%{time_total} SIZE=%{size_download} ERR=%{errormsg}' "https://dong.arounidea.com$u" 2>&1 | tr '\r\n' '  ' | head -c 600); echo "::notice title=v$u::$out"; done
           echo "::notice title=dns::$(getent hosts dong.arounidea.com || echo no-dns) / 1.1.1.1 says: $(curl -s 'https://1.1.1.1/dns-query?name=dong.arounidea.com&type=A' -H 'accept: application/dns-json' | head -c 300) / 8.8.8.8 says: $(curl -s 'https://dns.google/resolve?name=dong.arounidea.com&type=A' | head -c 300)"
       - name: Run against live site
@@ -29,7 +29,7 @@ jobs:
         run: |
           CHROME=$(node -e "console.log(require('puppeteer').executablePath())")
           echo "chrome=$CHROME"
-          CHROME=$CHROME node tools/qa/e2e-two-users.mjs https://dong.arounidea.com/ || true
+          HOST_RULES="MAP dong.arounidea.com 185.192.112.49" CHROME=$CHROME node tools/qa/e2e-two-users.mjs https://dong.arounidea.com/ || true
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: e2e-shots, path: /tmp/e2e, if-no-files-found: ignore }
