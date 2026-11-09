@@ -16,6 +16,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm i --no-audit --no-fund puppeteer@23
+      - name: Probe live site
+        run: |
+          for u in https://dong.arounidea.com/ https://dong.arounidea.com/BUILD.txt https://dong.arounidea.com/api/ https://dong.arounidea.com/apk/latest.json https://dong.arounidea.com/.well-known/assetlinks.json https://dong.arounidea.com/guide/ http://dong.arounidea.com/; do
+            code=$(curl -sk -o /tmp/body -w '%{http_code}' --max-time 20 "$u" || echo ERR); echo "::notice title=$u::HTTP $code :: $(head -c 160 /tmp/body | tr '\n' ' ')"; done
+          echo "::notice title=dns::$(getent hosts dong.arounidea.com || echo no-dns)"
       - name: Run against live site
         env:
           RT_STATS: ${{ vars.RT_URL != '' && format('{0}/stats', vars.RT_URL) || '' }}
